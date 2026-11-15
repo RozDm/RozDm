@@ -1,0 +1,74 @@
+{
+  "name": "portfolio",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "prebuild": "node scripts/build-world-svg.mjs",
+    "build": "next build",
+    "postbuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/finalize-export.mjs",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "npm run cf-typecheck && tsc --noEmit && tsc -p tsconfig.worker.json",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "cf-typegen": "wrangler types",
+    "cf-typecheck": "wrangler types --check",
+    "check:dict": "n=$(grep -l 'Hopp til hovedinnhold' out/_next/static/chunks/*.js | wc -l); [ \"$n\" -eq 1 ] || { echo \"UI dictionary in $n chunks, want 1 (docs/gotchas.md: turbopackChunking)\"; exit 1; }",
+    "predeploy": "npm run check",
+    "deploy": "npm run build && wrangler deploy",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "check:waf": "node scripts/check-waf.mjs",
+    "check:csp": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-csp.mjs",
+    "diagrams": "node scripts/build-diagrams.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.20",
+    "gray-matter": "^4.0.3",
+    "highlight.js": "~11.11.1",
+    "lowlight": "^3.3.0",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@fontsource-variable/intel-one-mono": "^5.3.0",
+    "@fontsource/intel-one-mono": "^5.3.0",
+    "@playwright/test": "1.64.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.3",
+    "playwright-core": "1.64.1",
+    "prettier": "3.10.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.5",
+    "world-map-country-shapes": "^1.0.0",
+    "wrangler": "^4.156.1"
+  },
+  "overrides": {
+    "@tailwindcss/typography": {
+      "postcss-selector-parser": "^6.1.5"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    }
+  }
+}

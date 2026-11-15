@@ -1,0 +1,279 @@
+// The Worker entry (src/index.ts): request dispatch, the two crons, and the
+// two cached GET routes that had no route test — /api/status and
+// /api/timeseries, whose "cache only a real answer" rules each fixed an
+// incident (an empty snapshot or chart pinned at the edge).
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import worker from '../../src/index'
+import { CONTACT_PRUNE_CRON } from '../../src/contact'
+import { HEADER_CSP } from '../../src/csp'
+import { handleStatus } from '../../src/routes/status'
+import { handleTimeseries } from '../../src/routes/timeseries'
+import { makeCtx, makeEnv } from './fakes'
+import wranglerConfig from '../../wrangler.jsonc?raw'
+
+const ORIGIN = 'https://rozsoshnykh.no'
+const HEALTH_CRON = '*/5 * * * *'
+
+// Edge cache stand-in: records each put's key; never hits.
+const puts: string[] = []
+function stubCache() {
+  puts.length = 0
+  vi.stubGlobal('caches', {
+    default: { match: async () => undefined, put: async (key: Request) => void puts.push(key.url) },
+  })
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
+
+async function runCron(fake: ReturnType<typeof makeEnv>, cron: string) {
+  const { ctx, settle } = makeCtx()
+  await worker.scheduled!({ cron, scheduledTime: Date.now(), noRetry: () => {} } as ScheduledController, fake.env, ctx)
+  await settle()
+}
+
+async function dispatch(fake: ReturnType<typeof makeEnv>, url: string, init?: RequestInit) {
+  const { ctx } = makeCtx()
+  return worker.fetch!(new Request(url, init) as Parameters<NonNullable<typeof worker.fetch>>[0], fake.env, ctx)
+}
+
+describe('fetch dispatch', () => {
+  it('sends plain HTTP to HTTPS, without HSTS on the insecure answer', async () => {
+    const res = await dispatch(makeEnv(), 'http://rozsoshnykh.no/api/status')
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe(`${ORIGIN}/api/status`)
+    expect(res.headers.get('strict-transport-security')).toBeNull()
+  })
+
+  it('sends www to the apex', async () => {
+    const res = await dispatch(makeEnv(), 'https://www.rozsoshnykh.no/api/geo?x=1')
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe(`${ORIGIN}/api/geo?x=1`)
+    expect(res.headers.get('strict-transport-security')).toContain('max-age=')
+  })
+
+  it('answers an /api/ path no route claims with the 404 page and the _headers set', async () => {
+    const res = await dispatch(makeEnv(), `${ORIGIN}/api/nope`)
+    expect(res.status).toBe(404)
+    expect(res.headers.get('content-security-policy')).toBe(HEADER_CSP)
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff')
+    expect(res.headers.get('strict-transport-security')).toContain('max-age=')
+  })
+})
+
+describe('daily contact prune', () => {
+  it('is one of the crons wrangler.jsonc schedules', () => {
+    const crons = wranglerConfig.match(/"crons":\s*(\[[^\]]*\])/)?.[1]
+    expect(crons, 'crons array in wrangler.jsonc').toBeDefined()
+    expect(JSON.parse(crons!)).toEqual(expect.arrayContaining([CONTACT_PRUNE_CRON, HEALTH_CRON]))
+  })
+
+  it('deletes rows past the 30 days the privacy notice promises, and only those', async () => {
+    const fake = makeEnv()
+    const insert = fake.db.prepare('INSERT INTO contact (at, ip, name, email, message) VALUES (?1, ?2, ?3, ?4, ?5)')
+    const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString()
+    insert.run(daysAgo(31), '203.0.113.7', 'Old', 'old@example.no', 'Gammel melding her')
+    insert.run(daysAgo(29), '203.0.113.7', 'New', 'new@example.no', 'Ny melding her nå')
+    await runCron(fake, CONTACT_PRUNE_CRON)
+    const left = fake.db.prepare('SELECT name FROM contact').all() as { name: string }[]
+    expect(left.map((r) => r.name)).toEqual(['New'])
+  })
+})
+
+describe('5-minute health check', () => {
+  const answer = (status: number) => vi.fn(async () => new Response('', { status }))
+
+  it('writes a public snapshot to KV — results without monitor URLs', async () => {
+    vi.stubGlobal('fetch', answer(200))
+    const fake = makeEnv()
+    await runCron(fake, HEALTH_CRON)
+    const snap = JSON.parse(fake.kv.get('status')!)
+    expect(snap.results).toEqual([{ name: 'Grafana', ok: true, status: 200, ms: expect.any(Number) }])
+    expect(snap.history).toHaveLength(1)
+    expect(JSON.stringify(snap)).not.toContain('grafana.net')
+    expect(fake.sent).toHaveLength(0)
+  })
+
+  it('mails «nede» on the second failed probe in a row, not the first', async () => {
+    vi.stubGlobal('fetch', answer(200))
+    const fake = makeEnv()
+    await runCron(fake, HEALTH_CRON)
+    vi.stubGlobal('fetch', answer(503))
+    await runCron(fake, HEALTH_CRON)
+    expect(fake.sent).toHaveLength(0)
+    await runCron(fake, HEALTH_CRON)
+    expect(fake.sent).toHaveLength(1)
+    expect(fake.sent[0].raw).toContain('Subject: Status: Grafana er nede')
+  })
+
+  // A failed read used to count as "no snapshot yet": the tick then wrote a
+  // one-entry history over the 149 checks and forgot the outage it had
+  // already mailed, so the next failed probe mailed «nede» again.
+  it('skips the tick when the KV read fails: history and alert state survive', async () => {
+    const store = new Map<string, string>()
+    let down = false
+    const fake = makeEnv({
+      STATUS: {
+        get: async (key: string) => {
+          if (down) throw new Error('KV down')
+          return store.get(key) ?? null
+        },
+        put: async (key: string, value: string) => void store.set(key, value),
+      },
+    })
+    const probe = answer(503)
+    vi.stubGlobal('fetch', probe)
+    await runCron(fake, HEALTH_CRON)
+    await runCron(fake, HEALTH_CRON)
+    expect(fake.sent).toHaveLength(1)
+    const before = store.get('status')
+
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    down = true
+    probe.mockClear()
+    await runCron(fake, HEALTH_CRON)
+    expect(store.get('status')).toBe(before)
+    expect(probe).not.toHaveBeenCalled()
+    expect(error).toHaveBeenCalledWith('status: KV read failed, tick skipped', expect.any(Error))
+
+    down = false
+    await runCron(fake, HEALTH_CRON)
+    expect(JSON.parse(store.get('status')!).history).toHaveLength(3)
+    expect(fake.sent).toHaveLength(1)
+  })
+
+  // "Already mailed" lives in the snapshot: a mail sent without it would
+  // repeat on every tick while KV refuses writes.
+  it('holds the alert when the KV write fails, and mails it once on the next stored tick', async () => {
+    const store = new Map<string, string>()
+    let readOnly = false
+    const fake = makeEnv({
+      STATUS: {
+        get: async (key: string) => store.get(key) ?? null,
+        put: async (key: string, value: string) => {
+          if (readOnly) throw new Error('KV write refused')
+          store.set(key, value)
+        },
+      },
+    })
+    vi.stubGlobal('fetch', answer(503))
+    await runCron(fake, HEALTH_CRON)
+
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    readOnly = true
+    await runCron(fake, HEALTH_CRON)
+    await runCron(fake, HEALTH_CRON)
+    expect(fake.sent).toHaveLength(0)
+    expect(error).toHaveBeenCalledWith('status: KV write failed, alerts held', expect.any(Error))
+
+    readOnly = false
+    await runCron(fake, HEALTH_CRON)
+    await runCron(fake, HEALTH_CRON)
+    expect(fake.sent).toHaveLength(1)
+    expect(fake.sent[0].raw).toContain('Subject: Status: Grafana er nede')
+  })
+
+  it('a failed alert mail leaves a point the watchdog can read', async () => {
+    vi.stubGlobal('fetch', answer(503))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const fake = makeEnv()
+    fake.failMail(true)
+    await runCron(fake, HEALTH_CRON)
+    await runCron(fake, HEALTH_CRON)
+    expect(fake.sent).toHaveLength(0)
+    expect(fake.aePoints).toEqual([{ indexes: ['mailfail'], blobs: ['mailfail', 'status'], doubles: [1] }])
+  })
+
+  it('without the OWNER_INBOX secret an alert is a mailfail point and the snapshot is still written', async () => {
+    vi.stubGlobal('fetch', answer(503))
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const fake = makeEnv({ OWNER_INBOX: undefined })
+    await runCron(fake, HEALTH_CRON)
+    await runCron(fake, HEALTH_CRON)
+    expect(fake.sent).toHaveLength(0)
+    expect(log).toHaveBeenCalled()
+    expect(fake.aePoints).toEqual([{ indexes: ['mailfail'], blobs: ['mailfail', 'status'], doubles: [1] }])
+    expect(fake.kv.get('status')).toBeTruthy()
+  })
+})
+
+describe('/api/status', () => {
+  const url = new URL(`${ORIGIN}/api/status`)
+
+  it('serves the KV snapshot and edge-caches it', async () => {
+    stubCache()
+    const fake = makeEnv()
+    fake.kv.set('status', '{"updatedAt":"2026-10-23T08:00:00.000Z","results":[],"history":[]}')
+    const { ctx, settle } = makeCtx()
+    const res = (await handleStatus(url, fake.env, ctx))!
+    await settle()
+    expect(await res.json()).toMatchObject({ updatedAt: '2026-10-23T08:00:00.000Z' })
+    expect(puts).toEqual([url.href])
+  })
+
+  it('answers a KV failure with an empty, uncached snapshot, and logs it', async () => {
+    stubCache()
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const fake = makeEnv({ STATUS: { get: async () => Promise.reject(new Error('KV down')) } })
+    const { ctx, settle } = makeCtx()
+    const res = (await handleStatus(url, fake.env, ctx))!
+    await settle()
+    expect(await res.json()).toEqual({ results: [], history: [] })
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(puts).toEqual([])
+    expect(error).toHaveBeenCalledWith('status: KV read failed', expect.any(Error))
+  })
+})
+
+describe('/api/timeseries', () => {
+  const at = (q: string) => new URL(`${ORIGIN}/api/timeseries?${q}`)
+  const SECRETS = { CF_ACCOUNT_ID: 'acct', AE_API_TOKEN: 'token' }
+
+  async function get(fake: ReturnType<typeof makeEnv>, q: string) {
+    const { ctx, settle } = makeCtx()
+    const res = (await handleTimeseries(at(q), fake.env, ctx))!
+    await settle()
+    return res
+  }
+
+  it('refuses an unknown metric', async () => {
+    stubCache()
+    expect((await get(makeEnv(), 'metric=nope')).status).toBe(400)
+  })
+
+  it('without the AE secrets: an empty, degraded, briefly cached series', async () => {
+    stubCache()
+    const res = await get(makeEnv(), 'metric=geo&range=24h')
+    expect(await res.json()).toEqual({ metric: 'geo', range: '24h', points: [], degraded: true })
+    expect(res.headers.get('cache-control')).toBe('public, max-age=20, s-maxage=20')
+    expect(puts).toEqual([`${ORIGIN}/api/timeseries?metric=geo&range=24h`])
+  })
+
+  it('caches a real AE answer under the canonical key, junk params dropped', async () => {
+    stubCache()
+    const ae = vi.fn(async () => Response.json({ data: [{ ts: '2026-10-24 06:00:00', value: '2' }] }))
+    vi.stubGlobal('fetch', ae)
+    const res = await get(makeEnv(SECRETS), 'range=24h&x=1&metric=geo')
+    expect(await res.json()).toEqual({ metric: 'geo', range: '24h', points: [{ ts: '2026-10-24 06:00:00', value: 2 }] })
+    expect(puts).toEqual([`${ORIGIN}/api/timeseries?metric=geo&range=24h`])
+    const [aeUrl, init] = ae.mock.calls[0] as unknown as [string, RequestInit]
+    expect(aeUrl).toContain('/accounts/acct/analytics_engine/sql')
+    expect(String(init.body)).toContain("blob1 = 'geo'")
+  })
+
+  it('serves an AE failure degraded and caches it only 20 s', async () => {
+    stubCache()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{"errors":["forbidden"]}', { status: 403 })),
+    )
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = await get(makeEnv(SECRETS), 'metric=geo&range=7d')
+    expect(await res.json()).toEqual({ metric: 'geo', range: '7d', points: [], degraded: true })
+    expect(res.headers.get('cache-control')).toBe('public, max-age=20, s-maxage=20')
+    expect(puts).toEqual([`${ORIGIN}/api/timeseries?metric=geo&range=7d`])
+    expect(error).toHaveBeenCalledWith('timeseries: AE returned', 403, expect.any(String))
+  })
+})

@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "vitest.config.mts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  // src + worker-configuration.d.ts use the Workers runtime types, which clash
+  // with lib.dom — they are type-checked separately via tsconfig.worker.json.
+  // src/csp.ts, contact.ts, status.ts, metrics.ts and timeseries.ts are still
+  // checked here transitively (tests and app code import them); only
+  // DOM-compatible web APIs are allowed in those files.
+  "exclude": [
+    "node_modules",
+    "src",
+    // Route tests import Worker-typed modules; tsconfig.worker.json checks them.
+    "tests/worker",
+    "worker-configuration.d.ts",
+    "out"
+  ]
+}

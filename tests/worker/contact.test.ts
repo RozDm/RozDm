@@ -1,0 +1,293 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { handleContact } from '../../src/routes/contact'
+import { HONEYPOT_FIELD } from '../../src/contact'
+import { BROWSER_HEADERS, makeEnv } from './fakes'
+import wranglerConfig from '../../wrangler.jsonc?raw'
+
+const URL_ = new URL('https://rozsoshnykh.no/api/contact')
+const FORM = { name: 'Kari', email: 'kari@example.no', message: 'Hei! Dette er en test.' }
+
+function post(body: unknown, headers: Record<string, string> = BROWSER_HEADERS): Request {
+  return new Request(URL_, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...headers },
+    body: JSON.stringify(body),
+  })
+}
+
+async function send(fake: ReturnType<typeof makeEnv>, body: unknown = FORM, headers?: Record<string, string>) {
+  const res = (await handleContact(URL_, post(body, headers), fake.env))!
+  return { status: res.status, body: await res.json() }
+}
+
+function rows(fake: ReturnType<typeof makeEnv>): number {
+  return (fake.db.prepare('SELECT COUNT(*) AS n FROM contact').get() as { n: number }).n
+}
+
+// Insert a past submission directly, `at` in the same ISO form the route writes.
+function seed(fake: ReturnType<typeof makeEnv>, minutesAgo: number, over: Partial<typeof FORM & { ip: string }> = {}) {
+  const at = new Date(Date.now() - minutesAgo * 60_000).toISOString()
+  fake.db
+    .prepare('INSERT INTO contact (at, ip, name, email, message) VALUES (?1, ?2, ?3, ?4, ?5)')
+    .run(
+      at,
+      over.ip ?? BROWSER_HEADERS['cf-connecting-ip'],
+      FORM.name,
+      over.email ?? FORM.email,
+      over.message ?? FORM.message,
+    )
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
+
+// The owner's inbox is the OWNER_INBOX secret (the repo is public), so the
+// binding must not name an address.
+it("wrangler.jsonc's send_email has no destination address", () => {
+  expect(wranglerConfig).toMatch(/"send_email"/)
+  expect(wranglerConfig).not.toMatch(/"destination_address"/)
+})
+
+describe('POST /api/contact', () => {
+  it('stores the message and mails it', async () => {
+    const fake = makeEnv()
+    expect(await send(fake)).toEqual({ status: 200, body: { ok: true } })
+    expect(rows(fake)).toBe(1)
+    expect(fake.sent[0].to).toBe('owner@example.com')
+    expect(fake.sent).toHaveLength(1)
+    expect(fake.sent[0].raw).toContain('Reply-To: <kari@example.no>')
+  })
+
+  it('ignores paths and methods that are not its own', async () => {
+    const fake = makeEnv()
+    expect(await handleContact(new URL('https://rozsoshnykh.no/api/other'), post(FORM), fake.env)).toBeNull()
+    expect(await handleContact(URL_, new Request(URL_), fake.env)).toBeNull()
+  })
+
+  it('refuses cross-site and bot requests', async () => {
+    const fake = makeEnv()
+    expect((await send(fake, FORM, { ...BROWSER_HEADERS, 'sec-fetch-site': 'cross-site' })).status).toBe(403)
+    expect((await send(fake, FORM, { ...BROWSER_HEADERS, 'user-agent': 'curl/8.0' })).status).toBe(403)
+    expect(fake.sent).toHaveLength(0)
+  })
+
+  it('without Sec-Fetch-Site (Safari < 16.4), takes our own Origin only', async () => {
+    const fake = makeEnv()
+    const { 'sec-fetch-site': _, ...noFetchMeta } = BROWSER_HEADERS
+    expect((await send(fake, FORM, { ...noFetchMeta, origin: 'https://evil.example' })).status).toBe(403)
+    expect((await send(fake, FORM, noFetchMeta)).status).toBe(403)
+    expect((await send(fake, FORM, { ...noFetchMeta, origin: URL_.origin })).status).toBe(200)
+    expect(fake.sent).toHaveLength(1)
+  })
+
+  it('caps a burst with WRITE_LIMITER, independent of the D1 windows', async () => {
+    const fetchSpy = vi.fn()
+    vi.stubGlobal('fetch', fetchSpy)
+    const fake = makeEnv({ TURNSTILE_SECRET: 'secret' })
+    fake.setRateLimit(0)
+    const res = await send(fake, { ...FORM, turnstileToken: 'tok' })
+    expect(res).toEqual({ status: 429, body: { error: 'rate limited' } })
+    // Refused before siteverify and before any row or mail.
+    expect(fetchSpy).not.toHaveBeenCalled()
+    expect(rows(fake)).toBe(0)
+    expect(fake.sent).toHaveLength(0)
+  })
+
+  it('acks a filled honeypot without storing or mailing, and leaves an AE trace', async () => {
+    const fake = makeEnv()
+    expect(await send(fake, { ...FORM, [HONEYPOT_FIELD]: 'spam' })).toEqual({ status: 200, body: { ok: true } })
+    expect(rows(fake)).toBe(0)
+    expect(fake.sent).toHaveLength(0)
+    expect(fake.aePoints).toEqual([{ indexes: ['honeypot'], blobs: ['honeypot'], doubles: [1] }])
+  })
+
+  it('over the limiter budget, still acks a filled honeypot but writes no AE point', async () => {
+    const fake = makeEnv()
+    fake.setRateLimit(0)
+    expect(await send(fake, { ...FORM, [HONEYPOT_FIELD]: 'spam' })).toEqual({ status: 200, body: { ok: true } })
+    expect(fake.aePoints).toHaveLength(0)
+    expect(rows(fake)).toBe(0)
+    expect(fake.sent).toHaveLength(0)
+  })
+
+  it('ignores the legacy `website` key (autofill fills it): the message goes through', async () => {
+    const fake = makeEnv()
+    expect(await send(fake, { ...FORM, website: 'https://kari.example' })).toEqual({ status: 200, body: { ok: true } })
+    expect(rows(fake)).toBe(1)
+    expect(fake.sent).toHaveLength(1)
+    expect(fake.aePoints).toHaveLength(0)
+  })
+
+  it('rejects invalid input with 422', async () => {
+    const fake = makeEnv()
+    expect((await send(fake, { ...FORM, email: 'kari@localhost' })).status).toBe(422)
+    expect((await send(fake, { ...FORM, message: '   kort   ' })).status).toBe(422)
+  })
+
+  it('without the OWNER_INBOX secret it fails like a send: 502, no row, a mailfail point', async () => {
+    const fake = makeEnv({ OWNER_INBOX: undefined })
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(await send(fake)).toEqual({ status: 502, body: { error: 'send failed' } })
+    expect(rows(fake)).toBe(0)
+    expect(fake.sent).toHaveLength(0)
+    expect(fake.aePoints).toEqual([{ indexes: ['mailfail'], blobs: ['mailfail', 'contact'], doubles: [1] }])
+    expect(JSON.stringify(log.mock.calls)).not.toContain('kari@example.no')
+  })
+
+  it('a failed mail send leaves no row, so the retry is mailed (not deduped)', async () => {
+    const fake = makeEnv()
+    fake.failMail(true)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(await send(fake)).toEqual({ status: 502, body: { error: 'send failed' } })
+    expect(rows(fake)).toBe(0)
+    // The failure the watchdog can read: one AE point, nothing of the visitor's.
+    expect(fake.aePoints).toEqual([{ indexes: ['mailfail'], blobs: ['mailfail', 'contact'], doubles: [1] }])
+
+    fake.failMail(false)
+    expect(await send(fake)).toEqual({ status: 200, body: { ok: true } })
+    expect(fake.sent).toHaveLength(1)
+    expect(rows(fake)).toBe(1)
+  })
+
+  it('dedupes an identical resend within two minutes (one mail)', async () => {
+    const fake = makeEnv()
+    await send(fake)
+    expect(await send(fake)).toEqual({ status: 200, body: { ok: true } })
+    expect(fake.sent).toHaveLength(1)
+    expect(rows(fake)).toBe(1)
+  })
+
+  // Regression: `at` is ISO ("…T18:00:00.000Z") and used to be compared with
+  // SQLite's datetime('now', …) ("… 17:58:00"); the 'T' sorted after the
+  // space, so any same-day row counted as "within two minutes" and a resend
+  // hours later was ack'd and never mailed.
+  it('mails the same message again when the earlier one is hours old', async () => {
+    const fake = makeEnv()
+    seed(fake, 5 * 60)
+    expect(await send(fake)).toEqual({ status: 200, body: { ok: true } })
+    expect(fake.sent).toHaveLength(1)
+  })
+
+  it('rate-limits the third submission per IP within ten minutes', async () => {
+    const fake = makeEnv()
+    seed(fake, 1, { email: 'a@example.no', message: 'første melding her' })
+    seed(fake, 2, { email: 'b@example.no', message: 'andre melding her' })
+    seed(fake, 3, { email: 'c@example.no', message: 'tredje melding her' })
+    expect(await send(fake)).toEqual({ status: 429, body: { error: 'rate limited' } })
+  })
+
+  it('counts a whole IPv6 /64 as one sender, and stores only that prefix', async () => {
+    const fake = makeEnv()
+    seed(fake, 1, { ip: '2001:db8:aa:bb::/64', email: 'a@example.no', message: 'første melding her' })
+    seed(fake, 2, { ip: '2001:db8:aa:bb::/64', email: 'b@example.no', message: 'andre melding her' })
+    seed(fake, 3, { ip: '2001:db8:aa:bb::/64', email: 'c@example.no', message: 'tredje melding her' })
+    const v6 = (ip: string) => ({ ...BROWSER_HEADERS, 'cf-connecting-ip': ip })
+    expect((await send(fake, FORM, v6('2001:db8:aa:bb:dead:beef:0:1'))).status).toBe(429)
+    expect((await send(fake, FORM, v6('2001:db8:aa:bc::1'))).status).toBe(200)
+    const stored = fake.db.prepare('SELECT ip FROM contact ORDER BY id DESC LIMIT 1').get() as { ip: string }
+    expect(stored.ip).toBe('2001:db8:aa:bc::/64')
+  })
+
+  it('does not count IP submissions older than ten minutes (same day)', async () => {
+    const fake = makeEnv()
+    for (const m of [30, 90, 240]) seed(fake, m, { email: `x${m}@example.no`, message: `melding nummer ${m}` })
+    expect((await send(fake)).status).toBe(200)
+  })
+
+  it('rate-limits the third submission per address within an hour, across IPs', async () => {
+    const fake = makeEnv()
+    seed(fake, 20, { ip: '198.51.100.1', message: 'første melding her' })
+    seed(fake, 40, { ip: '198.51.100.2', message: 'andre melding her' })
+    expect((await send(fake)).status).toBe(429)
+    // …but not when those were hours ago.
+    const later = makeEnv()
+    seed(later, 120, { ip: '198.51.100.1', message: 'første melding her' })
+    seed(later, 180, { ip: '198.51.100.2', message: 'andre melding her' })
+    expect((await send(later)).status).toBe(200)
+  })
+
+  // As plain strings, `Kari@Example.no` and `kari@example.no` each had their
+  // own window and their own dedup.
+  it('counts one address whatever its letter case, and mails it as typed', async () => {
+    const fake = makeEnv()
+    seed(fake, 20, { ip: '198.51.100.1', message: 'første melding her' })
+    seed(fake, 40, { ip: '198.51.100.2', message: 'andre melding her' })
+    expect((await send(fake, { ...FORM, email: 'Kari@Example.NO' })).status).toBe(429)
+
+    const fresh = makeEnv()
+    expect((await send(fresh, { ...FORM, email: 'Kari@Example.NO' })).status).toBe(200)
+    expect(fresh.sent[0].raw).toContain('Reply-To: <Kari@Example.NO>')
+    expect((fresh.db.prepare('SELECT email FROM contact').get() as { email: string }).email).toBe('kari@example.no')
+    // The same message from the same mailbox, typed in lower case: a duplicate.
+    expect(await send(fresh)).toEqual({ status: 200, body: { ok: true } })
+    expect(fresh.sent).toHaveLength(1)
+  })
+
+  // The windows and the dedup are D1 reads that fail open (the burst cap and
+  // Turnstile still stand). Unlogged, a dead D1 switched them off unseen.
+  it('fails open when the D1 reads fail, and logs each skipped check', async () => {
+    const fake = makeEnv()
+    const d1 = fake.env.METRICS
+    const readsFail = {
+      prepare: (sql: string) =>
+        sql.startsWith('SELECT')
+          ? { bind: () => ({ first: async () => Promise.reject(new Error('D1 down')) }) }
+          : d1.prepare(sql),
+    }
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = (await handleContact(URL_, post(FORM), { ...fake.env, METRICS: readsFail } as unknown as Env))!
+    expect(res.status).toBe(200)
+    expect(fake.sent).toHaveLength(1)
+    expect(rows(fake)).toBe(1)
+    expect(error.mock.calls.map(([message]) => message)).toEqual([
+      'contact: D1 per-sender window read failed, check skipped',
+      'contact: D1 per-address window read failed, check skipped',
+      'contact: D1 duplicate read failed, check skipped',
+    ])
+  })
+
+  it('enforces Turnstile when the secret is set', async () => {
+    const fake = makeEnv({ TURNSTILE_SECRET: 'secret' })
+    expect(await send(fake)).toEqual({ status: 403, body: { error: 'challenge required' } })
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ success: false })),
+    )
+    expect(await send(fake, { ...FORM, turnstileToken: 'spent' })).toEqual({
+      status: 403,
+      body: { error: 'challenge failed' },
+    })
+
+    // A token solved on another host using our site key doesn't pass.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ success: true, hostname: 'evil.example' })),
+    )
+    expect(await send(fake, { ...FORM, turnstileToken: 'elsewhere' })).toEqual({
+      status: 403,
+      body: { error: 'challenge failed' },
+    })
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ success: true, hostname: 'rozsoshnykh.no' })),
+    )
+    expect(await send(fake, { ...FORM, turnstileToken: 'fresh' })).toEqual({ status: 200, body: { ok: true } })
+    expect(fake.sent).toHaveLength(1)
+  })
+
+  it('refuses an oversized body with 413, by its Content-Length or as it is read', async () => {
+    const fake = makeEnv()
+    const big = { ...FORM, message: 'x'.repeat(40_000) }
+    expect(await send(fake, big)).toEqual({ status: 413, body: { error: 'payload too large' } })
+    expect(await send(fake, FORM, { ...BROWSER_HEADERS, 'content-length': '999999' })).toEqual({
+      status: 413,
+      body: { error: 'payload too large' },
+    })
+    expect(rows(fake)).toBe(0)
+    expect(await send(fake)).toEqual({ status: 200, body: { ok: true } })
+  })
+})

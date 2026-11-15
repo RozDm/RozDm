@@ -1,0 +1,438 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+
+/* Twemoji subset for ISO 3166 regional indicators (🇳🇴 etc.). Windows
+   ships without flag glyphs and many Linux desktops lack Noto Color Emoji,
+   so the system fallback shows two letters instead of a flag. The
+   unicode-range narrows the download to the 26 regional-indicator code
+   points — browsers only fetch the font when a flag character is on the
+   page, so cost is ~0 elsewhere. */
+@font-face {
+  font-family: 'Twemoji Country Flags';
+  unicode-range: U+1F1E6-1F1FF;
+  src: url('/fonts/TwemojiCountryFlags.woff2') format('woff2');
+  font-display: swap;
+}
+
+/* Intel One Mono's four subsets (lib/fonts.ts), then the system monospace. */
+@theme {
+  --animate-fade-in: fade-in 0.8s ease-out both;
+  --font-sans:
+    var(--font-intel-mono), var(--font-intel-mono-ext), var(--font-intel-mono-vi), var(--font-intel-mono-sym),
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono:
+    var(--font-intel-mono), var(--font-intel-mono-ext), var(--font-intel-mono-vi), var(--font-intel-mono-sym),
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.font-flag {
+  font-family: 'Twemoji Country Flags', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Soft route entrance. app/template.tsx re-mounts on every navigation, so
+   this plays as a gentle cross-fade each time you click through — pages ease
+   in instead of snapping. OPACITY ONLY on purpose: a transform here would
+   make the wrapper a containing block for position:fixed descendants and
+   could disturb the sticky header / intro overlays, so we avoid it. The
+   home route opts out entirely (its cinematic intro owns the entrance). */
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-page-in {
+  animation: page-in 0.45s ease-out both;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+  color: #1e293b;
+  background: #fafafa;
+}
+
+.dark body {
+  color: #e2e8f0;
+  background: #030712;
+}
+
+/* A word wider than a narrow phone (a long Norwegian compound in a heading)
+   breaks instead of pushing the page sideways. Only a word that can't fit
+   is affected. In the base layer, so utilities still win. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    overflow-wrap: break-word;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Offset every anchor scroll (initial #hash load, the /status -> /#status
+     redirect, and HashLink's native scrollIntoView) so the section heading
+     clears the sticky header. scroll-behavior must stay `smooth` — HashLink
+     relies on the native smooth scroll, a hand-rolled rAF version fought it
+     and stuttered. */
+  scroll-padding-top: 72px;
+}
+
+/* Pre-paint cover for the first-visit intro, toggled by an inline script
+   in <head> before React mounts. Prevents a flash of page content before
+   the animated Intro overlay (z-100) takes over. Removed by Intro once it
+   mounts, and by a 7.5s safety timeout if JS never reaches React. */
+html.intro-active {
+  overflow: hidden;
+}
+html.intro-active::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 90;
+}
+
+::selection {
+  background: #ef4444;
+  color: white;
+}
+
+/* Consistent keyboard focus ring in the site accent; :focus-visible keeps
+   mouse clicks ring-free. */
+:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Visitor world map. Base fill/stroke come from CSS variables so a dark-mode
+   toggle recolours every country with no JS re-run; GeoMap only stamps a
+   data-v intensity bucket (1/2/3) on countries that have visits. */
+.geo-map {
+  --map-empty: #e5e7eb; /* gray-200 */
+  --map-stroke: #ffffff;
+}
+.dark .geo-map {
+  --map-empty: #1f2937; /* gray-800 */
+  --map-stroke: #030712;
+}
+/* Fallbacks matter: a bare var() that fails to resolve is "invalid at
+   computed-value time", which makes fill revert to its initial value — black —
+   painting the whole map black. The literals keep an unresolved var grey. */
+.geo-map path {
+  fill: var(--map-empty, #e5e7eb);
+  stroke: var(--map-stroke, #ffffff);
+  stroke-width: 1;
+}
+.geo-map path[data-v='1'] {
+  fill: rgba(239, 68, 68, 0.3);
+}
+.geo-map path[data-v='2'] {
+  fill: rgba(239, 68, 68, 0.55);
+}
+.geo-map path[data-v='3'] {
+  fill: rgba(239, 68, 68, 0.8);
+}
+
+/* HAL idle overlay: CRT noise. Keyframes are cheap (opacity/transform only). */
+.hal-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.045) 0px,
+    rgba(255, 255, 255, 0.045) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+@keyframes hal-flicker {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  7% {
+    opacity: 0.55;
+  }
+  8% {
+    opacity: 0.95;
+  }
+  41% {
+    opacity: 0.7;
+  }
+  42% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  71% {
+    opacity: 0.92;
+  }
+}
+
+.hal-flicker {
+  animation: hal-flicker 3.5s steps(1, end) infinite;
+}
+
+@keyframes hal-jitter {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  12% {
+    transform: translateX(-1px);
+  }
+  24% {
+    transform: translateX(1.5px);
+  }
+  36% {
+    transform: translateX(-0.5px);
+  }
+  55% {
+    transform: translateX(1px);
+  }
+  78% {
+    transform: translateX(-1.5px);
+  }
+}
+
+.hal-jitter {
+  animation: hal-jitter 0.4s steps(2, end) infinite;
+}
+
+/* HAL line reveal: the text focuses in from a blur with letters drawing
+   together and a red glow that peaks, then settles — like a signal coming
+   into focus on a CRT. Applied per-line (keyed) so each phrase plays it. */
+@keyframes hal-text-reveal {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+    transform: scale(0.94);
+    letter-spacing: 0.6em;
+    text-shadow: none;
+  }
+  55% {
+    opacity: 1;
+    text-shadow: 0 0 18px rgba(239, 68, 68, 0.75);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+    letter-spacing: 0.25em;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+}
+
+.hal-text-reveal {
+  animation: hal-text-reveal 1.8s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+
+/* Reduced motion: no section slide-ins, no blinking status dots, no
+   route fade. (The intro and HAL's screensaver skip themselves entirely
+   under this preference — see Intro.tsx / HalIdle.tsx.) Unlayered, so it
+   beats Tailwind's utilities layer. */
+@media (prefers-reduced-motion: reduce) {
+  .hal-text-reveal,
+  .animate-page-in,
+  .animate-fade-in,
+  .animate-pulse {
+    animation: none;
+  }
+}
+
+/* Syntax highlighting (rehype-highlight / highlight.js token classes).
+   Light by default (on the white block PostPage gives `pre`), dark under
+   .dark. Palette tuned to the site's reds and grays rather than a stock
+   theme; every token keeps 4.5:1 on its block. */
+.hljs {
+  color: #1e293b;
+  background: transparent;
+}
+.hljs-comment,
+.hljs-quote {
+  color: #64748b;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-built_in,
+.hljs-name {
+  color: #b91c1c;
+}
+.hljs-string,
+.hljs-meta-string,
+.hljs-regexp {
+  color: #047857;
+}
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-attr,
+.hljs-attribute {
+  color: #b45309;
+}
+.hljs-title,
+.hljs-section,
+.hljs-function .hljs-title,
+.hljs-type {
+  color: #1d4ed8;
+}
+.hljs-variable,
+.hljs-template-variable,
+.hljs-meta {
+  color: #7c3aed;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 600;
+}
+
+.dark .hljs {
+  color: #e2e8f0;
+}
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: #94a3b8;
+}
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-literal,
+.dark .hljs-built_in,
+.dark .hljs-name {
+  color: #f87171;
+}
+.dark .hljs-string,
+.dark .hljs-meta-string,
+.dark .hljs-regexp {
+  color: #34d399;
+}
+.dark .hljs-number,
+.dark .hljs-symbol,
+.dark .hljs-bullet,
+.dark .hljs-attr,
+.dark .hljs-attribute {
+  color: #fbbf24;
+}
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-function .hljs-title,
+.dark .hljs-type {
+  color: #60a5fa;
+}
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-meta {
+  color: #c4b5fd;
+}
+
+/* Inline code in posts (.post-body, PostPage): a quiet chip instead of
+   Typography's bold text between backticks, and no line break inside a word
+   of a command: lib/inline-code.ts wraps each word in a .code-word span. */
+.post-body :not(pre) > code {
+  font-weight: 400;
+  padding: 0.1em 0.35em;
+  border-radius: 0.25rem;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.dark .post-body :not(pre) > code {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+.post-body :not(pre) > code::before,
+.post-body :not(pre) > code::after {
+  content: none;
+}
+.post-body .code-word {
+  white-space: nowrap;
+}
+
+/* Post tables: a long word may break rather than push the table past the
+   column. WebKit keeps a hyphenated word like «DNS-oppføringen,» whole, so a
+   three-column table outgrew an iPhone screen.
+   But a word broken just anywhere reads as a typo («Interne/tt»), so a cell
+   hyphenates first — the page's lang picks the dictionary — and `anywhere`
+   is what is left when there is none. Words of 8 letters and up, 3 on each
+   side of the hyphen. Code keeps its characters: a hyphen that isn't in the
+   command would be a lie. */
+.post-body td,
+.post-body th {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  hyphenate-limit-chars: 8 3 3;
+  /* Safari's spelling of the same limits. */
+  -webkit-hyphenate-limit-before: 3;
+  -webkit-hyphenate-limit-after: 3;
+}
+.post-body :is(td, th) code {
+  hyphens: manual;
+}
+/* `anywhere` also lets a column shrink to one character, and on a phone auto
+   layout then gave the short label column 7 characters: «5 Applikasjon» took
+   three lines. In a table of up to three columns (the selector counts the
+   row's cells) no column goes below 11 characters — or 28% of the screen
+   where that is less, so three of them always fit. */
+@media (max-width: 639px) {
+  .post-body tr > :is(td, th):first-child:nth-last-child(-n + 3),
+  .post-body tr > :is(td, th):first-child:nth-last-child(-n + 3) ~ :is(td, th) {
+    min-width: min(11ch, 28vw);
+  }
+}
+
+/* Diagrams in posts (SVG, built by scripts/build-diagrams.mjs) fill the
+   column, and the dark theme inverts them: lightness flips, hue stays (the
+   white card turns black, the red stays red). Draw them for the light theme. */
+.post-body img[src$='.svg'] {
+  width: 100%;
+}
+.dark .post-body img[src$='.svg'] {
+  filter: invert(1) hue-rotate(180deg);
+}

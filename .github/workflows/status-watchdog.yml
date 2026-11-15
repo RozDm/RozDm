@@ -1,0 +1,108 @@
+name: Status watchdog
+
+# Watches the watcher. The Worker's 5-minute cron probes the monitored
+# services and mails on outages — but if the cron itself stops (or KV writes
+# start failing), nothing mails anyone: the site just greys out its status
+# card (isStale). This runs outside Cloudflare and FAILS when the snapshot is
+# stale or the site is down; GitHub then e-mails the failure to whoever last
+# changed this schedule. Free: public-repo Actions minutes.
+#
+# Four slots an hour, because GitHub starts only some scheduled runs: with one
+# slot an hour (`17 * * * *`) about one in seven ran — 3.7 to 11 hours apart,
+# 6.5 on average (2026-11-03…10). None on the hour, which GitHub names as its
+# busiest time. A run takes seconds, and the concurrency group below lets a
+# late one give way to the next. While something is failing, every run that
+# does start mails: expect more mail than one slot an hour brought.
+#
+# Note: GitHub disables scheduled workflows after 60 days without repository
+# activity — re-enable it from the Actions tab if that ever happens.
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+# Read-only GITHUB_TOKEN: nothing here writes to the repo.
+permissions:
+  contents: read
+
+concurrency:
+  group: status-watchdog
+  cancel-in-progress: true
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Site answers
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 --retry 2 --retry-delay 10 \
+            -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' https://rozsoshnykh.no/)
+          echo "GET / -> $code"
+          [ "$code" = "200" ] || { echo "::error::rozsoshnykh.no answered $code"; exit 1; }
+
+      # 25 min = the Worker's 20-minute STALE_AFTER_MS plus slack for the
+      # 60 s edge cache and a late cron tick.
+      - name: Status snapshot is fresh
+        run: |
+          body=$(curl -sf --max-time 20 --retry 2 --retry-delay 10 \
+            -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' https://rozsoshnykh.no/api/status)
+          printf '%s' "$body" | python3 -c '
+          import json, sys, datetime as dt
+          d = json.load(sys.stdin)
+          at = d.get("updatedAt")
+          if not at:
+              print("::error::/api/status has no updatedAt — the cron has never written a snapshot")
+              sys.exit(1)
+          age = (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(at.replace("Z", "+00:00"))).total_seconds() / 60
+          down = ", ".join(r["name"] for r in d.get("results", []) if not r.get("ok")) or "none"
+          print(f"snapshot age: {age:.1f} min; monitors down: {down}")
+          if age > 25:
+              print(f"::error::status snapshot is {age:.0f} min old — the 5-minute cron (or its KV write) has stopped")
+              sys.exit(1)
+          '
+
+      # The snapshot above lives in KV; nothing else here touches D1, and a
+      # dead D1 once went unnoticed for days (docs/history.md). /api/geo is a
+      # D1 read that answers 503 when the read fails; curl retries a 503.
+      - name: Visitor data (D1) answers
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 --retry 2 --retry-delay 10 \
+            -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' https://rozsoshnykh.no/api/geo)
+          echo "GET /api/geo -> $code"
+          [ "$code" = "200" ] || { echo "::error::/api/geo answered $code — D1 read failed (Workers Logs: 'geo: D1 read failed')"; exit 1; }
+
+      # The Trends chart reads Analytics Engine with the AE_API_TOKEN secret.
+      # When AE fails (an expired or revoked token, an AE outage) the endpoint
+      # still answers 200 with an empty series, flagged `degraded` — the chart
+      # then just looks quiet. Degraded answers are edge-cached only 20 s
+      # (under the 30 s between tries), so a retry asks AE again; three in a
+      # row is not a blip.
+      - name: Time series (Analytics Engine) answers
+        run: |
+          for try in 1 2 3; do
+            body=$(curl -sf --max-time 20 -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' \
+              'https://rozsoshnykh.no/api/timeseries?metric=geo&range=24h') || body=''
+            if printf '%s' "$body" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if "points" in d and not d.get("degraded") else 1)' 2>/dev/null; then
+              echo "GET /api/timeseries -> AE answered (try $try)"
+              exit 0
+            fi
+            echo "try $try: degraded or no answer"
+            [ "$try" = 3 ] || sleep 30
+          done
+          echo "::error::/api/timeseries is degraded — AE read failed (Workers Logs: 'timeseries: AE …'; check the AE_API_TOKEN secret)"
+          exit 1
+
+      # The Worker mails the contact form's messages and the outage alerts; a
+      # failed send can't be reported by mail. Each one writes an AE point
+      # (blob1 = 'mailfail'). Last, so the checks above always run; 24 h, so a
+      # failure between two runs (hours apart) isn't missed — one failure
+      # keeps this red for a day. A degraded answer is the step above's to
+      # report, not this one's.
+      - name: No mail failed to send (last 24 h)
+        run: |
+          body=$(curl -sf --max-time 20 --retry 2 --retry-delay 10 -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' \
+            'https://rozsoshnykh.no/api/timeseries?metric=mailfail&range=24h') || body='{}'
+          failed=$(printf '%s' "$body" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(0 if d.get("degraded") else int(sum(p.get("value", 0) for p in d.get("points", []))))' 2>/dev/null || echo 0)
+          echo "mails that failed to send in 24 h: $failed"
+          [ "$failed" = 0 ] || { echo "::error::$failed mail(s) failed to send in the last 24 h — contact form or status alert (Workers Logs: 'mail send failed' / 'alert mail failed'; analytics-report.yml says which)"; exit 1; }

@@ -1,0 +1,97 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import HashLink from './HashLink'
+import type { NavLink } from './Header'
+import { DICT } from '@/data/i18n'
+import { useLang } from '@/lib/use-lang'
+
+interface MobileMenuProps {
+  links: NavLink[]
+}
+
+export default function MobileMenu({ links }: MobileMenuProps) {
+  const t = DICT[useLang()].nav
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    // Escape closes and hands focus back to the toggle, the standard
+    // disclosure-menu contract for keyboard users.
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        buttonRef.current?.focus()
+      }
+    }
+    // Focus landing outside (Tab past the last link) closes it too, or the
+    // open dropdown would sit over the content focus moved into. focusin, not
+    // blur: Safari doesn't focus a tapped link, and a blur there would close
+    // the menu before the link's click.
+    function handleFocus(e: FocusEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClick)
+    document.addEventListener('keydown', handleKey)
+    document.addEventListener('focusin', handleFocus)
+    return () => {
+      document.removeEventListener('click', handleClick)
+      document.removeEventListener('keydown', handleKey)
+      document.removeEventListener('focusin', handleFocus)
+    }
+  }, [open])
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setOpen(!open)}
+        className="relative z-10 flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 ease-out"
+        aria-label={open ? t.closeMenu : t.openMenu}
+        aria-expanded={open}
+      >
+        {/* A span, not a div: a <button> may only hold phrasing content. */}
+        <span className="flex flex-col justify-center items-center w-5 h-5 gap-[5px]">
+          <span
+            className={`block w-5 h-[2px] bg-gray-700 dark:bg-gray-300 rounded-full transition-all duration-300 ${open ? 'translate-y-[7px] rotate-45' : ''}`}
+          />
+          <span
+            className={`block w-5 h-[2px] bg-gray-700 dark:bg-gray-300 rounded-full transition-all duration-300 ${open ? 'opacity-0 scale-0' : ''}`}
+          />
+          <span
+            className={`block w-5 h-[2px] bg-gray-700 dark:bg-gray-300 rounded-full transition-all duration-300 ${open ? '-translate-y-[7px] -rotate-45' : ''}`}
+          />
+        </span>
+      </button>
+
+      {open && (
+        <nav
+          className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden animate-fade-in"
+          aria-label={t.mobileLabel}
+        >
+          {links.map(({ href, label, title, hrefLang }) => (
+            <HashLink
+              key={href}
+              href={href}
+              title={title}
+              hrefLang={hrefLang}
+              onClick={() => setOpen(false)}
+              className="block px-5 py-3 text-sm text-gray-700 dark:text-gray-300 [&[aria-current]]:text-red-600 dark:[&[aria-current]]:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 ease-out font-medium"
+            >
+              {label}
+            </HashLink>
+          ))}
+        </nav>
+      )}
+    </div>
+  )
+}

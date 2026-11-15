@@ -1,0 +1,119 @@
+// In-process fakes for the Worker's bindings, so route handlers run under
+// plain Vitest (no workerd). D1 is REAL SQLite (node:sqlite) loaded with
+// schema/metrics.sql — SQL semantics such as TEXT comparison are exactly
+// what production gets, which is what caught the ISO-vs-datetime() bug.
+import { DatabaseSync } from 'node:sqlite'
+import schema from '../../schema/metrics.sql?raw'
+
+export interface FakeEnv {
+  env: Env
+  db: DatabaseSync
+  aePoints: { indexes?: string[]; blobs?: unknown[]; doubles?: number[] }[]
+  sent: { from: string; to: string; raw: string }[]
+  failMail: (fail: boolean) => void
+  publishedSlugs: Set<string>
+  // English-only posts, published at /en/blog/<slug>/.
+  publishedEnSlugs: Set<string>
+  // Calls allowed per key before WRITE_LIMITER starts refusing (default: no limit).
+  setRateLimit: (n: number) => void
+  // KV `STATUS` contents (the uptime snapshot lives under 'status').
+  kv: Map<string, string>
+}
+
+export function makeEnv(overrides: Partial<Record<string, unknown>> = {}): FakeEnv {
+  const db = new DatabaseSync(':memory:')
+  db.exec(schema)
+
+  const d1 = {
+    prepare(sql: string) {
+      let params: unknown[] = []
+      const stmt = {
+        bind(...p: unknown[]) {
+          params = p
+          return stmt
+        },
+        async first<T>() {
+          return (db.prepare(sql).get(...params) ?? null) as T | null
+        },
+        async run() {
+          db.prepare(sql).run(...params)
+          return { success: true }
+        },
+        async all<T>() {
+          return { results: db.prepare(sql).all(...params) as T[] }
+        },
+      }
+      return stmt
+    },
+  }
+
+  const aePoints: FakeEnv['aePoints'] = []
+  const sent: FakeEnv['sent'] = []
+  let mailFails = false
+  const publishedSlugs = new Set<string>(['velkommen'])
+  const publishedEnSlugs = new Set<string>(['english-only'])
+  const limiterHits = new Map<string, number>()
+  const kv = new Map<string, string>()
+  let rateLimit = Infinity
+
+  const env = {
+    OWNER_INBOX: 'owner@example.com',
+    METRICS: d1,
+    STATUS: {
+      get: async (key: string) => kv.get(key) ?? null,
+      put: async (key: string, value: string) => void kv.set(key, value),
+    },
+    METRICS_AE: { writeDataPoint: (p: FakeEnv['aePoints'][number]) => void aePoints.push(p) },
+    CONTACT_EMAIL: {
+      send: async (m: { from: string; to: string; raw: string }) => {
+        if (mailFails) throw new Error('Email Routing unavailable')
+        sent.push(m)
+      },
+    },
+    WRITE_LIMITER: {
+      limit: async ({ key }: { key: string }) => {
+        const n = (limiterHits.get(key) ?? 0) + 1
+        limiterHits.set(key, n)
+        return { success: n <= rateLimit }
+      },
+    },
+    ASSETS: {
+      fetch: async (req: Request) => {
+        const path = new URL(req.url).pathname
+        const nb = /^\/blogg\/([^/]+)\/$/.exec(path)?.[1]
+        const en = /^\/en\/blog\/([^/]+)\/$/.exec(path)?.[1]
+        const ok = (nb && publishedSlugs.has(nb)) || (en && publishedEnSlugs.has(en))
+        return new Response('<html></html>', { status: ok ? 200 : 404 })
+      },
+    },
+    ...overrides,
+  } as unknown as Env
+
+  return {
+    env,
+    db,
+    aePoints,
+    sent,
+    failMail: (f) => (mailFails = f),
+    publishedSlugs,
+    publishedEnSlugs,
+    setRateLimit: (n) => (rateLimit = n),
+    kv,
+  }
+}
+
+// waitUntil promises are collected so a test can await the background writes.
+export function makeCtx(): { ctx: ExecutionContext; settle: () => Promise<void> } {
+  const pending: Promise<unknown>[] = []
+  const ctx = {
+    waitUntil: (p: Promise<unknown>) => void pending.push(p),
+    passThroughOnException: () => {},
+  } as unknown as ExecutionContext
+  return { ctx, settle: async () => void (await Promise.all(pending)) }
+}
+
+export const BROWSER_HEADERS = {
+  'sec-fetch-site': 'same-origin',
+  'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36',
+  'cf-connecting-ip': '203.0.113.7',
+}

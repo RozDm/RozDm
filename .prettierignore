@@ -1,0 +1,9 @@
+out/
+.next/
+node_modules/
+public/
+content/
+*.md
+package-lock.json
+worker-configuration.d.ts
+.github/waf/

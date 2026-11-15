@@ -1,0 +1,358 @@
+'use client'
+
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/trends-axis'
+import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/timeseries-fill'
+import { MIN_PUBLIC_VISITS, fetchGeoCountries, showVisitCounts } from '@/lib/geo'
+import { noteServerDate, serverNow } from '@/lib/server-clock'
+import { DICT } from '@/data/i18n'
+import { INTL_LOCALE, type Lang } from '@/lib/i18n'
+import { useLang } from '@/lib/use-lang'
+
+interface Point {
+  ts: string
+  value: number
+}
+
+interface Series {
+  metric: string
+  range: string
+  points: Point[]
+}
+
+type Range = '24h' | '7d' | '30d' | 'all'
+
+// Tab order; labels come from the dictionary (24t/Alt vs 24h/All).
+const RANGES: Range[] = ['24h', '7d', '30d', 'all']
+
+// The viewBox is the SVG's own rendered width in CSS px (measured below), so
+// one unit is one pixel at every width: 11px labels and 4px dots stay that
+// size on a phone. A fixed 800-unit viewBox scaled them by ~0.4 at 390px
+// (4px labels). DEFAULT_W is only the first frame before the measurement.
+const DEFAULT_W = 800
+const PAD_L = 40
+const PAD_R = 12
+const PAD_T = 12
+const PAD_B = 28
+
+// Narrow cards get a shorter plot, so the chart doesn't turn into a tall box.
+function chartHeight(w: number): number {
+  return w < 480 ? 180 : 220
+}
+
+// Round up to a "nice" number for the y-axis ceiling (1/2/5 * 10^n). Keeps
+// tick labels readable instead of "max=37, axis goes to 37".
+function niceCeil(n: number): number {
+  if (n <= 1) return 1
+  const exp = Math.floor(Math.log10(n))
+  const base = Math.pow(10, exp)
+  const norm = n / base
+  if (norm <= 1) return base
+  if (norm <= 2) return 2 * base
+  if (norm <= 5) return 5 * base
+  return 10 * base
+}
+
+function formatters(lang: Lang) {
+  const locale = INTL_LOCALE[lang]
+  return {
+    hour: new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }),
+    day: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }),
+    point: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+  }
+}
+const FMT: Record<Lang, ReturnType<typeof formatters>> = { nb: formatters('nb'), en: formatters('en') }
+
+function bucketDate(ts: string): Date {
+  return new Date(ts.includes('T') ? ts : ts.replace(' ', 'T') + 'Z')
+}
+
+// AE bucket keys are "YYYY-MM-DD HH:MM:SS" in UTC. V8 parses that space form
+// as LOCAL time, which made the axis read in the visitor's timezone shifted
+// by the offset (e.g. "18:00" for a 20:00-Oslo event). Normalise to ISO-Z so
+// Intl.DateTimeFormat then renders it correctly in the visitor's locale.
+function formatTick(ts: string, range: Range, lang: Lang): string {
+  const d = bucketDate(ts)
+  if (Number.isNaN(d.getTime())) return ''
+  return range === '24h' ? FMT[lang].hour.format(d) : FMT[lang].day.format(d)
+}
+
+// Tooltip for one dot: when the bucket starts, in the visitor's timezone.
+function formatPoint(ts: string, lang: Lang): string {
+  const d = bucketDate(ts)
+  return Number.isNaN(d.getTime()) ? '' : FMT[lang].point.format(d)
+}
+
+interface Dot {
+  x: number
+  y: number
+  ts: string
+  value: number
+}
+
+// The latest answer, tagged with the range it answers. Everything derived
+// from it is ignored unless it matches the selected range — otherwise a tab
+// switch drew the previous range's points on the new range's grid (and kept
+// them, under the new label, if the new fetch failed).
+interface Result {
+  range: Range
+  series: Series | null
+  failed: boolean
+}
+
+export default function TrendsChart() {
+  const lang = useLang()
+  const t = DICT[lang].trends
+  const [range, setRange] = useState<Range>('7d')
+  const [result, setResult] = useState<Result | null>(null)
+  // Exact all-time total, straight from D1 via /api/geo — the same source and
+  // number as the map above. Shown as the headline ONLY on the `Alt` (all
+  // time) tab, where it must match the map exactly rather than inherit AE's
+  // sampling. The windowed tabs show their own AE count (see displayTotal).
+  // Doesn't depend on `range`.
+  const [geoTotal, setGeoTotal] = useState<number | null>(null)
+  // The chart only renders client-side (dynamic import with ssr:false), so
+  // there's no SSR-vs-hydration mismatch concern left and we can render the
+  // real data immediately on mount.
+
+  const svgRef = useRef<SVGSVGElement>(null)
+  const [W, setW] = useState(DEFAULT_W)
+  // Layout effect: measure before the first paint, then follow resizes.
+  useLayoutEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const measure = () => {
+      const w = Math.round(el.getBoundingClientRect().width)
+      if (w > 0) setW(w)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+  const H = chartHeight(W)
+  const PLOT_W = W - PAD_L - PAD_R
+  const PLOT_H = H - PAD_T - PAD_B
+  const BASELINE = PAD_T + PLOT_H
+
+  const current = result?.range === range ? result : null
+  const loading = current === null
+  const failed = current?.failed ?? false
+  const series = current?.series ?? null
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(`/api/timeseries?metric=geo&range=${range}`, {
+      signal: controller.signal,
+      cache: 'no-store',
+    })
+      .then((r) => {
+        // The grid below is laid out back from the server's "now".
+        noteServerDate(r)
+        return r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))
+      })
+      .then((d: Series) => setResult({ range, series: d, failed: false }))
+      .catch((err) => {
+        if ((err as Error).name !== 'AbortError') setResult({ range, series: null, failed: true })
+      })
+    return () => controller.abort()
+  }, [range])
+
+  useEffect(() => {
+    let cancelled = false
+    // Same request as the map's (lib/geo.ts shares it).
+    fetchGeoCountries()
+      .then((countries) => {
+        if (!cancelled) setGeoTotal(Object.values(countries).reduce((a, b) => a + b, 0))
+      })
+      // Leave geoTotal null on failure so the headline shows '–', not a
+      // misleading 0 — the map handles its own empty-state separately.
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const { dots, yMax, waveTotal, tickLabels, allCapped } = useMemo(() => {
+    // Zero-fill so the x-axis spans the whole window and quiet stretches read
+    // as real gaps. We plot a point per bucket that actually had visits; empty
+    // buckets contribute no dot (just a gap).
+    // By the server's clock (lib/server-clock.ts): on a visitor's wrong one
+    // the grid ended at another hour and the buckets' dots fell off it.
+    const now = serverNow()
+    const filled = fillBuckets(series?.points ?? [], range, now)
+    const max = niceCeil(Math.max(1, ...filled.map((p) => p.value)))
+    const n = filled.length
+    const coords: Dot[] = filled.map((p, i) => ({
+      x: n === 1 ? PAD_L + PLOT_W / 2 : PAD_L + (i / (n - 1)) * PLOT_W,
+      y: BASELINE - (p.value / max) * PLOT_H,
+      ts: p.ts,
+      value: p.value,
+    }))
+    // X ticks come from the full grid so labels span the window even though
+    // only non-empty buckets get a dot.
+    const ticks = xTicksFor(
+      coords,
+      (c) => c.x,
+      (c) => formatTick(c.ts, range, lang),
+    )
+    return {
+      dots: coords.filter((c) => c.value > 0),
+      yMax: max,
+      // AE's (sampled) sum over the visible window. It's the headline count on
+      // the windowed tabs (24t/7d/30d — "visits in this period") and, on the
+      // `Alt` tab, only the empty-window vs. empty-dataset signal — there the
+      // headline switches to the exact D1 total.
+      waveTotal: filled.reduce((sum, p) => sum + p.value, 0),
+      tickLabels: range === '24h' ? ticks : dropRepeatedDays(ticks),
+      allCapped: range === 'all' && isAllRangeCapped(now),
+    }
+  }, [series, range, lang, PLOT_W, PLOT_H, BASELINE])
+
+  // Don't unmount the whole section on a fetch hiccup — that nuked the header
+  // and the period tabs, leaving no way to retry without a page reload.
+  // Degrade inside the chart instead; switching range re-runs the fetch.
+  const isEmpty = !loading && !failed && waveTotal === 0
+  // A quiet window (visits exist, just none in this range) reads differently
+  // from a genuinely empty dataset — say which so a non-zero total below
+  // doesn't sit next to a bare "Ingen data ennå".
+  const emptyMsg = geoTotal && geoTotal > 0 ? t.emptyWindow : t.noData
+  const yTicks = yTicksFor(yMax)
+  const rangeLabel = t.ranges[range]
+  // Headline number: exact D1 all-time (= the map) on `Alt`, else the AE count
+  // for the selected window. Label follows suit: "totalt" only when it truly is
+  // the grand total, "siste 7d" etc. for a windowed count.
+  const isAll = range === 'all'
+  const displayTotal = isAll ? geoTotal : series ? waveTotal : null
+  const totalLabel = isAll ? t.total : t.last(rangeLabel)
+  // Below MIN_PUBLIC_VISITS (or until the total is known) the chart keeps its
+  // shape but drops every absolute number: headline, y-axis labels, dot counts.
+  const showCounts = showVisitCounts(geoTotal)
+  // What the headline means sits next to it, so it only shows with the
+  // numbers; the static lead above the card stays true either way.
+  // Once the total is known and still below the threshold, say why the axis
+  // is bare — unexplained, the lone dots read as a broken chart.
+  const quiet = [geoTotal !== null ? t.collecting(MIN_PUBLIC_VISITS) : '', allCapped ? t.cappedQuiet(ALL_MAX_DAYS) : '']
+    .filter(Boolean)
+    .join(' ')
+  const note = showCounts ? (allCapped ? `${t.numberNote} ${t.capped(ALL_MAX_DAYS)}` : t.numberNote) : quiet || null
+
+  return (
+    <div className="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-5 md:p-6 flex flex-col gap-5 hover:border-red-500/30 dark:hover:border-red-500/20 transition-all duration-500">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{t.cardTitle}</span>
+        {/* A toggle group (aria-pressed), not role=tab: there is no separate
+            tabpanel per period, and buttons give keyboard users the expected
+            Tab/Enter behaviour without a roving-tabindex implementation. */}
+        <div
+          role="group"
+          aria-label={t.periodLabel}
+          className="inline-flex rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden text-xs font-mono"
+        >
+          {RANGES.map((id) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={range === id}
+              onClick={() => setRange(id)}
+              className={`px-3 py-1.5 transition-colors duration-200 ease-out ${range === id ? 'bg-red-500/10 text-red-700 dark:text-red-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
+            >
+              {t.ranges[id]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* invisible, not unmounted: the row keeps its height, so the chart
+          doesn't jump when the total arrives and crosses the threshold. */}
+      <div
+        className={`flex items-baseline justify-end text-xs font-mono text-gray-500 dark:text-gray-400 ${showCounts ? '' : 'invisible'}`}
+      >
+        <span className={`tabular-nums ${loading ? 'opacity-50' : ''}`}>
+          {/* On `Alt`: the exact D1 total (same number as the map). On the
+              windowed tabs: the AE count for that window. '–' until the
+              backing data lands — a dimmed "0" read as the data vanishing. */}
+          <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            {displayTotal !== null ? displayTotal : '–'}
+          </span>{' '}
+          <span>{totalLabel}</span>
+        </span>
+      </div>
+
+      {/* h-auto (not a fixed height with preserveAspectRatio="none") so the
+          viewBox scales uniformly and the dots stay round, not stretched. */}
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        className={`w-full h-auto transition-opacity duration-300 ease-out ${loading ? 'opacity-50' : ''}`}
+        role="img"
+        aria-label={isAll ? (allCapped ? t.chartCapped(ALL_MAX_DAYS) : t.chartAll) : t.chartWindow(rangeLabel)}
+      >
+        {/* Y-axis ticks (0, half when whole, max) and faint gridlines. */}
+        {yTicks.map((v, i) => {
+          const y = BASELINE - (v / yMax) * PLOT_H
+          return (
+            <g key={i}>
+              <line
+                x1={PAD_L}
+                x2={W - PAD_R}
+                y1={y}
+                y2={y}
+                className="stroke-gray-200 dark:stroke-gray-800"
+                strokeWidth="1"
+              />
+              {showCounts && (
+                <text
+                  x={PAD_L - 6}
+                  y={y + 4}
+                  textAnchor="end"
+                  className="fill-gray-500 dark:fill-gray-400"
+                  fontSize="11"
+                  fontFamily="monospace"
+                >
+                  {Math.round(v)}
+                </text>
+              )}
+            </g>
+          )
+        })}
+
+        {!isEmpty &&
+          dots.map((d, i) => (
+            <circle key={i} cx={d.x} cy={d.y} r="4" className="fill-red-500">
+              <title>{showCounts ? t.dot(formatPoint(d.ts, lang), d.value) : formatPoint(d.ts, lang)}</title>
+            </circle>
+          ))}
+
+        {tickLabels.map((t, i) => (
+          <text
+            key={i}
+            x={t.x}
+            y={H - 8}
+            textAnchor={i === 0 ? 'start' : i === tickLabels.length - 1 ? 'end' : 'middle'}
+            className="fill-gray-500 dark:fill-gray-400"
+            fontSize="11"
+            fontFamily="monospace"
+          >
+            {t.label}
+          </text>
+        ))}
+
+        {(isEmpty || failed) && (
+          <text
+            x={W / 2}
+            y={H / 2}
+            textAnchor="middle"
+            className="fill-gray-500 dark:fill-gray-400"
+            fontSize="13"
+            fontFamily="monospace"
+          >
+            {failed ? t.failed : emptyMsg}
+          </text>
+        )}
+      </svg>
+
+      {note && <p className="-mt-2 text-[11px] font-mono text-gray-500 dark:text-gray-400">{note}</p>}
+    </div>
+  )
+}

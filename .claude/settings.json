@@ -1,0 +1,56 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(npm test)",
+      "Bash(npm run test:*)",
+      "Bash(npm run build)",
+      "Bash(npm run cf-typegen)",
+      "Bash(npx vitest run:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch origin:*)",
+      "Bash(npm run check)",
+      "Bash(node scripts/check-docs.mjs)"
+    ],
+    "deny": ["Read(./worker-configuration.d.ts)", "Read(./package-lock.json)", "Read(./public/world.svg)"]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-docs.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
