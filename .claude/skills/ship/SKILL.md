@@ -52,6 +52,4 @@ results; decisions the owner needs to make.
 
 ## After the merge (orchestrator)
 
-Look at the deploy run once (`actions_list` `list_workflow_runs`,
-`resource_id: deploy.yml`, `perPage: 1`): its smoke step is the real gate.
-Report the merge + deploy result once, or a red check — not each PR event.
+See `pr-flow` (deploy run once; report merge + deploy result once, or a red check).
