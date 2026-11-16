@@ -131,7 +131,10 @@ ops workflows: `.github/CLAUDE.md`; incident background: `docs/history.md`.
   hour: that is the limit's price, accepted.
 - `/api/csp-report` — POST → always 204, AE only (anyone can POST): body via
   `readCapped` (64 KB); `parseCspReports` keeps own-origin reports (origin +
-  path only) and a POST writes at most one point. GET → 405 (smoke-checked).
+  path only) and a POST writes at most one point; a `blocked` that is
+  neither a keyword nor a URL keeps only `[\w.:/-]`, a directive only
+  letters and hyphens (they reach `analytics-report`'s public log). GET →
+  405 (smoke-checked).
 - `/.well-known/mta-sts.txt` — GET, any host (senders fetch it from
   `mta-sts.rozsoshnykh.no`, a custom domain). Proxies Cloudflare Email
   Routing's policy (`mta-sts.mx.cloudflare.net`, edge-cached 1 h) because

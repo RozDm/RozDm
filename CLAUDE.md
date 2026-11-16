@@ -96,6 +96,9 @@ and blocks once when the branch changes that structure but no doc.
   auto-merge; to hold one, a draft without auto-merge.
 - Session branches: one `claude/*` branch per session, reset onto
   `origin/main` before new work (else the next PR conflicts with its own).
+  Reset locally, push only with a new commit: a bare reset pushed after the
+  merge re-creates the branch GitHub deleted (claude/adoring-feynman-x7ppeb,
+  2026-11-16).
 - Remote sessions reach the internet through a proxy: curl to
   `https://rozsoshnykh.no/...` works for diagnosis (the gate is still smoke);
   probe TLS with `curl --tls-max`, not `openssl s_client` (bypasses it).
