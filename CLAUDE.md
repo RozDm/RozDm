@@ -7,7 +7,8 @@ assets, plus a Worker for `/api/*`. React 19, TS 6, Tailwind v4. Norwegian
 
 ## Where the rules live
 
-Each loads only when a task touches its area:
+`ARCHITECTURE.md` — one page: how the pieces fit, what each directory owns.
+Each of the rest loads only when a task touches its area:
 - `app/CLAUDE.md` — pages, routes, i18n, metadata, SEO, fonts (`app/`, `lib/`, `data/`);
 - `components/CLAUDE.md` — widgets, counters, contact form, theme, UI, e2e;
 - `src/CLAUDE.md` — the Worker, `/api/*`, CSP, worker tests;
