@@ -6,8 +6,8 @@ code (`lib/server/blog.ts`, `lib/server/markdown.ts`, `lib/server/post-images.ts
 `CLAUDE.md`. A new post or a publish: the `/new-post` skill. Posts stay in this
 public repository (owner's call, `docs/decisions.md`).
 
-- Posts: Norwegian `content/blog/<slug>.md`, English
-  `content/blog/en/<slug>.md` with `translationOf: <norwegian slug>`; one
+- Posts: `content/blog/${lang}/${slug}.md` — Norwegian in `nb/`, English in
+  `en/` with `translationOf: <norwegian slug>`; one
   language only is fine. Frontmatter `title`, `description`, `date` (ISO),
   `tags`, optional `updated`, `draft: true`.
 - Checks: reading a post checks it (`lib/server/post-frontmatter.ts`: no unknown

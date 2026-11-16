@@ -3,7 +3,7 @@ import { INDEXED_TAGS } from '@/data/tags'
 
 // lib/server/blog reads markdown off disk; mock node:fs so these tests exercise the
 // ordering / adjacency / tag logic against a fixed set, independent of whatever
-// lives in content/blog. Fixtures and impl live inside the factory because
+// lives in content/blog/<lang>. Fixtures and impl live inside the factory because
 // vi.mock is hoisted above module scope and can't close over outer variables.
 vi.mock('node:fs', () => {
   const POSTS: Record<string, string> = {

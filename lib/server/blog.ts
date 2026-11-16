@@ -1,4 +1,4 @@
-// Reads the Markdown posts from content/blog/, pairs translations and filters drafts.
+// Reads the Markdown posts from content/blog/<lang>/, pairs translations and filters drafts.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -9,11 +9,11 @@ import { readingTimeMinutes } from './reading-time'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import type { Post, PostMeta } from '@/types'
 
-// Norwegian posts live in content/blog/, English ones in content/blog/en/. An
+// Posts live in content/blog/${lang}/${slug}.md (nb/ and en/). An
 // English post names its Norwegian twin in `translationOf` (frontmatter);
 // either language may also have posts with no twin.
 const BLOG_DIRS: Record<Lang, string> = {
-  nb: path.join(process.cwd(), 'content/blog'),
+  nb: path.join(process.cwd(), 'content/blog/nb'),
   en: path.join(process.cwd(), 'content/blog/en'),
 }
 

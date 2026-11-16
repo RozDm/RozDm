@@ -6,7 +6,7 @@ import { getPostBySlug, getPostSlugs } from '@/lib/server/blog'
 import { SITE_URL } from '@/lib/shared/site'
 import type { Lang } from '@/lib/shared/i18n'
 
-// Runs against the real content/blog/, drafts included (vitest isn't a
+// Runs against the real content/blog/<lang>/, drafts included (vitest isn't a
 // production build). Reading a post checks its frontmatter
 // (lib/server/post-frontmatter.ts); this adds what the page around the text needs.
 
@@ -20,9 +20,7 @@ function walk(node: Node, visit: (n: Node) => void) {
 const text = (node: Node): string => node.value ?? (node.children ?? []).map(text).join('')
 
 const posts = (['nb', 'en'] as const).flatMap((lang) =>
-  getPostSlugs(lang).map(
-    (slug) => [lang === 'nb' ? `content/blog/${slug}.md` : `content/blog/en/${slug}.md`, lang, slug] as const,
-  ),
+  getPostSlugs(lang).map((slug) => [`content/blog/${lang}/${slug}.md`, lang, slug] as const),
 )
 
 function body(lang: Lang, slug: string): Node {
