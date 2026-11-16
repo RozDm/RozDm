@@ -1,10 +1,8 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { useRef } from 'react'
 import { DICT } from '@/data/i18n'
 import { useLang } from '@/lib/use-lang'
-import { useNearViewport } from '@/lib/use-near-viewport'
+import { lazyNearViewport } from '@/components/lazy-near-viewport'
 
 // The same box and line GeoMap shows while the SVG loads — same aspect ratio,
 // so neither the wait for the section nor the chunk landing shifts the layout
@@ -19,14 +17,7 @@ function Placeholder() {
   )
 }
 
-// Code-split GeoMap out of the initial bundle and mount it only as the section
-// nears the viewport (lib/use-near-viewport.ts): it fetches /api/geo, the
-// ~96 kB world.svg and — for the legend — the flag font, none of it useful at
-// build time or to a visitor who never scrolls down.
-const GeoMap = dynamic(() => import('./GeoMap'), { ssr: false, loading: Placeholder })
-
-export default function LazyGeoMap() {
-  const ref = useRef<HTMLDivElement>(null)
-  const near = useNearViewport(ref)
-  return <div ref={ref}>{near ? <GeoMap /> : <Placeholder />}</div>
-}
+// GeoMap is mounted only as the section nears the viewport: it fetches
+// /api/geo, the ~96 kB world.svg and — for the legend — the flag font, none of
+// it useful at build time or to a visitor who never scrolls down.
+export default lazyNearViewport(() => import('./GeoMap'), Placeholder)

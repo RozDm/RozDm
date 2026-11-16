@@ -76,7 +76,9 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
 ## Live widgets and counters
 
 - `StatusDashboard`, `GeoMap` and `TrendsChart` are code-split (`Lazy*.tsx`,
-  `ssr: false`) and mount near the viewport; their headings (`Driftsstatus`,
+  each a `Placeholder` + `lazyNearViewport(() => import('./X'), Placeholder)`
+  from `components/lazy-near-viewport.tsx`; `ssr: false`) and mount near the
+  viewport; their headings (`Driftsstatus`,
   `Hvor leserne kommer fra`, `Trafikk over tid`) stay in the server
   components `Status.tsx`, `Visitors.tsx`, `Trends.tsx` (through
   `SectionHeading`, a server component too) — `smoke.sh` greps them.

@@ -1,10 +1,8 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { useRef } from 'react'
 import { DICT } from '@/data/i18n'
 import { useLang } from '@/lib/use-lang'
-import { useNearViewport } from '@/lib/use-near-viewport'
+import { lazyNearViewport } from '@/components/lazy-near-viewport'
 
 // Reserves the card's height, so neither the wait nor the chunk shifts the layout.
 function Placeholder() {
@@ -16,13 +14,6 @@ function Placeholder() {
   )
 }
 
-// Code-split the Trends chart out of the initial bundle (the heavier client
-// payload) and mount it only as the section nears the viewport
-// (lib/use-near-viewport.ts) — it fetches /api/timeseries and /api/geo.
-const TrendsChart = dynamic(() => import('./TrendsChart'), { ssr: false, loading: Placeholder })
-
-export default function LazyTrendsChart() {
-  const ref = useRef<HTMLDivElement>(null)
-  const near = useNearViewport(ref)
-  return <div ref={ref}>{near ? <TrendsChart /> : <Placeholder />}</div>
-}
+// The Trends chart is the heavier client payload; it fetches /api/timeseries
+// and /api/geo.
+export default lazyNearViewport(() => import('./TrendsChart'), Placeholder)
