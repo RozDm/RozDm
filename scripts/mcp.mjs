@@ -1,32 +1,36 @@
 #!/usr/bin/env node
-// Webhuset (the registrar) on demand, through its MCP endpoint. The server used
-// to be attached to every session (.mcp.json): its instructions and 50 tool
-// names cost ~1.5k tokens of context each time, for a few DNS or registry
-// look-ups a year. The key is read-only.
+// Read-only MCP servers on demand: the registrar (Webhuset) and the Cloudflare
+// API. Attached to every session (.mcp.json), Webhuset's instructions and 50
+// tool names cost ~1.5k tokens of context each time, for a few look-ups a
+// year; a script costs nothing until it runs. Both keys are read-only:
+// changes go through PRs and the workflows, never through these.
 //
-//   node scripts/webhuset.mjs list [filter]    the tools, one line each
-//   node scripts/webhuset.mjs <tool> ['<json arguments>']
+//   node scripts/mcp.mjs <server> list [filter]    the tools, one line each
+//   node scripts/mcp.mjs <server> <tool> ['<json arguments>']
 //
-// Cloud sessions: the environment's network secret for mcp.webhuset.no
+// Cloud sessions: the environment's network secret for the server's host
 // authenticates — the agent proxy injects it, which is why this goes through
-// curl (it honours HTTPS_PROXY; Node's fetch doesn't). Elsewhere:
-// WEBHUSET_API_KEY=<key>.
+// curl (it honours HTTPS_PROXY; Node's fetch doesn't). Elsewhere: the key in
+// the server's variable below.
 import { execFileSync } from 'node:child_process'
 
-const ENDPOINT = 'https://mcp.webhuset.no/mcp/v1'
+const SERVERS = {
+  webhuset: { endpoint: 'https://mcp.webhuset.no/mcp/v1', keyVar: 'WEBHUSET_API_KEY' },
+  cloudflare: { endpoint: 'https://mcp.cloudflare.com/mcp', keyVar: 'CLOUDFLARE_READ_TOKEN' },
+}
 
 // One JSON-RPC message. The headers go in on stdin, so a key never shows in
 // the process list; the body holds no secret.
-function send(message, session, method = 'POST') {
+function send({ endpoint, keyVar }, message, session, method = 'POST') {
   const headers = [
     'content-type: application/json',
     'accept: application/json, text/event-stream',
-    ...(process.env.WEBHUSET_API_KEY ? [`authorization: Bearer ${process.env.WEBHUSET_API_KEY}`] : []),
+    ...(process.env[keyVar] ? [`authorization: Bearer ${process.env[keyVar]}`] : []),
     ...(session ? [`mcp-session-id: ${session}`] : []),
   ]
   const args = ['-sS', '--max-time', '60', '-X', method, '-D', '-', '-H', '@-']
   if (message) args.push('--data-raw', JSON.stringify({ jsonrpc: '2.0', ...message }))
-  let rest = execFileSync('curl', [...args, ENDPOINT], {
+  let rest = execFileSync('curl', [...args, endpoint], {
     input: `${headers.join('\n')}\n`,
     encoding: 'utf8',
     maxBuffer: 32 * 1024 * 1024,
@@ -42,7 +46,7 @@ function send(message, session, method = 'POST') {
   const status = Number(head.match(/^HTTP\/\S+ (\d{3})/)?.[1])
   if (status === 401 || status === 403) {
     throw new Error(
-      `HTTP ${status}: no key — set WEBHUSET_API_KEY (a cloud session takes it from the environment's network secret)`,
+      `HTTP ${status}: no key — set ${keyVar} (a cloud session takes it from the environment's network secret)`,
     )
   }
   // The body is JSON, or an event stream with the JSON in its data lines.
@@ -59,18 +63,23 @@ function send(message, session, method = 'POST') {
   return { result: reply?.result, session: head.match(/^mcp-session-id:\s*(\S+)/im)?.[1] }
 }
 
-function main([tool = 'list', arg]) {
-  const { session } = send({
+function main([name, tool = 'list', arg]) {
+  const server = SERVERS[name]
+  if (!server) {
+    console.error(`usage: node scripts/mcp.mjs <${Object.keys(SERVERS).join('|')}> list [filter] | <tool> ['<json>']`)
+    return 2
+  }
+  const { session } = send(server, {
     id: 0,
     method: 'initialize',
     params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'mcp-cli', version: '1' } },
   })
   try {
-    send({ method: 'notifications/initialized' }, session)
+    send(server, { method: 'notifications/initialized' }, session)
     if (tool === 'list') {
       const filter = (arg ?? '').toLowerCase()
       for (let cursor, page = 1; page === 1 || cursor; page++) {
-        const { result } = send({ id: page, method: 'tools/list', params: cursor ? { cursor } : {} }, session)
+        const { result } = send(server, { id: page, method: 'tools/list', params: cursor ? { cursor } : {} }, session)
         for (const t of result.tools) {
           if (!`${t.name} ${t.description}`.toLowerCase().includes(filter)) continue
           const required = new Set(t.inputSchema?.required ?? [])
@@ -82,6 +91,7 @@ function main([tool = 'list', arg]) {
       return 0
     }
     const { result } = send(
+      server,
       { id: 1, method: 'tools/call', params: { name: tool, arguments: arg ? JSON.parse(arg) : {} } },
       session,
     )
@@ -89,7 +99,7 @@ function main([tool = 'list', arg]) {
     return result.isError ? 1 : 0
   } finally {
     try {
-      send(null, session, 'DELETE')
+      send(server, null, session, 'DELETE')
     } catch {
       // Ending the server-side session is a courtesy; nothing depends on it.
     }
@@ -99,6 +109,6 @@ function main([tool = 'list', arg]) {
 try {
   process.exitCode = main(process.argv.slice(2))
 } catch (err) {
-  console.error(`webhuset: ${err.message}`)
+  console.error(`mcp: ${err.message}`)
   process.exitCode = 1
 }

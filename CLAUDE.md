@@ -24,9 +24,9 @@ Each file loads only when a task touches its area:
 - `docs/decisions.md` — the owner's standing decisions: read before
   proposing anything they may already have ruled on;
 - `docs/cloudflare-security.md` — the zone's edge security (WAF, rate
-  limiting, bots, owner's dashboard to-do) and the registrar tools
-  (`scripts/webhuset.mjs`): read before touching zone security or when a
-  403/429 isn't the Worker's;
+  limiting, bots, owner's dashboard to-do) and the read-only Webhuset and
+  Cloudflare API tools (`scripts/mcp.mjs`): read before touching zone
+  security or when a 403/429 isn't the Worker's;
 - `docs/history.md` — incidents behind the hard rules: only when a rule
   seems wrong or you want to undo one;
 - skills: `.claude/skills/browser-check` (Playwright on a built page),

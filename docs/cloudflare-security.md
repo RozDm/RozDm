@@ -580,12 +580,27 @@ subdomain itself stays; nothing serves on it.
   tab (`/:account/:zone/security/analytics`; there is no `/security/events`
   for a zone). Free shows sampled events, 31 days.
 
-## Registrar tools (Webhuset)
+## Read-only MCP tools (Webhuset, Cloudflare API)
 
-`node scripts/webhuset.mjs list [filter]` names
-its read-only tools (domains, its leftover zone via `check_dns`,
-registry/DNS diagnostics, WHOIS) and `node scripts/webhuset.mjs <tool>
-'<json>'` calls one. On demand, not an attached MCP server: that put ~1.5k
-tokens into every session. Cloud sessions authenticate through the
-environment's network secret for `mcp.webhuset.no` (the proxy injects
-it); locally `WEBHUSET_API_KEY`.
+`node scripts/mcp.mjs <server> list [filter]` names a server's tools and
+`node scripts/mcp.mjs <server> <tool> '<json>'` calls one:
+
+- `webhuset` — the registrar: domains, its leftover zone via `check_dns`,
+  registry/DNS diagnostics, WHOIS.
+- `cloudflare` — Cloudflare's API server (`mcp.cloudflare.com`, Code Mode:
+  `search` finds endpoints in the API spec, `execute` runs a short script
+  against them). For diagnosis — WAF and rate-limit events, zone settings,
+  rules, DNS, the Worker's config and analytics — instead of asking the owner
+  for dashboard screenshots. The token is read-only (Account: Account
+  Settings, Account Analytics, Workers Scripts, Workers Observability; zone
+  `rozsoshnykh.no`: Zone, Zone Settings, Zone WAF, Firewall Services, Bot
+  Management, Transform Rules, DNS, Analytics, Workers Routes — all Read; no
+  D1, R2, KV or Turnstile, so visitor data, backups and the Turnstile secret
+  stay out). Changes still go through `zone-rules.yml` and the deploy, never
+  through this.
+
+On demand, not attached MCP servers: Webhuset's put ~1.5k tokens into every
+session. Cloud sessions authenticate through the environment's network
+secrets for `mcp.webhuset.no` and `mcp.cloudflare.com` (the proxy injects
+them; the value never enters the container); locally `WEBHUSET_API_KEY` and
+`CLOUDFLARE_READ_TOKEN`.
