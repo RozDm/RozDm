@@ -84,7 +84,7 @@ describe('parseFrontmatter', () => {
 
   it('names the file and every problem at once', () => {
     expect(() => parse('title: "T"\ndraft: "false"\ntags: ["Linux"]')).toThrow(
-      /^content\/blog\/x\.md: .*description: required.*date: required.*draft: true or false/,
+      /^content\/blog\/nb\/x\.md: .*description: required.*date: required.*draft: true or false/,
     )
   })
 })
