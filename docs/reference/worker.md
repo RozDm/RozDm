@@ -33,12 +33,18 @@ The module inventory is the purpose header of each file
 - `index.ts` runs only for `/api/*` and the MTA-STS policy: HTTPS, the policy
   on any host, canonical-host 301s for the API (www and mta-sts are the edge's;
   this is the backstop), dispatch to `routes/`, an `/api/` path no route
-  claims → the 404 page (with the `_headers` set, which never reaches a Worker
-  response), and the cron dispatch (5-min health checks, daily contact
-  prune: both in `domain/*-store.ts`).
+  claims (any method) → `apiError('not_found')`, a JSON 404 with every API
+  answer's headers (never the asset server's 404 page), and the cron
+  dispatch (5-min health checks, daily contact prune: both in
+  `domain/*-store.ts`).
 - One structure for every `/api/*` route:
-  - `routes/<name>.ts` is the path/method check (`null` when the path isn't
-    its own, chained with `??` in `index.ts`), parse and validate the input
+  - `routes/<name>.ts` claims its path (`null` when the path isn't its own,
+    chained with `??` in `index.ts`), then the method gate
+    `refuseMethod(request, [...])` (`http.ts`): any other method → 405
+    `method_not_allowed` with `Allow` listing the served ones — first, ahead
+    of the edge cache, so no other method reads or fills it. HEAD is not
+    implied by GET and gets the 405 (nothing sends it: `smoke.sh`,
+    `status-watchdog.yml` and the site all GET). Then parse and validate the input
     (`validate.ts`), call the domain, build the answer with the `http.ts`
     helpers. Bindings (D1, KV, AE, mail) stay out of it — ESLint fails
     `env.<binding>` here (`eslint.config.mjs`); `allowWrite`'s rate limiter
@@ -70,7 +76,7 @@ The module inventory is the purpose header of each file
   `parseJson`) — no schema dependency. A validator answers the clean value
   or null; the route picks the code.
 - `http.ts`: `apiJson()` (JSON + security headers), `apiError(code)` (the one
-  error shape, status from `API_ERRORS`), the edge-cache pair
+  error shape, status from `API_ERRORS`), `refuseMethod()` (the 405 + `Allow`), the edge-cache pair
   `cachedApiJson()`/`putCachedApiJson()`, `allowWrite()`, `readCapped()` (a
   body read that gives up past a byte cap).
 - `csp.ts` is shared with the build (`metaCsp`, `withMetaCsp`, `cspProblems`
@@ -129,29 +135,36 @@ Every refusal is `{ "error": { "code": "…", "message": "…" } }` (`ApiError`)
 no-store, via `apiError(code)`. Clients branch on `code` (snake_case, the
 `ApiErrorCode` union) and the HTTP status, never on `message`. A code has one
 status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
-`bad_metric`, `bad_request` 400; `forbidden`, `challenge_required`,
-`challenge_failed` 403; `method_not_allowed` 405; `payload_too_large` 413;
-`invalid` 422; `rate_limited` 429; `send_failed` 502; `unavailable` 503.
-`tests/worker/errors.test.ts` holds each route to it.
+`bad_metric`, `bad_range`, `bad_request` 400; `forbidden`, `challenge_required`,
+`challenge_failed` 403; `not_found` 404; `method_not_allowed` 405;
+`payload_too_large` 413; `invalid` 422; `rate_limited` 429; `send_failed`
+502; `unavailable` 503. `tests/worker/errors.test.ts` holds each route to it.
+
+Two answers are the same on every path: a method the route doesn't serve is
+405 `method_not_allowed` with `Allow` (the methods below, HEAD never), and an
+`/api/` path no route claims is 404 `not_found`; `smoke.sh` checks both
+(`GET /api/contact`, `/api/no-such-endpoint`).
 
 - `/api/status` — GET, edge-cached 60 s. Public, so `buildStatusData`
   strips monitor URLs (`PublicMonitorResult`) — keep it so: one monitor is an
   admin login. Alert mails take the URL from the cron's own probes.
-- `/api/views/<slug>` — GET reads; POST counts when `isWriteAllowed`, a
+- `/api/views/<slug>` — GET, POST. GET reads; POST counts when `isWriteAllowed`, a
   non-datacenter ASN AND the slug is a published post page via ASSETS
   (`/blogg/<slug>/`, or `/en/blog/<slug>/` for an English-only post), so junk
   slugs mint no D1 rows. The slug is the view key (`lib/server/blog.ts viewKey`).
 - `/api/geo` — GET, edge-cached 60 s. A failed D1 read is an uncached 503,
   never an empty map: `smoke.sh` and `status-watchdog.yml` probe D1 here.
-- `/api/visit` — POST, the Besøk beacon: `recordGeo` writes the D1 `geo`
+- `/api/visit` — GET, POST. POST is the Besøk beacon: `recordGeo` writes the D1 `geo`
   row and the AE point (datacenter ASNs only to AE, as `bot`). GET is a
   harmless self-diagnostic (caller's country + whether it counts).
-- `/api/timeseries?metric=view|geo|mailfail&range=24h|7d|30d|all` — GET,
-  edge-cached per metric+range (`all` ≈ 90 days at 6 h; `mailfail` is the
+- `/api/timeseries?metric=view|geo|mailfail&range=24h|7d|30d|all` — GET;
+  an unknown metric is 400 `bad_metric`, an unknown range 400 `bad_range`
+  (no range is `7d`), both before the cache. Edge-cached per metric+range
+  (`all` ≈ 90 days at 6 h; `mailfail` is the
   watchdog's, never charted). No AE secrets or a failed AE
   read → 200, empty `points`, `degraded: true`, edge-cached 20 s (under the watchdog's 30 s retry gap); the watchdog
   fails on `degraded`.
-- `/api/contact` — POST: a 32 KB body cap (413 `payload_too_large`, by
+- `/api/contact` — POST (a GET is the 405, smoke-checked): a 32 KB body cap (413 `payload_too_large`, by
   Content-Length and while reading), `isWriteAllowed` (403 `forbidden`), honeypot (`HONEYPOT_FIELD`, a
   fake `ok:true` + a `honeypot` AE point), the burst cap,
   Turnstile when `TURNSTILE_SECRET` is set (siteverify bounded at 5 s; its
@@ -170,7 +183,7 @@ status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
   path only) and a POST writes at most one point; a `blocked` that is
   neither a keyword nor a URL keeps only `[\w.:/-]`, a directive only
   letters and hyphens (they reach `analytics-report`'s public log). GET →
-  405 (smoke-checked).
+  the shared 405 (smoke-checked).
 - `/.well-known/mta-sts.txt` — GET, any host (senders fetch it from
   `mta-sts.rozsoshnykh.no`, a custom domain). Proxies Cloudflare Email
   Routing's policy (`mta-sts.mx.cloudflare.net`, edge-cached 1 h) because

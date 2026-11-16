@@ -7,15 +7,22 @@
 // KV read cost drops to roughly one per minute per colo instead of one per
 // page view.
 import type { EmptyStatus } from '../api-types'
-import { apiJson, cachedApiJson, putCachedApiJson } from '../http'
+import { apiJson, cachedApiJson, putCachedApiJson, refuseMethod } from '../http'
 import { readStatusSnapshot } from '../domain/status-store'
 
 const STATUS_CACHE_TTL_S = 60
 // The answer when KV has no snapshot; a stored one is the cron's StatusData.
 const EMPTY_STATUS = JSON.stringify({ results: [], history: [] } satisfies EmptyStatus)
 
-export async function handleStatus(url: URL, env: Env, ctx: ExecutionContext): Promise<Response | null> {
+export async function handleStatus(
+  url: URL,
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response | null> {
   if (url.pathname !== '/api/status') return null
+  const refused = refuseMethod(request, ['GET'])
+  if (refused) return refused
   // Canonical key: path only — no parameters, so junk query strings must not
   // fragment (and thereby bypass) the cache.
   const cache = await cachedApiJson(`${url.origin}${url.pathname}`)

@@ -70,8 +70,15 @@ check_redirect() { # name url want_location
 }
 
 check_header() { # name url header_pattern
-  local name=$1 url=$2 pat=$3
-  fetch "$url" > /dev/null
+  # Retried like check(): right after a deploy some edges still run the
+  # previous version, which a new header check fails.
+  local name=$1 url=$2 pat=$3 i
+  for i in 1 2 3 4 5 6; do
+    fetch "$url" > /dev/null
+    grep -qi -- "$pat" "$HDR" && break
+    echo "  retry $i: $url lacks '$pat'"
+    sleep 15
+  done
   if grep -qi -- "$pat" "$HDR"; then
     echo "OK   $name"
   else
@@ -228,6 +235,13 @@ check "api/ts/mailfail" "$BASE/api/timeseries?metric=mailfail&range=24h" 200 '"p
 # GET is refused on purpose (reports are POSTed by browsers): 405 proves the
 # route is wired without writing a junk AE point on every deploy.
 check "csp-report"  "$BASE/api/csp-report"   405 '"code":"method_not_allowed"'
+# One rule for every /api/* route (worker/http.ts refuseMethod): a method it
+# doesn't serve is a JSON 405 naming the ones it does in Allow; a GET on the
+# POST-only form endpoint stores and sends nothing.
+check "contact GET 405" "$BASE/api/contact"  405 '"code":"method_not_allowed"'
+check_header "contact Allow" "$BASE/api/contact" "^allow: POST"
+# An /api/ path no route claims is the API's JSON 404, not the 404 page.
+check "api 404"     "$BASE/api/no-such-endpoint" 404 '"code":"not_found"'
 # /api/contact refuses an oversized body before anything else (no Turnstile,
 # no D1, no mail): 40 KB against the 32 KB cap.
 code=$(head -c 40000 /dev/zero | tr '\0' 'x' | curl -sS -o /dev/null -w '%{http_code}' --max-time 20 -A "$UA" \

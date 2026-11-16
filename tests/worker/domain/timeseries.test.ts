@@ -31,39 +31,40 @@ describe('parseMetric', () => {
 
 describe('parseRange', () => {
   it('returns the requested known range', () => {
-    expect(parseRange('24h').key).toBe('24h')
-    expect(parseRange('7d').key).toBe('7d')
-    expect(parseRange('30d').key).toBe('30d')
-    expect(parseRange('all').key).toBe('all')
+    expect(parseRange('24h')?.key).toBe('24h')
+    expect(parseRange('7d')?.key).toBe('7d')
+    expect(parseRange('30d')?.key).toBe('30d')
+    expect(parseRange('all')?.key).toBe('all')
   })
 
-  it('falls back to 7d on unknown or missing input', () => {
-    expect(parseRange(null).key).toBe('7d')
-    expect(parseRange('garbage').key).toBe('7d')
-    expect(parseRange('__proto__').key).toBe('7d')
+  it("is 7d when missing, null (the route's bad_range) when unknown", () => {
+    expect(parseRange(null)?.key).toBe('7d')
+    expect(parseRange('garbage')).toBeNull()
+    expect(parseRange('')).toBeNull()
+    expect(parseRange('__proto__')).toBeNull()
   })
 })
 
 describe('buildSeriesSql', () => {
   it('embeds the metric literal in the WHERE clause', () => {
-    const sql = buildSeriesSql('ds', 'view', parseRange('7d').range)
+    const sql = buildSeriesSql('ds', 'view', parseRange('7d')!.range)
     expect(sql).toContain("blob1 = 'view'")
     expect(sql).toContain('FROM ds')
     expect(sql).toContain('FORMAT JSON')
   })
 
   it('uses different bucket sizes per range', () => {
-    expect(buildSeriesSql('ds', 'geo', parseRange('24h').range)).toContain('toStartOfHour')
-    expect(buildSeriesSql('ds', 'geo', parseRange('30d').range)).toContain('toStartOfInterval')
+    expect(buildSeriesSql('ds', 'geo', parseRange('24h')!.range)).toContain('toStartOfHour')
+    expect(buildSeriesSql('ds', 'geo', parseRange('30d')!.range)).toContain('toStartOfInterval')
     // `all` reuses the 30d 6h bucket (aligns with the 6h epoch) over a wide,
     // retention-bounded window.
-    const allSql = buildSeriesSql('ds', 'geo', parseRange('all').range)
+    const allSql = buildSeriesSql('ds', 'geo', parseRange('all')!.range)
     expect(allSql).toContain("toStartOfInterval(timestamp, INTERVAL '6' HOUR)")
     expect(allSql).toContain("INTERVAL '90' DAY")
   })
 
   it('does not embed an epoch floor in the SQL itself (filter is client-side, see parseSeriesResponse)', () => {
-    const sql = buildSeriesSql('ds', 'geo', parseRange('7d').range)
+    const sql = buildSeriesSql('ds', 'geo', parseRange('7d')!.range)
     expect(sql).not.toContain('toDateTime')
     expect(sql).not.toContain('CAST')
   })
@@ -74,7 +75,7 @@ describe('buildSeriesSql', () => {
   // every range so a future tweak can't drop the quotes again.
   it('quotes every INTERVAL literal (AE rejects bare INTERVAL N UNIT)', () => {
     for (const key of ['24h', '7d', '30d', 'all'] as const) {
-      const sql = buildSeriesSql('ds', 'geo', parseRange(key).range)
+      const sql = buildSeriesSql('ds', 'geo', parseRange(key)!.range)
       expect(sql).not.toMatch(/INTERVAL\s+\d/)
       expect(sql).toMatch(/INTERVAL\s+'\d+'/)
     }

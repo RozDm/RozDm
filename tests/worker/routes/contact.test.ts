@@ -60,10 +60,14 @@ describe('POST /api/contact', () => {
     expect(fake.sent[0].raw).toContain('Reply-To: <kari@example.no>')
   })
 
-  it('ignores paths and methods that are not its own', async () => {
+  it('ignores paths that are not its own and refuses a GET with 405', async () => {
     const fake = makeEnv()
     expect(await handleContact(new URL('https://rozsoshnykh.no/api/other'), post(FORM), fake.env)).toBeNull()
-    expect(await handleContact(URL_, new Request(URL_), fake.env)).toBeNull()
+    const res = (await handleContact(URL_, new Request(URL_), fake.env))!
+    expect(res.status).toBe(405)
+    expect(res.headers.get('allow')).toBe('POST')
+    expect(await res.json()).toEqual(errorBody('method_not_allowed'))
+    expect(rows(fake)).toBe(0)
   })
 
   it('refuses cross-site and bot requests', async () => {

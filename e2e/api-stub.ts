@@ -14,11 +14,13 @@ import type {
   TimeseriesError,
   TimeseriesResponse,
   ViewsResponse,
+  VisitProbe,
 } from '../worker/api-types'
 
 export interface StubAnswer {
   status: number
   body: string
+  headers?: Record<string, string>
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -36,12 +38,29 @@ export const STUB_MONITORS = ['NetBox', 'Grafana']
 
 const RANGES: string[] = ['24h', '7d', '30d', 'all'] satisfies SeriesRangeKey[]
 
+// The methods each route serves (worker/routes/*, refuseMethod): any other is
+// a 405 with `Allow`; a path in none of them is the Worker's 404 `not_found`.
+const METHODS: [RegExp, string[]][] = [
+  [/^\/api\/(status|geo|timeseries)$/, ['GET']],
+  [/^\/api\/(visit|views\/[^/]+)$/, ['GET', 'POST']],
+  [/^\/api\/(contact|csp-report)$/, ['POST']],
+]
+
 export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer {
   const path = url.pathname
-  const json = (body: unknown, status = 200): StubAnswer => ({ status, body: JSON.stringify(body) })
+  const json = (body: unknown, status = 200, headers?: Record<string, string>): StubAnswer => ({
+    status,
+    body: JSON.stringify(body),
+    ...(headers && { headers }),
+  })
   // The Worker's refusal shape (worker/http.ts apiError); the message is free text.
-  const refuse = (code: ApiErrorCode, status: number, message: string): StubAnswer =>
-    json({ error: { code, message } } satisfies ApiError, status)
+  const refuse = (code: ApiErrorCode, status: number, message: string, headers?: Record<string, string>) =>
+    json({ error: { code, message } } satisfies ApiError, status, headers)
+
+  const allowed = METHODS.find(([re]) => re.test(path))?.[1]
+  if (!allowed) return refuse('not_found', 404, 'No such endpoint.')
+  if (!allowed.includes(method))
+    return refuse('method_not_allowed', 405, 'Method not allowed.', { Allow: allowed.join(', ') })
 
   if (path === '/api/status') {
     const up = Object.fromEntries(STUB_MONITORS.map((name) => [name, true]))
@@ -56,15 +75,18 @@ export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer 
     const metric = url.searchParams.get('metric')
     if (metric !== 'geo' && metric !== 'view' && metric !== 'mailfail')
       return json({ error: { code: 'bad_metric', message: 'Unknown metric.' } } satisfies TimeseriesError, 400)
-    const asked = url.searchParams.get('range') ?? ''
-    const range = (RANGES.includes(asked) ? asked : '7d') as SeriesRangeKey
+    const asked = url.searchParams.get('range') ?? '7d'
+    if (!RANGES.includes(asked))
+      return json({ error: { code: 'bad_range', message: 'Unknown range.' } } satisfies TimeseriesError, 400)
+    const range = asked as SeriesRangeKey
     // No mail has failed in the stub's world.
     const points =
       metric === 'mailfail' ? [] : [30, 5, 2].map((h, i) => ({ ts: hourKey(now - h * 3_600_000), value: i + 1 }))
     return json({ metric, range, points } satisfies TimeseriesResponse)
   }
-  if (/^\/api\/views\/[^/]+$/.test(path)) return json({ views: method === 'POST' ? 4 : 3 } satisfies ViewsResponse)
-  if (path === '/api/visit' && method === 'POST') return json({ ok: true } satisfies ApiOk)
-  if (path === '/api/contact' && method === 'POST') return json({ ok: true } satisfies ApiOk)
-  return refuse('not_found', 404, 'No such endpoint.')
+  if (path.startsWith('/api/views/')) return json({ views: method === 'POST' ? 4 : 3 } satisfies ViewsResponse)
+  if (path === '/api/visit' && method === 'GET')
+    return json({ country: 'NO', countable: true, note: 'A probe; the stub stores nothing.' } satisfies VisitProbe)
+  if (path === '/api/csp-report') return { status: 204, body: '' }
+  return json({ ok: true } satisfies ApiOk) // POST /api/visit, POST /api/contact
 }

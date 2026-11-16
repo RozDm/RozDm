@@ -3,7 +3,7 @@
 // (WRITE_LIMITER) + Turnstile (when configured) + per-IP and per-email rate
 // limits (domain/contact-store.ts, in D1).
 import type { ApiOk } from '../api-types'
-import { allowWrite, apiError, apiJson, readCapped } from '../http'
+import { allowWrite, apiError, apiJson, readCapped, refuseMethod } from '../http'
 import { clientKey } from '../ip'
 import { parseJson } from '../validate'
 import { HONEYPOT_FIELD } from '../../lib/shared/contact'
@@ -21,7 +21,9 @@ export const CONTACT_MAX_BODY = 32_768
 const OK = JSON.stringify({ ok: true } satisfies ApiOk)
 
 export async function handleContact(url: URL, request: Request, env: Env): Promise<Response | null> {
-  if (url.pathname !== '/api/contact' || request.method !== 'POST') return null
+  if (url.pathname !== '/api/contact') return null
+  const refused = refuseMethod(request, ['POST'])
+  if (refused) return refused
 
   if (Number(request.headers.get('content-length')) > CONTACT_MAX_BODY) return apiError('payload_too_large')
   if (!isWriteAllowed(request.headers, url.origin)) return apiError('forbidden')

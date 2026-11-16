@@ -47,9 +47,11 @@ const RANGES: Record<SeriesRangeKey, SeriesRange> = {
 
 const rangeKey = oneOf(Object.keys(RANGES) as SeriesRangeKey[])
 
-export function parseRange(value: string | null): { key: SeriesRangeKey; range: SeriesRange } {
-  const key = rangeKey(value) ?? '7d'
-  return { key, range: RANGES[key] }
+// No range (null) is '7d'; an unknown one is null, which the route refuses
+// (bad_range) rather than quietly answering another window than was asked.
+export function parseRange(value: string | null): { key: SeriesRangeKey; range: SeriesRange } | null {
+  const key = value === null ? '7d' : rangeKey(value)
+  return key ? { key, range: RANGES[key] } : null
 }
 
 // AE is append-only and can't be wiped, but old points (pre-relaunch,

@@ -5,6 +5,7 @@
 // Each real handler runs here on the fakes, seeded with the stub's own data.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { STUB_COUNTRIES, STUB_MONITORS, apiStub } from '../../e2e/api-stub'
+import worker from '../../worker/index'
 import { handleContact } from '../../worker/routes/contact'
 import { handleGeo } from '../../worker/routes/geo'
 import { handleStatus } from '../../worker/routes/status'
@@ -57,7 +58,14 @@ describe('e2e API stubs answer like the Worker', () => {
     fake.kv.set('status', JSON.stringify(buildStatusData(null, probes, new Date().toISOString())))
     const { ctx } = makeCtx()
     expectSameContract(
-      await answer(await handleStatus(new URL(`${ORIGIN}/api/status`), fake.env, ctx)),
+      await answer(
+        await handleStatus(
+          new URL(`${ORIGIN}/api/status`),
+          new Request(new URL(`${ORIGIN}/api/status`)),
+          fake.env,
+          ctx,
+        ),
+      ),
       stub('/api/status'),
     )
   })
@@ -69,14 +77,16 @@ describe('e2e API stubs answer like the Worker', () => {
       fake.db.prepare('INSERT INTO geo (country, count) VALUES (?, ?)').run(c, n)
     }
     const { ctx } = makeCtx()
-    const real = await answer(await handleGeo(new URL(`${ORIGIN}/api/geo`), fake.env, ctx))
+    const real = await answer(
+      await handleGeo(new URL(`${ORIGIN}/api/geo`), new Request(new URL(`${ORIGIN}/api/geo`)), fake.env, ctx),
+    )
     expect(real.body).toEqual(stub('/api/geo').body)
     expectSameContract(real, stub('/api/geo'))
   })
 
   it('/api/timeseries — echoes the range, points as AE answers them', async () => {
     stubCache()
-    for (const range of ['24h', '7d', '30d', 'all', 'junk']) {
+    for (const range of ['24h', '7d', '30d', 'all']) {
       const q = `/api/timeseries?metric=geo&range=${range}`
       const fakeAnswer = stub(q)
       const rows = (fakeAnswer.body as { points: { ts: string; value: number }[] }).points
@@ -86,7 +96,9 @@ describe('e2e API stubs answer like the Worker', () => {
       )
       const fake = makeEnv({ CF_ACCOUNT_ID: 'acct', AE_API_TOKEN: 'token' })
       const { ctx } = makeCtx()
-      const real = await answer(await handleTimeseries(new URL(`${ORIGIN}${q}`), fake.env, ctx))
+      const real = await answer(
+        await handleTimeseries(new URL(`${ORIGIN}${q}`), new Request(new URL(`${ORIGIN}${q}`)), fake.env, ctx),
+      )
       expectSameContract(real, fakeAnswer)
       expect((fakeAnswer.body as { range: string }).range).toBe((real.body as { range: string }).range)
     }
@@ -98,15 +110,33 @@ describe('e2e API stubs answer like the Worker', () => {
     const quiet = '/api/timeseries?metric=mailfail&range=24h'
     const real = await handleTimeseries(
       new URL(`${ORIGIN}${quiet}`),
+      new Request(new URL(`${ORIGIN}${quiet}`)),
       makeEnv({ CF_ACCOUNT_ID: 'acct', AE_API_TOKEN: 'token' }).env,
       makeCtx().ctx,
     )
     expect(await answer(real)).toEqual(stub(quiet))
     expectSameContract(
       await answer(
-        await handleTimeseries(new URL(`${ORIGIN}/api/timeseries?metric=nope`), makeEnv().env, makeCtx().ctx),
+        await handleTimeseries(
+          new URL(`${ORIGIN}/api/timeseries?metric=nope`),
+          new Request(new URL(`${ORIGIN}/api/timeseries?metric=nope`)),
+          makeEnv().env,
+          makeCtx().ctx,
+        ),
       ),
       stub('/api/timeseries?metric=nope'),
+    )
+    const junk = '/api/timeseries?metric=geo&range=junk'
+    expectSameContract(
+      await answer(
+        await handleTimeseries(
+          new URL(`${ORIGIN}${junk}`),
+          new Request(`${ORIGIN}${junk}`),
+          makeEnv().env,
+          makeCtx().ctx,
+        ),
+      ),
+      stub(junk),
     )
   })
 
@@ -146,5 +176,43 @@ describe('e2e API stubs answer like the Worker', () => {
       body,
     })
     expectSameContract(await answer(await handleContact(url, req, fake.env)), stub('/api/contact', 'POST'))
+  })
+
+  // The refusals every route shares, through the Worker's own dispatch.
+  async function viaWorker(path: string, method: string) {
+    const res = await worker.fetch!(
+      new Request(`${ORIGIN}${path}`, { method }) as Parameters<NonNullable<typeof worker.fetch>>[0],
+      makeEnv().env,
+      makeCtx().ctx,
+    )
+    return { ...(await answer(res)), allow: res.headers.get('allow') }
+  }
+
+  it('a method a route does not serve — 405 with the same Allow', async () => {
+    for (const [path, method] of [
+      ['/api/status', 'POST'],
+      ['/api/geo', 'HEAD'],
+      ['/api/timeseries?metric=geo', 'PUT'],
+      ['/api/views/velkommen', 'DELETE'],
+      ['/api/visit', 'PATCH'],
+      ['/api/contact', 'GET'],
+      ['/api/csp-report', 'GET'],
+    ]) {
+      const real = await viaWorker(path, method)
+      const fake = apiStub(new URL(`${ORIGIN}${path}`), method)
+      expect(real.status, `${method} ${path}`).toBe(405)
+      expectSameContract(real, { status: fake.status, body: JSON.parse(fake.body) })
+      expect(fake.headers?.Allow, `${method} ${path}`).toBe(real.allow)
+    }
+  })
+
+  it('an /api/ path no route claims — 404 not_found, any method', async () => {
+    for (const [path, method] of [
+      ['/api/nope', 'GET'],
+      ['/api/views/', 'GET'],
+      ['/api/status/x', 'POST'],
+    ]) {
+      expectSameContract(await viaWorker(path, method), stub(path, method))
+    }
   })
 })
