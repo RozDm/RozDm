@@ -5,10 +5,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import worker from '../../worker/index'
 import { CONTACT_PRUNE_CRON } from '../../worker/domain/contact'
-import { HEADER_CSP } from '../../worker/csp'
+import { ENFORCED_CSP } from '../../worker/csp'
 import { handleStatus } from '../../worker/routes/status'
 import { handleTimeseries } from '../../worker/routes/timeseries'
-import { makeCtx, makeEnv } from './fakes'
+import { errorBody, makeCtx, makeEnv } from './fakes'
 import wranglerConfig from '../../wrangler.jsonc?raw'
 
 const ORIGIN = 'https://rozsoshnykh.no'
@@ -54,12 +54,46 @@ describe('fetch dispatch', () => {
     expect(res.headers.get('strict-transport-security')).toContain('max-age=')
   })
 
-  it('answers an /api/ path no route claims with the 404 page and the _headers set', async () => {
-    const res = await dispatch(makeEnv(), `${ORIGIN}/api/nope`)
-    expect(res.status).toBe(404)
-    expect(res.headers.get('content-security-policy')).toBe(HEADER_CSP)
-    expect(res.headers.get('x-content-type-options')).toBe('nosniff')
-    expect(res.headers.get('strict-transport-security')).toContain('max-age=')
+  it('answers an /api/ path no route claims with a JSON 404 not_found, never the 404 page', async () => {
+    for (const method of ['GET', 'POST', 'DELETE']) {
+      const fake = makeEnv()
+      const assets = vi.spyOn(fake.env.ASSETS, 'fetch')
+      const res = await dispatch(fake, `${ORIGIN}/api/nope`, { method })
+      expect(res.status).toBe(404)
+      expect(res.headers.get('content-type')).toBe('application/json; charset=utf-8')
+      expect(res.headers.get('cache-control')).toBe('no-store')
+      expect(res.headers.get('content-security-policy')).toBe(ENFORCED_CSP)
+      expect(res.headers.get('x-content-type-options')).toBe('nosniff')
+      expect(res.headers.get('strict-transport-security')).toContain('max-age=')
+      expect(await res.json()).toEqual(errorBody('not_found'))
+      expect(assets).not.toHaveBeenCalled()
+    }
+  })
+
+  it('answers a method a route does not serve with 405 and Allow, before the edge cache', async () => {
+    const match = vi.fn(async () => undefined)
+    vi.stubGlobal('caches', { default: { match, put: async () => {} } })
+    for (const [path, method, allow] of [
+      ['/api/status', 'POST', 'GET'],
+      ['/api/geo', 'POST', 'GET'],
+      ['/api/timeseries?metric=geo&range=7d', 'POST', 'GET'],
+      ['/api/views/velkommen', 'DELETE', 'GET, POST'],
+      ['/api/visit', 'PUT', 'GET, POST'],
+      ['/api/contact', 'GET', 'POST'],
+      ['/api/csp-report', 'GET', 'POST'],
+    ]) {
+      const res = await dispatch(makeEnv(), `${ORIGIN}${path}`, { method })
+      expect(res.status, `${method} ${path}`).toBe(405)
+      expect(res.headers.get('allow'), `${method} ${path}`).toBe(allow)
+      expect(await res.json()).toEqual(errorBody('method_not_allowed'))
+    }
+    expect(match).not.toHaveBeenCalled()
+  })
+
+  it("refuses HEAD on the GET routes: nothing sends it, and GET is the cache's only method", async () => {
+    const res = await dispatch(makeEnv(), `${ORIGIN}/api/status`, { method: 'HEAD' })
+    expect(res.status).toBe(405)
+    expect(res.headers.get('allow')).toBe('GET')
   })
 })
 
@@ -207,7 +241,7 @@ describe('/api/status', () => {
     const fake = makeEnv()
     fake.kv.set('status', '{"updatedAt":"2026-10-23T08:00:00.000Z","results":[],"history":[]}')
     const { ctx, settle } = makeCtx()
-    const res = (await handleStatus(url, fake.env, ctx))!
+    const res = (await handleStatus(url, new Request(url), fake.env, ctx))!
     await settle()
     expect(await res.json()).toMatchObject({ updatedAt: '2026-10-23T08:00:00.000Z' })
     expect(puts).toEqual([url.href])
@@ -218,7 +252,7 @@ describe('/api/status', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const fake = makeEnv({ STATUS: { get: async () => Promise.reject(new Error('KV down')) } })
     const { ctx, settle } = makeCtx()
-    const res = (await handleStatus(url, fake.env, ctx))!
+    const res = (await handleStatus(url, new Request(url), fake.env, ctx))!
     await settle()
     expect(await res.json()).toEqual({ results: [], history: [] })
     expect(res.headers.get('cache-control')).toBe('no-store')
@@ -233,7 +267,7 @@ describe('/api/timeseries', () => {
 
   async function get(fake: ReturnType<typeof makeEnv>, q: string) {
     const { ctx, settle } = makeCtx()
-    const res = (await handleTimeseries(at(q), fake.env, ctx))!
+    const res = (await handleTimeseries(at(q), new Request(at(q)), fake.env, ctx))!
     await settle()
     return res
   }
@@ -241,6 +275,17 @@ describe('/api/timeseries', () => {
   it('refuses an unknown metric', async () => {
     stubCache()
     expect((await get(makeEnv(), 'metric=nope')).status).toBe(400)
+  })
+
+  it('refuses an unknown range (bad_range) and answers a missing one as 7d', async () => {
+    stubCache()
+    for (const q of ['metric=geo&range=foo', 'metric=geo&range=', 'metric=geo&range=7D']) {
+      const res = await get(makeEnv(), q)
+      expect(res.status, q).toBe(400)
+      expect(await res.json()).toEqual(errorBody('bad_range'))
+    }
+    expect(puts).toEqual([])
+    expect(await (await get(makeEnv(), 'metric=geo')).json()).toMatchObject({ range: '7d' })
   })
 
   it('without the AE secrets: an empty, degraded, briefly cached series', async () => {

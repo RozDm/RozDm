@@ -34,6 +34,7 @@ export function apiJson(body: string, status = 200, cacheControl = 'no-store'): 
 export const API_ERRORS: Record<ApiErrorCode, { status: number; message: string }> = {
   bad_slug: { status: 400, message: 'The slug is not a valid post slug.' },
   bad_metric: { status: 400, message: 'Unknown metric: use view, geo or mailfail.' },
+  bad_range: { status: 400, message: 'Unknown range: use 24h, 7d, 30d or all.' },
   bad_request: { status: 400, message: 'The body is not JSON.' },
   forbidden: { status: 403, message: 'Only the site itself may send this.' },
   challenge_required: { status: 403, message: 'A Turnstile token is required.' },
@@ -51,6 +52,19 @@ export const API_ERRORS: Record<ApiErrorCode, { status: number; message: string 
 export function apiError(code: ApiErrorCode): Response {
   const { status, message } = API_ERRORS[code]
   return apiJson(JSON.stringify({ error: { code, message } } satisfies ApiError), status)
+}
+
+// The method gate every /api/* route runs right after claiming its path, and
+// before anything else (the edge cache included, so a POST can neither read
+// nor fill it): null when `request.method` is one the route serves, else a
+// 405 `method_not_allowed` whose `Allow` lists them (RFC 9110 §15.5.6). HEAD
+// is not implied by GET: nothing sends it (smoke.sh, status-watchdog.yml and
+// the site all GET), and refusing it keeps the edge cache GET-only.
+export function refuseMethod(request: Request, allowed: readonly string[]): Response | null {
+  if (allowed.includes(request.method)) return null
+  const response = apiError('method_not_allowed')
+  response.headers.set('Allow', allowed.join(', '))
+  return response
 }
 
 // Edge-cached read for JSON endpoints whose source-of-truth (KV/D1) changes

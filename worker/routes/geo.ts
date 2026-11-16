@@ -1,6 +1,6 @@
 // GET /api/geo — visits per country, all time, from D1; edge-cached 60 s.
 import type { GeoResponse } from '../api-types'
-import { apiError, cachedApiJson, putCachedApiJson } from '../http'
+import { apiError, cachedApiJson, putCachedApiJson, refuseMethod } from '../http'
 import { readCountries } from '../domain/geo-store'
 
 // Short TTL so a fresh visit shows up on the map within a minute. The
@@ -9,8 +9,10 @@ import { readCountries } from '../domain/geo-store'
 // once traffic grows costs ~one config edit.
 const GEO_CACHE_TTL_S = 60
 
-export async function handleGeo(url: URL, env: Env, ctx: ExecutionContext): Promise<Response | null> {
+export async function handleGeo(url: URL, request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
   if (url.pathname !== '/api/geo') return null
+  const refused = refuseMethod(request, ['GET'])
+  if (refused) return refused
   // Canonical key: path only — the response takes no parameters, so any query
   // string is noise that must not fragment (and thereby bypass) the cache.
   const cache = await cachedApiJson(`${url.origin}${url.pathname}`)

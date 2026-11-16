@@ -36,9 +36,10 @@ file purposes: `node scripts/check-docs.mjs --map`; incidents: `docs/history.md`
   `reset-metrics`. Quote AE `INTERVAL '6' HOUR` (bare 422s).
 - Secrets live outside `wrangler.jsonc` (`worker/env.d.ts`, synced by
   `deploy.yml`); `OWNER_INBOX` never enters the repo. Traces stay off.
-- Layout: `routes/<name>.ts` is method, `validate.ts`, domain call, `http.ts`
-  answer; rules live in `domain/<name>.ts`, bindings in
-  `domain/<name>-store.ts` (a route touching `env.<binding>` and any import
+- Layout: `routes/<name>.ts` is path, `refuseMethod` (405 + `Allow`, before
+  the edge cache; no HEAD), `validate.ts`, domain call, `http.ts` answer; an
+  unclaimed `/api/` path is a JSON 404 `not_found`, never the 404 page. Rules
+  live in `domain/<name>.ts`, bindings in `domain/<name>-store.ts` (a route touching `env.<binding>` and any import
   outside `worker/` but `lib/shared/` fail ESLint). A refusal is
   `apiError(code)` → `{ error: { code, message } }`, its status fixed per code
   in `API_ERRORS`: a new code goes there and into `ApiErrorCode`; clients read

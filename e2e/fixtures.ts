@@ -62,8 +62,8 @@ export const test = base.extend<Fixtures>({
       )
       // Registered first, so a test's own page.route for one endpoint wins.
       await page.route('**/api/**', (route) => {
-        const { status, body } = apiStub(new URL(route.request().url()), route.request().method())
-        return route.fulfill({ status, body, contentType: 'application/json' })
+        const { status, body, headers } = apiStub(new URL(route.request().url()), route.request().method())
+        return route.fulfill({ status, body, headers, contentType: 'application/json' })
       })
       page.on('console', (m) => {
         // The 404 page's own document is a 404 — expected, not a problem.

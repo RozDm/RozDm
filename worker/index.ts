@@ -11,13 +11,14 @@
 //   2. Canonical host for the API (www, mta-sts → apex).
 //   3. Dispatches /api/* to the route handlers in worker/routes/ (HTTP only;
 //      the logic and bindings are worker/domain/).
-//   4. An /api/ path no route claims gets the asset server's 404 page.
+//   4. An /api/ path no route claims is a JSON 404 `not_found`.
 // The crons dispatch to domain/status-store.ts and domain/contact-store.ts.
 //
 // Types for Env and the Workers runtime come from worker-configuration.d.ts,
 // generated with `npm run cf-typegen` — rerun it after changing wrangler.jsonc.
 
-import { ENFORCED_CSP, HEADER_CSP, HSTS, applyBaseHeaders } from './csp'
+import { ENFORCED_CSP, HSTS, applyBaseHeaders } from './csp'
+import { apiError } from './http'
 import { CONTACT_PRUNE_CRON } from './domain/contact'
 import { pruneContactRows } from './domain/contact-store'
 import { runHealthChecks } from './domain/status-store'
@@ -82,26 +83,18 @@ export default {
       return redirect301(null, url.toString())
     }
 
-    // /api/* dispatch — each handler returns null when the path isn't its own.
+    // /api/* dispatch — each handler returns null when the path isn't its own,
+    // and a 405 when it is but the method isn't one it serves.
     const apiResponse =
-      (await handleStatus(url, env, ctx)) ??
+      (await handleStatus(url, request, env, ctx)) ??
       (await handleViews(url, request, env)) ??
-      (await handleGeo(url, env, ctx)) ??
+      (await handleGeo(url, request, env, ctx)) ??
       (await handleVisit(url, request, env, ctx)) ??
-      (await handleTimeseries(url, env, ctx)) ??
+      (await handleTimeseries(url, request, env, ctx)) ??
       (await handleContact(url, request, env)) ??
       (await handleCspReport(url, request, env))
-    if (apiResponse) return apiResponse
-
-    // An /api/ path no route claims: the asset server's 404 page. _headers
-    // never applies to a Worker response, so the headers it would have had
-    // are set here; HEADER_CSP, not ENFORCED_CSP — the page's own <meta>
-    // policy holds the hashes its inline scripts need.
-    const asset = await env.ASSETS.fetch(request)
-    const response = new Response(asset.body, asset)
-    applyBaseHeaders(response.headers)
-    response.headers.set('Strict-Transport-Security', HSTS)
-    response.headers.set('Content-Security-Policy', HEADER_CSP)
-    return response
+    // Any method on an /api/ path no route claims: the API's own 404, with
+    // the headers of every API answer. A client of the API reads JSON.
+    return apiResponse ?? apiError('not_found')
   },
 } satisfies ExportedHandler<Env>

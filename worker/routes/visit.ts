@@ -11,7 +11,7 @@
 // whether it would count; stores nothing) — handy when the map looks empty,
 // e.g. to tell "ad-blocker swallowed the POST" from "edge sees no country".
 import type { VisitProbe, VisitResponse } from '../api-types'
-import { allowWrite, apiError, apiJson } from '../http'
+import { allowWrite, apiError, apiJson, refuseMethod } from '../http'
 import { isCountableCountry, isWriteAllowed } from '../domain/metrics'
 import { recordGeo } from '../domain/geo-store'
 
@@ -22,6 +22,8 @@ export async function handleVisit(
   ctx: ExecutionContext,
 ): Promise<Response | null> {
   if (url.pathname !== '/api/visit') return null
+  const refused = refuseMethod(request, ['GET', 'POST'])
+  if (refused) return refused
 
   if (request.method === 'GET') {
     const c = request.cf?.country
@@ -33,8 +35,6 @@ export async function handleVisit(
       } satisfies VisitProbe),
     )
   }
-
-  if (request.method !== 'POST') return null
 
   if (!isWriteAllowed(request.headers, url.origin)) return apiError('forbidden')
   if (!(await allowWrite(env, request, 'visit'))) return apiError('rate_limited')

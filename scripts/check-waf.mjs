@@ -318,6 +318,7 @@ const WORKER_ROUTES = [
   '/api/timeseries',
   '/api/contact',
   '/api/csp-report',
+  '/api/no-such-endpoint', // scripts/smoke.sh's probe of the API's JSON 404
   '/status',
   '/status/',
   '/favicon.ico',

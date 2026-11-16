@@ -13,16 +13,17 @@ export interface ApiError<E extends string = ApiErrorCode> {
   error: { code: E; message: string }
 }
 
-// Every code a route can send. `not_found` is e2e/api-stub.ts's alone: the
-// Worker answers an unclaimed /api/ path with the asset server's 404 page.
+// Every code the API can send. Two are the same on every route: `not_found`
+// (404, an /api/ path no route claims: worker/index.ts) and
+// `method_not_allowed` (405, with `Allow`: worker/http.ts refuseMethod).
 export type ApiErrorCode =
   | ViewsErrorCode
   | GeoErrorCode
   | VisitErrorCode
   | TimeseriesErrorCode
   | ContactErrorCode
-  | CspReportErrorCode
   | 'not_found'
+  | 'method_not_allowed'
 
 export interface ApiOk {
   ok: true
@@ -89,7 +90,7 @@ export type VisitError = ApiError<VisitErrorCode>
 
 // ── GET /api/timeseries?metric=…&range=… ────────────────────────────────────
 export type SeriesMetric = 'view' | 'geo' | 'mailfail'
-// An unknown or missing range answers as '7d'.
+// A missing range answers as '7d'; an unknown one is a 400 `bad_range`.
 export type SeriesRangeKey = '24h' | '7d' | '30d' | 'all'
 
 // `ts` is the bucket start, UTC "YYYY-MM-DD HH:MM:SS"; only non-empty buckets.
@@ -106,7 +107,7 @@ export interface TimeseriesResponse {
   // (read by status-watchdog.yml; the chart draws it as empty).
   degraded?: true
 }
-export type TimeseriesErrorCode = 'bad_metric' // 400
+export type TimeseriesErrorCode = 'bad_metric' | 'bad_range' // 400
 export type TimeseriesError = ApiError<TimeseriesErrorCode>
 
 // ── POST /api/contact ───────────────────────────────────────────────────────
@@ -136,6 +137,4 @@ export type ContactResponse = ApiOk | ApiError<ContactErrorCode>
 
 // ── POST /api/csp-report ────────────────────────────────────────────────────
 // The browser's own Reporting API body (worker/csp.ts parseCspReports reads it);
-// always a 204 with no body. Any other method → CspReportError, 405.
-export type CspReportErrorCode = 'method_not_allowed' // 405
-export type CspReportError = ApiError<CspReportErrorCode>
+// always a 204 with no body; any other method is the shared 405.

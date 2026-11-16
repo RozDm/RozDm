@@ -20,7 +20,7 @@ describe('/api/geo', () => {
     const fake = makeEnv()
     fake.db.exec("INSERT INTO geo (country, count) VALUES ('NO', 3)")
     const { ctx, settle } = makeCtx()
-    const res = (await handleGeo(url, fake.env, ctx))!
+    const res = (await handleGeo(url, new Request(url), fake.env, ctx))!
     await settle()
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ countries: { NO: 3 } })
@@ -35,7 +35,7 @@ describe('/api/geo', () => {
     const fake = makeEnv({ METRICS: failing })
     const { ctx, settle } = makeCtx()
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const res = (await handleGeo(url, fake.env, ctx))!
+    const res = (await handleGeo(url, new Request(url), fake.env, ctx))!
     await settle()
     expect(res.status).toBe(503)
     expect(res.headers.get('cache-control')).toBe('no-store')

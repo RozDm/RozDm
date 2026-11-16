@@ -41,7 +41,12 @@ describe('the error shape, per route', () => {
     stubCache()
     const failing = { prepare: () => ({ all: async () => Promise.reject(new Error('D1_ERROR')) }) }
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const res = await handleGeo(new URL(`${ORIGIN}/api/geo`), makeEnv({ METRICS: failing }).env, makeCtx().ctx)
+    const res = await handleGeo(
+      new URL(`${ORIGIN}/api/geo`),
+      new Request(new URL(`${ORIGIN}/api/geo`)),
+      makeEnv({ METRICS: failing }).env,
+      makeCtx().ctx,
+    )
     await expectRefusal(res, 'unavailable', 503)
   })
 
@@ -55,9 +60,14 @@ describe('the error shape, per route', () => {
     await expectRefusal(await handleVisit(url, req, fake.env, makeCtx().ctx), 'rate_limited', 429)
   })
 
+  it('/api/timeseries — bad_range, 400', async () => {
+    const url = new URL(`${ORIGIN}/api/timeseries?metric=geo&range=foo`)
+    await expectRefusal(await handleTimeseries(url, new Request(url), makeEnv().env, makeCtx().ctx), 'bad_range', 400)
+  })
+
   it('/api/timeseries — bad_metric, 400', async () => {
     const url = new URL(`${ORIGIN}/api/timeseries?metric=nope`)
-    await expectRefusal(await handleTimeseries(url, makeEnv().env, makeCtx().ctx), 'bad_metric', 400)
+    await expectRefusal(await handleTimeseries(url, new Request(url), makeEnv().env, makeCtx().ctx), 'bad_metric', 400)
   })
 
   it('/api/contact — forbidden, bad_request, invalid', async () => {
@@ -69,9 +79,32 @@ describe('the error shape, per route', () => {
     await expectRefusal(await post('{"name":"x"}'), 'invalid', 422)
   })
 
-  it('/api/csp-report — method_not_allowed, 405', async () => {
-    const url = new URL(`${ORIGIN}/api/csp-report`)
-    await expectRefusal(await handleCspReport(url, new Request(url), makeEnv().env), 'method_not_allowed', 405)
+  // Every route: a method it does not serve is method_not_allowed, 405,
+  // with Allow naming the ones it does, and before any binding or the cache.
+  it('every route — method_not_allowed, 405, with Allow', async () => {
+    const match = vi.fn(async () => undefined)
+    vi.stubGlobal('caches', { default: { match, put: async () => {} } })
+    const fake = makeEnv()
+    const at = (path: string, method: string) => {
+      const url = new URL(`${ORIGIN}${path}`)
+      return [url, new Request(url, { method, headers: BROWSER_HEADERS })] as const
+    }
+    const cases: [Promise<Response | null>, string][] = [
+      [handleStatus(...at('/api/status', 'POST'), fake.env, makeCtx().ctx), 'GET'],
+      [handleGeo(...at('/api/geo', 'POST'), fake.env, makeCtx().ctx), 'GET'],
+      [handleTimeseries(...at('/api/timeseries?metric=geo', 'DELETE'), fake.env, makeCtx().ctx), 'GET'],
+      [handleViews(...at('/api/views/velkommen', 'DELETE'), fake.env), 'GET, POST'],
+      [handleVisit(...at('/api/visit', 'PUT'), fake.env, makeCtx().ctx), 'GET, POST'],
+      [handleContact(...at('/api/contact', 'GET'), fake.env), 'POST'],
+      [handleCspReport(...at('/api/csp-report', 'GET'), fake.env), 'POST'],
+    ]
+    for (const [pending, allow] of cases) {
+      const res = await pending
+      expect(res?.headers.get('allow')).toBe(allow)
+      await expectRefusal(res, 'method_not_allowed', 405)
+    }
+    expect(match).not.toHaveBeenCalled()
+    expect(fake.aePoints).toHaveLength(0)
   })
 
   // No refusal of its own: a missing or unreadable snapshot is the empty one.
@@ -79,7 +112,12 @@ describe('the error shape, per route', () => {
     stubCache()
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const kv = { get: async () => Promise.reject(new Error('KV down')) }
-    const res = (await handleStatus(new URL(`${ORIGIN}/api/status`), makeEnv({ STATUS: kv }).env, makeCtx().ctx))!
+    const res = (await handleStatus(
+      new URL(`${ORIGIN}/api/status`),
+      new Request(new URL(`${ORIGIN}/api/status`)),
+      makeEnv({ STATUS: kv }).env,
+      makeCtx().ctx,
+    ))!
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ results: [], history: [] })
   })
