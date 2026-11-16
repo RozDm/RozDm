@@ -3,7 +3,7 @@ import Link from 'next/link'
 import HalEye from '@/components/effects/HalEye'
 import Eyebrow from '@/components/layout/Eyebrow'
 import { DICT } from '@/data/i18n'
-import { localePath, type Lang } from '@/lib/i18n'
+import { localePath, type Lang } from '@/lib/shared/i18n'
 
 // One 404.html answers every miss, /en/… included, so the page carries both
 // languages. The head script in app/layout.tsx sets <html lang="en"> on /en/

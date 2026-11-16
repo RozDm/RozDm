@@ -44,7 +44,7 @@ export const SITE_COPY: Record<
   },
 }
 
-// The site-wide social card (lib/og-site-card.tsx renders it).
+// The site-wide social card (lib/server/og-site-card.tsx renders it).
 export const SITE_CARD_SIZE = { width: 1200, height: 630 }
 
 export function siteCardAlt(lang: Lang): string {

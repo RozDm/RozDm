@@ -22,7 +22,7 @@ Incident background: `docs/history.md`.
   `rozsoshnykh_metrics` (time series). Every `/api/*` call is a Worker
   request: client fetches use `cache: 'no-store'`, share a fetch two
   components need, load nothing below the fold before a reader nears it
-  (`lib/use-near-viewport.ts`) and poll only what's on screen.
+  (`lib/client/use-near-viewport.ts`) and poll only what's on screen.
 
 
 ## Module conventions
@@ -111,7 +111,7 @@ The contract (each route's request/response JSON) is `src/api-types.ts`, types o
 - `/api/views/<slug>` — GET reads; POST counts when `isWriteAllowed`, a
   non-datacenter ASN AND the slug is a published post page via ASSETS
   (`/blogg/<slug>/`, or `/en/blog/<slug>/` for an English-only post), so junk
-  slugs mint no D1 rows. The slug is the view key (`lib/blog.ts viewKey`).
+  slugs mint no D1 rows. The slug is the view key (`lib/server/blog.ts viewKey`).
 - `/api/geo` — GET, edge-cached 60 s. A failed D1 read is an uncached 503,
   never an empty map: `smoke.sh` and `status-watchdog.yml` probe D1 here.
 - `/api/visit` — POST, the Besøk beacon: `recordGeo` writes the D1 `geo`

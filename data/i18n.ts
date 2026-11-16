@@ -1,4 +1,4 @@
-import type { Lang } from '@/lib/i18n'
+import type { Lang } from '@/lib/shared/i18n'
 import { ERROR_COPY } from '@/data/i18n-error'
 
 // UI copy for both languages. `nb` defines the shape; `en` is typed against

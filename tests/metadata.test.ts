@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { RSS_ALTERNATE, pageMetadata, personJsonLd, serializeJsonLd } from '@/lib/metadata'
+import { RSS_ALTERNATE, pageMetadata, personJsonLd, serializeJsonLd } from '@/lib/shared/metadata'
 import { certifications } from '@/data/certifications'
-import { SITE_URL } from '@/lib/site'
+import { SITE_URL } from '@/lib/shared/site'
 
 // Next merges route metadata shallowly, so every page must carry the whole
 // set itself. These pin the invariants that used to break page by page.

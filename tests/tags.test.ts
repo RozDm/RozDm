@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeTag, tagLabel, tagToSlug } from '@/lib/tags'
+import { normalizeTag, tagLabel, tagToSlug } from '@/lib/shared/tags'
 import { INDEXED_TAGS, STANDARD_TAGS, TAG_ALIASES, TAG_LABELS_EN } from '@/data/tags'
 
 describe('normalizeTag', () => {
@@ -36,7 +36,7 @@ describe('tagToSlug', () => {
 })
 
 // The vocabulary in data/tags.ts holds together: post frontmatter may only
-// use STANDARD_TAGS (lib/post-frontmatter.ts), so every alias, English label
+// use STANDARD_TAGS (lib/server/post-frontmatter.ts), so every alias, English label
 // and indexed tag must lead to one of them, and no two tags may share a page.
 describe('tag vocabulary', () => {
   const canon = STANDARD_TAGS as readonly string[]

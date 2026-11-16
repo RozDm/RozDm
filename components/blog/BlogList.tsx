@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import PostCard from './PostCard'
-import { tagPath } from '@/lib/blog-paths'
-import { tagLabel } from '@/lib/tags'
-import type { Lang } from '@/lib/i18n'
+import { tagPath } from '@/lib/shared/blog-paths'
+import { tagLabel } from '@/lib/shared/tags'
+import type { Lang } from '@/lib/shared/i18n'
 import { DICT } from '@/data/i18n'
 import type { PostMeta } from '@/types'
 

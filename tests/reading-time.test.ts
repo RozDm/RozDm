@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readingTimeMinutes } from '@/lib/reading-time'
+import { readingTimeMinutes } from '@/lib/server/reading-time'
 
 describe('readingTimeMinutes', () => {
   it('returns at least 1 minute for short posts', () => {

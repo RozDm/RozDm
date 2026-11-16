@@ -1,4 +1,4 @@
-import type { Lang, Localized } from '@/lib/i18n'
+import type { Lang, Localized } from '@/lib/shared/i18n'
 
 // `string` = the same in both languages (product names); Localized = translated.
 export interface SkillGroup {

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { copyText } from '@/lib/clipboard'
+import { copyText } from '@/lib/client/clipboard'
 import { DICT } from '@/data/i18n'
-import { useLang } from '@/lib/use-lang'
+import { useLang } from '@/lib/client/use-lang'
 
 export default function CopyLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false)

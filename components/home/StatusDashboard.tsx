@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { DICT } from '@/data/i18n'
-import { INTL_LOCALE, type Lang } from '@/lib/i18n'
-import { useLang } from '@/lib/use-lang'
+import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
+import { useLang } from '@/lib/client/use-lang'
 import type { HistoryEntry } from '@/src/api-types'
 import { failingSince, isStale } from '@/src/status'
-import { serverNow } from '@/lib/server-clock'
-import { fetchStatus, type StatusSnapshot } from '@/lib/status-fetch'
+import { serverNow } from '@/lib/client/server-clock'
+import { fetchStatus, type StatusSnapshot } from '@/lib/client/status-fetch'
 
 // The cron writes every 5 min, so polling that often is plenty when all is
 // well; during an incident, refresh sooner so the dashboard catches recovery
@@ -85,7 +85,7 @@ export default function StatusDashboard() {
     const tick = async () => {
       due = false
       try {
-        // The first call shares the footer dot's request (lib/status-fetch.ts).
+        // The first call shares the footer dot's request (lib/client/status-fetch.ts).
         const d = await fetchStatus()
         if (cancelled) return
         setData(d)

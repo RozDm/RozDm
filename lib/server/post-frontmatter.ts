@@ -1,10 +1,10 @@
 // Validates and normalises a post's frontmatter so a slip fails the build.
 
 import { STANDARD_TAGS } from '@/data/tags'
-import { normalizeTag } from './tags'
-import type { Lang } from './i18n'
+import { normalizeTag } from '@/lib/shared/tags'
+import type { Lang } from '@/lib/shared/i18n'
 
-// A post's frontmatter, checked as lib/blog.ts reads the file: a slip stops
+// A post's frontmatter, checked as lib/server/blog.ts reads the file: a slip stops
 // `npm run dev`, `npm test` and the build instead of going live quietly.
 // Unchecked, `draft: "true"`, `draft: yes` or a misspelt `draft` published a
 // draft, a tag outside the canon made a new tag page, and a post without a

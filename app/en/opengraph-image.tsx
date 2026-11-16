@@ -1,4 +1,4 @@
-import { SITE_CARD_SIZE, siteCardAlt, siteCardImage } from '@/lib/og-site-card'
+import { SITE_CARD_SIZE, siteCardAlt, siteCardImage } from '@/lib/server/og-site-card'
 
 export const dynamic = 'force-static'
 export const alt = siteCardAlt('en')

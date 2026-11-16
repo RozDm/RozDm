@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/timeseries-fill'
+import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/shared/timeseries-fill'
 import { METRICS_EPOCH } from '@/src/timeseries'
 
 // Fixed reference instant: 2026-06-20 12:30:00 UTC. The hour floor is 12:00,

@@ -1,8 +1,8 @@
 import type { MetadataRoute } from 'next'
-import { getAllPosts, getAllTags, getPostsByTag, getTranslation, isTagIndexed } from '@/lib/blog'
-import { blogPath, postPath, tagPath } from '@/lib/blog-paths'
-import { SITE_URL } from '@/lib/site'
-import { languageAlternates, type Lang } from '@/lib/i18n'
+import { getAllPosts, getAllTags, getPostsByTag, getTranslation, isTagIndexed } from '@/lib/server/blog'
+import { blogPath, postPath, tagPath } from '@/lib/shared/blog-paths'
+import { SITE_URL } from '@/lib/shared/site'
+import { languageAlternates, type Lang } from '@/lib/shared/i18n'
 
 export const dynamic = 'force-static'
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MIN_PUBLIC_VISITS, geoBucket, showVisitCounts } from '@/lib/geo'
+import { MIN_PUBLIC_VISITS, geoBucket, showVisitCounts } from '@/lib/client/geo'
 
 describe('geoBucket', () => {
   it('returns null for countries without visits', () => {

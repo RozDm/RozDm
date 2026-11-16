@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { HREFLANG, langFromPath } from '@/lib/i18n'
+import { HREFLANG, langFromPath } from '@/lib/shared/i18n'
 
 // One root layout serves both languages, so the static HTML always says
 // <html lang="nb">. The build (scripts/finalize-export.mjs) rewrites it to

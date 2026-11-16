@@ -2,10 +2,10 @@
 
 import { DICT } from '@/data/i18n'
 import { getPostBySlug, getPostSlugs } from './blog'
-import { blogPath, feedPath, postPath } from './blog-paths'
-import { INTL_LOCALE, type Lang } from './i18n'
+import { blogPath, feedPath, postPath } from '@/lib/shared/blog-paths'
+import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import { markdownToHtml } from './markdown'
-import { AUTHOR, SITE_URL } from './site'
+import { AUTHOR, SITE_URL } from '@/lib/shared/site'
 
 // RSS 2.0 feed for one language's blog: /feed.xml (Norwegian) and
 // /en/feed.xml (English).

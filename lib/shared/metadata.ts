@@ -30,7 +30,7 @@ function defaultOgImage(lang: Lang) {
 
 export interface PageMetadataInput {
   // Page language (default 'nb'). Pages that exist in both languages get
-  // hreflang alternates automatically (lib/i18n.ts pairs).
+  // hreflang alternates automatically (lib/shared/i18n.ts pairs).
   lang?: Lang
   title: string
   description: string
@@ -46,7 +46,7 @@ export interface PageMetadataInput {
   // The route has its own opengraph-image file.
   ownImage?: boolean
   // hreflang pairs for pages that pair dynamically (blog posts and tags),
-  // as paths; static pairs come from lib/i18n.ts automatically.
+  // as paths; static pairs come from lib/shared/i18n.ts automatically.
   languages?: Record<string, string>
   article?: { publishedTime: string; modifiedTime?: string; tags: string[] }
 }

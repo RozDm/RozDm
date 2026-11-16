@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it, vi } from 'vitest'
 import { INDEXED_TAGS } from '@/data/tags'
 
-// lib/blog reads markdown off disk; mock node:fs so these tests exercise the
+// lib/server/blog reads markdown off disk; mock node:fs so these tests exercise the
 // ordering / adjacency / tag logic against a fixed set, independent of whatever
 // lives in content/blog. Fixtures and impl live inside the factory because
 // vi.mock is hoisted above module scope and can't close over outer variables.
@@ -40,11 +40,11 @@ Nyeste post.`,
   }
 })
 
-// isolate: false shares the module cache across files: drop any lib/blog bound
+// isolate: false shares the module cache across files: drop any lib/server/blog bound
 // to the real fs before importing it against the mock, and drop ours after.
 vi.resetModules()
 const { getAllPosts, getAdjacentPosts, getPostsByTag, getAllTags, filterPublished, isTagIndexed } =
-  await import('@/lib/blog')
+  await import('@/lib/server/blog')
 afterAll(() => {
   vi.resetModules()
 })

@@ -6,7 +6,7 @@ import matter from 'gray-matter'
 import { INDEXED_TAGS } from '@/data/tags'
 import { parseFrontmatter } from './post-frontmatter'
 import { readingTimeMinutes } from './reading-time'
-import { INTL_LOCALE, type Lang } from './i18n'
+import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import type { Post, PostMeta } from '@/types'
 
 // Norwegian posts live in content/blog/, English ones in content/blog/en/. An

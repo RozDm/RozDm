@@ -3,9 +3,9 @@ import './globals.css'
 import { ThemeProvider } from '@/context/ThemeContext'
 import VisitBeacon from '@/components/effects/VisitBeacon'
 import HtmlLang from '@/components/effects/HtmlLang'
-import { SITE_URL, AUTHOR, SITE_TITLE, SITE_DESCRIPTION, SITE_TAGLINE, THEME_BG } from '@/lib/site'
-import { RSS_ALTERNATE, personJsonLd as buildPersonJsonLd, serializeJsonLd } from '@/lib/metadata'
-import { fontClasses } from '@/lib/fonts'
+import { SITE_URL, AUTHOR, SITE_TITLE, SITE_DESCRIPTION, SITE_TAGLINE, THEME_BG } from '@/lib/shared/site'
+import { RSS_ALTERNATE, personJsonLd as buildPersonJsonLd, serializeJsonLd } from '@/lib/shared/metadata'
+import { fontClasses } from '@/lib/server/fonts'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   // Fallbacks only — every page sets its own canonical/og:url through
-  // pageMetadata() (lib/metadata.ts). No canonical or og:url here: whatever
+  // pageMetadata() (lib/shared/metadata.ts). No canonical or og:url here: whatever
   // inherits these (the 404 page) must not claim to be the home page.
   alternates: { types: RSS_ALTERNATE },
   openGraph: {

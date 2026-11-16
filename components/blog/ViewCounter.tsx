@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { DICT } from '@/data/i18n'
 import type { ViewsResponse } from '@/src/api-types'
-import { useLang } from '@/lib/use-lang'
-import { onFirstHumanInput } from '@/lib/visit'
+import { useLang } from '@/lib/client/use-lang'
+import { onFirstHumanInput } from '@/lib/client/visit'
 
 // Below this the count stays hidden: «4 visninger» reads as an empty site.
 // D1 still counts every view; the number appears once it's worth showing.
@@ -12,9 +12,9 @@ const MIN_SHOWN = 50
 
 // Counts one view per browser session per post (sessionStorage flag), so a
 // reader hopping back and forth doesn't inflate the number — and, like the
-// Besøk beacon (lib/visit.ts), only on the first human input and never under
+// Besøk beacon (lib/client/visit.ts), only on the first human input and never under
 // automation, so headless loaders and prefetchers don't count. `slug` is the
-// post's view key (lib/blog.ts viewKey): both language versions share it.
+// post's view key (lib/server/blog.ts viewKey): both language versions share it.
 export default function ViewCounter({ slug }: { slug: string }) {
   const [views, setViews] = useState<number | null>(null)
   const t = DICT[useLang()].blog

@@ -3,7 +3,7 @@ import ThemeToggle from './ThemeToggle'
 import MobileMenu from './MobileMenu'
 import LangSwitch from './LangSwitch'
 import { DICT } from '@/data/i18n'
-import { localePath, type Lang } from '@/lib/i18n'
+import { localePath, type Lang } from '@/lib/shared/i18n'
 
 export interface NavLink {
   href: string

@@ -3,7 +3,7 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import { MAX_NOWRAP_WORD, rehypeInlineCode } from '@/lib/inline-code'
+import { MAX_NOWRAP_WORD, rehypeInlineCode } from '@/lib/server/inline-code'
 
 const render = async (md: string) =>
   String(await unified().use(remarkParse).use(remarkRehype).use(rehypeInlineCode).use(rehypeStringify).process(md))

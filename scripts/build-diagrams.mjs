@@ -4,7 +4,7 @@
 // web fonts: its <text> would fall back to whatever monospace the reader's
 // system has. So the source keeps live <text> (edit that), and the copy in
 // public/ draws every text in Intel One Mono outlines, from Fontsource's WOFF
-// files like the OG cards (lib/og-fonts.ts): one <path> per glyph, placed by
+// files like the OG cards (lib/server/og-fonts.ts): one <path> per glyph, placed by
 // <use>. After editing a source:  npm run diagrams
 // tests/diagrams.test.ts fails while a copy is stale (`--check`).
 //

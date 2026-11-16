@@ -2,7 +2,7 @@
 
 import { useTheme } from '@/context/ThemeContext'
 import { DICT } from '@/data/i18n'
-import { useLang } from '@/lib/use-lang'
+import { useLang } from '@/lib/client/use-lang'
 
 export default function ThemeToggle() {
   const { theme, toggleTheme, mounted } = useTheme()

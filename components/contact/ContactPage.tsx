@@ -4,7 +4,7 @@ import Footer from '@/components/layout/Footer'
 import Eyebrow from '@/components/layout/Eyebrow'
 import ContactForm from './ContactForm'
 import { DICT } from '@/data/i18n'
-import { localePath, type Lang } from '@/lib/i18n'
+import { localePath, type Lang } from '@/lib/shared/i18n'
 
 // The contact page, shared by /kontakt/ and /en/contact/.
 export default function ContactPage({ lang }: { lang: Lang }) {

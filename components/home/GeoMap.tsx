@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchGeoCountries, geoBucket, showVisitCounts } from '@/lib/geo'
+import { fetchGeoCountries, geoBucket, showVisitCounts } from '@/lib/client/geo'
 import { DICT } from '@/data/i18n'
-import { INTL_LOCALE } from '@/lib/i18n'
-import { useLang } from '@/lib/use-lang'
+import { INTL_LOCALE } from '@/lib/shared/i18n'
+import { useLang } from '@/lib/client/use-lang'
 
 interface GeoData {
   countries: Record<string, number>
@@ -55,7 +55,7 @@ export default function GeoMap() {
 
   useEffect(() => {
     let cancelled = false
-    // Shared with the Trends card's all-time total (lib/geo.ts) — one request.
+    // Shared with the Trends card's all-time total (lib/client/geo.ts) — one request.
     fetchGeoCountries()
       .then((countries) => {
         if (!cancelled) setData({ countries })

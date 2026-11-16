@@ -2,7 +2,7 @@
 
 import type { Metadata } from 'next'
 import ContactPage from '@/components/contact/ContactPage'
-import { pageMetadata } from '@/lib/metadata'
+import { pageMetadata } from '@/lib/shared/metadata'
 
 // A form page with no indexable content; keep it out of search results.
 export const metadata: Metadata = pageMetadata({

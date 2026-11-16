@@ -1,7 +1,7 @@
 import SectionHeading from './SectionHeading'
 import { certifications } from '@/data/certifications'
 import { DICT } from '@/data/i18n'
-import { pick, type Lang } from '@/lib/i18n'
+import { pick, type Lang } from '@/lib/shared/i18n'
 
 // The front-page card, with the same hover border as the Skills cards.
 const CARD =

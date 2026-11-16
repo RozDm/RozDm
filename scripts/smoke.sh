@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Post-deploy smoke test of the live site; fails the pipeline if the basics are broken.
 # Retries tolerate cert/route propagation right after a deploy. Run from the
-# repo root (deploy.yml): the origin comes from lib/site.ts, the sample posts
+# repo root (deploy.yml): the origin comes from lib/shared/site.ts, the sample posts
 # from out/ when there is a build.
 set -u
 
@@ -158,7 +158,7 @@ need() { # name value -> 0 if the sample the check needs was found, else FAIL
 }
 
 # Sample posts, so smoke names none (any post can come, go or change its
-# slug): the newest item of each feed (lib/feed.ts), and the English twin
+# slug): the newest item of each feed (lib/server/feed.ts), and the English twin
 # and the tag pages from the post pages' own links. Read from the build being
 # deployed (out/: the deploy job has it) — right after a deploy an edge can
 # still serve the previous feed, naming a post this version no longer has —

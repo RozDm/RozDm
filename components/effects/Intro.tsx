@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import HalEye from './HalEye'
 import Starfield from './Starfield'
-import { makeStars, type Star } from '@/lib/stars'
+import { makeStars, type Star } from '@/lib/shared/stars'
 import { DICT } from '@/data/i18n'
-import { useLang } from '@/lib/use-lang'
+import { useLang } from '@/lib/client/use-lang'
 
 // localStorage, not sessionStorage: the ~11s sequence is a first-meeting
 // thing — once per visitor, not once per tab or visit.

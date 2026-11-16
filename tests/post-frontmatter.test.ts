@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import matter from 'gray-matter'
-import { parseFrontmatter } from '@/lib/post-frontmatter'
+import { parseFrontmatter } from '@/lib/server/post-frontmatter'
 
 // The frontmatter as YAML, the way a post file carries it (gray-matter turns
-// it into the object lib/blog.ts hands over).
+// it into the object lib/server/blog.ts hands over).
 const parse = (yaml: string, lang: 'nb' | 'en' = 'nb') =>
   parseFrontmatter(matter(`---\n${yaml}\n---\nTekst.\n`).data, lang, 'content/blog/x.md')
 

@@ -2,8 +2,8 @@
 
 import type { Metadata } from 'next'
 import HomePage from '@/components/home/HomePage'
-import { pageMetadata } from '@/lib/metadata'
-import { SITE_COPY } from '@/lib/site'
+import { pageMetadata } from '@/lib/shared/metadata'
+import { SITE_COPY } from '@/lib/shared/site'
 
 export const metadata: Metadata = pageMetadata({
   title: SITE_COPY.nb.title,

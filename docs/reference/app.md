@@ -39,7 +39,7 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
   labels they share with the site come from `DICT`). Both languages share the page
   components (`HomePage`, `ContactPage`, the blog pages); server components
   take `lang` from their page, client components call `useLang()`. Page links go through
-  `localePath()` (`lib/i18n.ts`); blog posts/tags pair dynamically and pass
+  `localePath()` (`lib/shared/i18n.ts`); blog posts/tags pair dynamically and pass
   their twin as `Header alternate` + `pageMetadata({ languages })`.
   Bilingual data: `Localized` + `pick()`. The export always says
   `<html lang="nb">`: `scripts/finalize-export.mjs` rewrites `/en/` pages,
@@ -49,16 +49,16 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
 
 ## Metadata and SEO
 
-- Every page uses `pageMetadata()` (`lib/metadata.ts`; `lang: 'en'`
+- Every page uses `pageMetadata()` (`lib/shared/metadata.ts`; `lang: 'en'`
   sets og:locale, hreflang, the English OG card, `/en/feed.xml`). Next merges
   metadata SHALLOWLY — a page setting part of `openGraph`/`alternates` drops
   the rest. The root layout has no canonical/og:url (the 404 inherits it).
-  Name, roles, titles and `THEME_BG` live in `lib/site.ts`; the contact
+  Name, roles, titles and `THEME_BG` live in `lib/shared/site.ts`; the contact
   address in `src/contact.ts` — never hard-code them.
 - SEO: canonicals with trailing slashes, OG images via `next/og` (Intel One
-  Mono from Fontsource WOFF, `lib/og-fonts.ts` — next/og can't read WOFF2),
+  Mono from Fontsource WOFF, `lib/server/og-fonts.ts` — next/og can't read WOFF2),
   JSON-LD (Person + WebSite sitewide from `personJsonLd()` in
-  `lib/metadata.ts`: `knowsAbout` from `data/skills.ts` minus the learning
+  `lib/shared/metadata.ts`: `knowsAbout` from `data/skills.ts` minus the learning
   group, `hasCredential` from `data/certifications.ts` — a certificate `url`
   also makes its card a link; BlogPosting + BreadcrumbList per post), RSS per
   language, hreflang (pages + sitemap), prev/next, tag pages. Tag pages are
@@ -74,7 +74,7 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
 
 ## Font
 
-- Intel One Mono via CSS variables. Body font (`lib/fonts.ts`): Intel One
+- Intel One Mono via CSS variables. Body font (`lib/server/fonts.ts`): Intel One
   Mono self-hosted from
   `@fontsource-variable/intel-one-mono` through `next/font/local` — the
   build needs no network (a Google-font build fails offline). Four subset

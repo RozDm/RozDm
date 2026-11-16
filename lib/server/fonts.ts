@@ -18,7 +18,7 @@ import localFont from 'next/font/local'
 // ahead of the monospace fallbacks in the stack.
 
 const intelOneMono = localFont({
-  src: '../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-latin-wght-normal.woff2',
+  src: '../../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-latin-wght-normal.woff2',
   weight: '300 700',
   display: 'optional',
   preload: true,
@@ -34,7 +34,7 @@ const intelOneMono = localFont({
 })
 
 const intelOneMonoExt = localFont({
-  src: '../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-latin-ext-wght-normal.woff2',
+  src: '../../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-latin-ext-wght-normal.woff2',
   weight: '300 700',
   display: 'optional',
   preload: false,
@@ -50,7 +50,7 @@ const intelOneMonoExt = localFont({
 })
 
 const intelOneMonoVi = localFont({
-  src: '../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-vietnamese-wght-normal.woff2',
+  src: '../../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-vietnamese-wght-normal.woff2',
   weight: '300 700',
   display: 'optional',
   preload: false,
@@ -66,7 +66,7 @@ const intelOneMonoVi = localFont({
 })
 
 const intelOneMonoSym = localFont({
-  src: '../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-symbols2-wght-normal.woff2',
+  src: '../../node_modules/@fontsource-variable/intel-one-mono/files/intel-one-mono-symbols2-wght-normal.woff2',
   weight: '300 700',
   display: 'optional',
   preload: false,

@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import HalEye from './HalEye'
 import Starfield from './Starfield'
-import { makeStars, type Star } from '@/lib/stars'
+import { makeStars, type Star } from '@/lib/shared/stars'
 import { DICT } from '@/data/i18n'
-import { useLang } from '@/lib/use-lang'
+import { useLang } from '@/lib/client/use-lang'
 
 // After IDLE_MS without user activity on the front page, HAL wakes up:
 // star field, eye, then a script that gets shorter each time. Any activity

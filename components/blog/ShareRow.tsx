@@ -1,6 +1,6 @@
 import CopyLink from './CopyLink'
 import { DICT } from '@/data/i18n'
-import type { Lang } from '@/lib/i18n'
+import type { Lang } from '@/lib/shared/i18n'
 
 // Plain share links — no third-party SDKs, no extra scripts, CSP untouched.
 export default function ShareRow({ url, lang }: { url: string; lang: Lang }) {

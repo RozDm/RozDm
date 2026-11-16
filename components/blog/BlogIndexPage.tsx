@@ -5,10 +5,10 @@ import Footer from '@/components/layout/Footer'
 import Eyebrow from '@/components/layout/Eyebrow'
 import BlogList from './BlogList'
 import { DICT } from '@/data/i18n'
-import { getAllPosts, getAllTags } from '@/lib/blog'
-import { blogPath, feedPath } from '@/lib/blog-paths'
-import { localePath, type Lang } from '@/lib/i18n'
-import { pageMetadata } from '@/lib/metadata'
+import { getAllPosts, getAllTags } from '@/lib/server/blog'
+import { blogPath, feedPath } from '@/lib/shared/blog-paths'
+import { localePath, type Lang } from '@/lib/shared/i18n'
+import { pageMetadata } from '@/lib/shared/metadata'
 
 // The blog index, shared by /blogg/ and /en/blog/.
 export function blogIndexMetadata(lang: Lang): Metadata {

@@ -338,7 +338,7 @@ function servedUrls() {
       urls.add(dir).add(dir.slice(0, -1) || '/')
     } else if (u.endsWith('.html')) urls.add(u.slice(0, -'.html'.length))
   }
-  // /api/views/<viewKey> (lib/blog.ts): the Norwegian twin's slug, else the
+  // /api/views/<viewKey> (lib/server/blog.ts): the Norwegian twin's slug, else the
   // post's own. Drafts too — they go public later.
   const slugs = (dir) =>
     fs

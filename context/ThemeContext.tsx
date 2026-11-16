@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { THEME_BG } from '@/lib/site'
+import { THEME_BG } from '@/lib/shared/site'
 
 type Theme = 'light' | 'dark'
 
