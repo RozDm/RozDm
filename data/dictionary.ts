@@ -1,5 +1,5 @@
 import type { Lang } from '@/lib/shared/i18n'
-import { ERROR_COPY } from '@/data/i18n-error'
+import { ERROR_COPY } from '@/data/dictionary-error'
 
 // UI copy for both languages. `nb` defines the shape; `en` is typed against
 // it, so a key added in one language and forgotten in the other fails the
@@ -8,7 +8,7 @@ import { ERROR_COPY } from '@/data/i18n-error'
 
 const nb = {
   skipToContent: 'Hopp til hovedinnhold',
-  // backHome + error: shared with app/error.tsx (see i18n-error.ts).
+  // backHome + error: shared with app/error.tsx (see dictionary-error.ts).
   ...ERROR_COPY.nb,
   // app/not-found.tsx (a server component, so no client cost).
   notFound: {

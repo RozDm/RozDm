@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import HashLink from './HashLink'
 import type { NavLink } from './Header'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { useLang } from '@/lib/client/use-lang'
 
 interface MobileMenuProps {

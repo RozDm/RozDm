@@ -5,7 +5,7 @@ import { die, flags } from './cli.mjs'
 
 flags([], 'node scripts/check-dict.mjs')
 
-// A string only the UI dictionary (data/i18n.ts) carries: the skip link's label.
+// A string only the UI dictionary (data/dictionary.ts) carries: the skip link's label.
 const MARKER = 'Hopp til hovedinnhold'
 const DIR = 'out/_next/static/chunks'
 

@@ -1,3 +1,4 @@
+// Shared types for posts, certifications and skills (Post, PostMeta, …); pure, importable from anywhere.
 import type { Lang, Localized } from '@/lib/shared/i18n'
 
 // `string` = the same in both languages (product names); Localized = translated.

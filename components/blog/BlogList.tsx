@@ -3,8 +3,8 @@ import PostCard from './PostCard'
 import { tagPath } from '@/lib/shared/blog-paths'
 import { tagLabel } from '@/lib/shared/tags'
 import type { Lang } from '@/lib/shared/i18n'
-import { DICT } from '@/data/i18n'
-import type { PostMeta } from '@/types'
+import { DICT } from '@/data/dictionary'
+import type { PostMeta } from '@/lib/shared/types'
 
 // The blog index list (/blogg/, /en/blog/). A server component: the topic chips link to the static
 // tag pages (…/tag/<slug>/) instead of filtering client-side, so there

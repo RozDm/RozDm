@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchGeoCountries, geoBucket, showVisitCounts } from '@/lib/client/geo'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { INTL_LOCALE } from '@/lib/shared/i18n'
 import { useLang } from '@/lib/client/use-lang'
 

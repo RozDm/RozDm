@@ -29,7 +29,7 @@ an HTTP call from `worker/domain/contact.ts`, not a binding. There is no R2.
 | Path | Owns |
 |---|---|
 | `app/` | Next App Router pages and routes (Norwegian at the root, `app/en/`), metadata, feeds, OG cards |
-| `components/`, `context/` | React widgets (status, map, trends, contact form), theme |
+| `components/` | React widgets (status, map, trends, contact form), theme |
 | `lib/`, `data/` | Helpers split by where they run (`lib/server/` build/export only, `lib/client/` browser, `lib/shared/` pure, also imported by the Worker); copy, skills, tag canon |
 | `content/` | Blog posts (Markdown, `content/blog/{nb,en}/<slug>.md`), diagram sources |
 | `worker/` | The Worker: `index.ts` dispatches to `worker/routes/*` (HTTP only), which call `worker/domain/*` (rules; `*-store.ts` hold the bindings); CSP, the `/api/*` contract |
@@ -51,7 +51,7 @@ and exit 1 on failure) and name no host of their own: the origin is
 
 Each page exists twice: a Norwegian route and an English route under
 `app/en/`, both thin wrappers over the same components, with strings from
-`data/i18n.ts`. `lib/shared/i18n.ts` maps paths to the language and pairs the twins;
+`data/dictionary.ts`. `lib/shared/i18n.ts` maps paths to the language and pairs the twins;
 `pageMetadata` (`lib/shared/metadata.ts`) emits hreflang. A post names its Norwegian
 twin in `translationOf`. After the build, `scripts/finalize-export.mjs`
 bakes each page's hash-based CSP `<meta>`, the `lang` attribute and the

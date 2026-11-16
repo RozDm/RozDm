@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
-import { useTheme } from '@/context/ThemeContext'
+import { useTheme } from '@/components/theme/ThemeContext'
 
 // Minimal Turnstile widget wrapper. Lazy-loads the Cloudflare script on mount,
 // renders into our div, and surfaces the token via onToken. We use 'always'

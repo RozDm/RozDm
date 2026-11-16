@@ -1,6 +1,6 @@
 import TrendsChart from './LazyTrendsChart'
 import SectionHeading from './SectionHeading'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import type { Lang } from '@/lib/shared/i18n'
 
 export default function Trends({ lang }: { lang: Lang }) {

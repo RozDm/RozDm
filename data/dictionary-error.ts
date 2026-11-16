@@ -3,7 +3,7 @@ import type { Lang } from '@/lib/shared/i18n'
 // The error boundary's copy, both languages. app/error.tsx loads on every page
 // in its own chunk, so it imports this instead of DICT: importing DICT there
 // put a second copy of the dictionary on every page (and the whole of it on
-// the 404). data/i18n.ts spreads it into nb/en, so the copy has one source
+// the 404). data/dictionary.ts spreads it into nb/en, so the copy has one source
 // and the dictionary tests cover it.
 
 const nb = {

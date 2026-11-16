@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import HalEye from './HalEye'
 import Starfield from './Starfield'
 import { makeStars, type Star } from '@/lib/shared/stars'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { useLang } from '@/lib/client/use-lang'
 
 // localStorage, not sessionStorage: the ~11s sequence is a first-meeting

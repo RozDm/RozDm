@@ -7,7 +7,7 @@ import { INDEXED_TAGS } from '@/data/tags'
 import { parseFrontmatter } from './post-frontmatter'
 import { readingTimeMinutes } from './reading-time'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
-import type { Post, PostMeta } from '@/types'
+import type { Post, PostMeta } from '@/lib/shared/types'
 
 // Posts live in content/blog/${lang}/${slug}.md (nb/ and en/). An
 // English post names its Norwegian twin in `translationOf` (frontmatter);

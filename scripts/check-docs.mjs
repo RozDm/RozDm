@@ -21,6 +21,8 @@ const NOT_PATHS = new Set(['cloudflare/wrangler-action', 'origin/main', 'favicon
 const NOT_PATH_PREFIXES = ['next/', '@', 'node:', 'eslint-config-']
 // Build output and installs — named in docs, absent in a fresh checkout.
 const UNTRACKED_OK = ['out', '.next', 'node_modules', '.wrangler']
+// Gitignored files that `predev`/`prebuild` generate.
+const GENERATED_OK = ['public/world.svg']
 const FILE_EXT = /\.(tsx?|mjs|js|jsonc?|md|sh|ya?ml|sql|css|svg|woff2|xml|txt|png|ico)$/
 
 // Source files that must open with a purpose line: the Worker, lib/, scripts/,
@@ -122,6 +124,7 @@ export function checkDocs(root = ROOT) {
         exists(p) ||
         exists(path.posix.join(path.posix.dirname(doc), p)) ||
         UNTRACKED_OK.includes(p.split('/')[0]) ||
+        GENERATED_OK.includes(p) ||
         (p.includes('/') ? all.some((f) => f.endsWith(`/${p}`)) : names.has(p))
       if (!ok) problems.push(`${doc}: \`${token}\` does not exist`)
     }

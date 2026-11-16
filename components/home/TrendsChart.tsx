@@ -5,7 +5,7 @@ import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/shared/trends-axis
 import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/shared/timeseries-fill'
 import { MIN_PUBLIC_VISITS, fetchGeoCountries, showVisitCounts } from '@/lib/client/geo'
 import { noteServerDate, serverNow } from '@/lib/client/server-clock'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import { useLang } from '@/lib/client/use-lang'
 import type { SeriesRangeKey, TimeseriesResponse } from '@/worker/api-types'

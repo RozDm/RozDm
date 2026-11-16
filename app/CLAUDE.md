@@ -11,9 +11,9 @@ detail: `docs/reference/app.md`; blog: `content/CLAUDE.md`; root configs:
   who may import whom is enforced by ESLint (`eslint.config.mjs`). No
   `server-only` marker: the package isn't a dependency and tests/scripts
   import these files outside Next.
-- ALL UI copy lives in `data/i18n.ts` (`nb` defines the shape, `en` is typed
+- ALL UI copy lives in `data/dictionary.ts` (`nb` defines the shape, `en` is typed
   against it, `tests/i18n.test.ts` checks parity), never in a component.
-  Exceptions: `app/error.tsx` reads `ERROR_COPY` (`data/i18n-error.ts`;
+  Exceptions: `app/error.tsx` reads `ERROR_COPY` (`data/dictionary-error.ts`;
   importing `DICT` doubled the dictionary on every page) and the privacy
   notices' text stays in their pages. The Norwegian notice is authoritative:
   change both.

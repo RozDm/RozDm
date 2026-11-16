@@ -46,6 +46,7 @@ API route, workflow, skill or hook in no doc, or on a file without that header.
   `public/world.svg`) are denied to Read/Grep/Glob and shell reads
   (`.claude/settings.json`, `.ignore`, `guard-bash.mjs`); regenerate with
   `npm run cf-typegen` / `prebuild`; `git diff --stat` says if they changed.
+  `public/world.svg` is gitignored (built by `predev`/`prebuild`), the other two are committed.
 - Model/effort: open with one line naming the pick — Sonnet `high` (posts,
   translations, bumps, copy, docs, small UI), Opus `high` (Worker, CSP, WAF,
   counters, deploy pipeline, `/audit`), Fable (hard bug, no known cause; `max`

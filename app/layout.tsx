@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { ThemeProvider } from '@/context/ThemeContext'
+import { ThemeProvider } from '@/components/theme/ThemeContext'
 import VisitBeacon from '@/components/effects/VisitBeacon'
 import HtmlLang from '@/components/effects/HtmlLang'
 import { SITE_URL, AUTHOR, SITE_TITLE, SITE_DESCRIPTION, SITE_TAGLINE, THEME_BG } from '@/lib/shared/site'

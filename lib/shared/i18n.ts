@@ -1,8 +1,8 @@
 // Language codes, locale tags and path-to-language helpers for nb (root) and en (/en/).
 // Two languages: Norwegian at the root (the canonical site, every existing URL
 // unchanged) and English under /en/. Blog posts may exist in one language or
-// both (lib/server/blog.ts pairs them). Strings live in data/i18n.ts (the error
-// boundary's in data/i18n-error.ts).
+// both (lib/server/blog.ts pairs them). Strings live in data/dictionary.ts (the error
+// boundary's in data/dictionary-error.ts).
 
 export type Lang = 'nb' | 'en'
 

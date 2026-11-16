@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { DICT } from '@/data/i18n'
-import { ERROR_COPY } from '@/data/i18n-error'
+import { DICT } from '@/data/dictionary'
+import { ERROR_COPY } from '@/data/dictionary-error'
 import { languageAlternates, langFromPath, localePath, pick, switchPath } from '@/lib/shared/i18n'
 
 describe('langFromPath', () => {
@@ -83,7 +83,7 @@ describe('dictionary', () => {
     // chunk every page loads.
     const from = [...readFileSync('app/error.tsx', 'utf8').matchAll(/from ['"]([^'"]+)['"]/g)].map((m) => m[1])
     expect(from.filter((s) => /data\/i18n$/.test(s))).toEqual([])
-    expect(from).toContain('@/data/i18n-error')
+    expect(from).toContain('@/data/dictionary-error')
   })
 
   // The words under the uptime bar (StatusDashboard): quiet by default, the

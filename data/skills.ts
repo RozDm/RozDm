@@ -1,4 +1,4 @@
-import { SkillGroup } from '@/types'
+import { SkillGroup } from '@/lib/shared/types'
 
 // Strongest first within every group (the owner's call). The page lays the
 // groups out two to a row, so keep an even number of half-width groups

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Turnstile, { type TurnstileHandle } from './Turnstile'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { useLang } from '@/lib/client/use-lang'
 import type { ApiError, ContactErrorCode } from '@/worker/api-types'
 import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/lib/shared/contact'

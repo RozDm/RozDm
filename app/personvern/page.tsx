@@ -5,12 +5,12 @@ import Link from 'next/link'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Eyebrow from '@/components/layout/Eyebrow'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { pageMetadata } from '@/lib/shared/metadata'
 import { CONTACT_ADDRESS } from '@/lib/shared/contact'
 
 // The notice is a document, not UI copy: its text lives here, not in
-// data/i18n.ts — that dictionary ships with every page, and a page of legal
+// data/dictionary.ts — that dictionary ships with every page, and a page of legal
 // text has no business in it (app/CLAUDE.md, Languages). Only the labels it
 // shares with the rest of the site come from DICT.
 //
