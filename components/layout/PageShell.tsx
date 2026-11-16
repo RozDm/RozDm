@@ -6,8 +6,8 @@ import type { Lang } from '@/lib/shared/i18n'
 
 // `alternate` is Header's: this page in the other language, when it knows
 // better than the switch's default. `footer` is the Footer's own props, passed
-// through whole — `{ invite: false }` on the contact page — so a new Footer
-// prop needs no change here.
+// through whole — `{ invite: false }` on the contact page, `{ privacy: false }`
+// on the privacy ones — so a new Footer prop needs no change here.
 export default function PageShell({
   lang = 'nb',
   alternate,

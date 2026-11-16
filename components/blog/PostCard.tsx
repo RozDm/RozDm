@@ -20,9 +20,11 @@ export default function PostCard({ post }: { post: PostMeta }) {
           </Link>
         </h2>
         <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
-          <time dateTime={post.date}>{formatDate(post.date, lang)}</time>
+          <time dateTime={post.date} className="whitespace-nowrap">
+            {formatDate(post.date, lang)}
+          </time>
           {' · '}
-          {DICT[lang].blog.readShort(post.readingMinutes)}
+          <span className="whitespace-nowrap">{DICT[lang].blog.readShort(post.readingMinutes)}</span>
         </span>
       </div>
       <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{post.description}</p>

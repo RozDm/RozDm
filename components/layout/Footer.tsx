@@ -16,8 +16,17 @@ const LINK =
   'py-3 -my-3 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 ease-out'
 
 // `invite={false}` on the contact page: «La oss snakkes» and the link to
-// the form would invite the visitor to the page they are already on.
-export default function Footer({ lang = 'nb', invite = true }: { lang?: Lang; invite?: boolean }) {
+// the form would invite the visitor to the page they are already on; likewise
+// `privacy={false}` on the privacy pages drops the link to themselves.
+export default function Footer({
+  lang = 'nb',
+  invite = true,
+  privacy = true,
+}: {
+  lang?: Lang
+  invite?: boolean
+  privacy?: boolean
+}) {
   const t = DICT[lang].footer
   return (
     <footer id="footer" className="w-full mt-20 border-t border-gray-200 dark:border-gray-800">
@@ -55,14 +64,18 @@ export default function Footer({ lang = 'nb', invite = true }: { lang?: Lang; in
 
         <p className="text-xs text-gray-500 dark:text-gray-400 pt-8 font-mono">
           &copy; <CopyrightYear built={new Date().getFullYear()} /> {AUTHOR.name}
-          {' · '}
-          <Link
-            href={localePath(lang, '/personvern/')}
-            prefetch={false}
-            className="py-3 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 ease-out"
-          >
-            {t.privacy}
-          </Link>
+          {privacy && (
+            <>
+              {' · '}
+              <Link
+                href={localePath(lang, '/personvern/')}
+                prefetch={false}
+                className="py-3 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 ease-out"
+              >
+                {t.privacy}
+              </Link>
+            </>
+          )}
         </p>
       </div>
     </footer>

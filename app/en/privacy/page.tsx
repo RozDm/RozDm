@@ -22,7 +22,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function PrivacyPage() {
   return (
-    <PageShell lang="en">
+    <PageShell lang="en" footer={{ privacy: false }}>
       <BackLink href={localePath('en', '/')}>{DICT.en.backHome}</BackLink>
 
       <PageTitle eyebrow={DICT.en.footer.privacy}>Privacy notice</PageTitle>

@@ -85,7 +85,7 @@ describe('asset server headers (public/_headers)', () => {
 
   it('caches build output immutably and stable URLs for a week', () => {
     expect(rules.get('/_next/static/*')?.get('cache-control')).toBe('public, max-age=31536000, immutable')
-    for (const path of ['/world.svg', '/fonts/*', '/icons/*', '/favicon.ico']) {
+    for (const path of ['/world.svg', '/fonts/*', '/icons/*', '/favicon.ico', '/icon.svg']) {
       expect(rules.get(path)?.get('cache-control'), path).toBe('public, max-age=604800')
     }
   })

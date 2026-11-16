@@ -26,7 +26,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function PersonvernPage() {
   return (
-    <PageShell>
+    <PageShell footer={{ privacy: false }}>
       <BackLink href={localePath('nb', '/')}>{DICT.nb.backHome}</BackLink>
 
       <PageTitle eyebrow={DICT.nb.footer.privacy}>

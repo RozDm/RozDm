@@ -76,7 +76,7 @@ const nb = {
   trends: {
     eyebrow: 'Trender',
     title: 'Trafikk over tid',
-    lead: 'Samplet tidsserie fra Workers Analytics Engine — hvert punkt er antall besøk i et tidsrom. Ingen informasjonskapsler, ingen sporing av enkeltpersoner.',
+    lead: 'Samplet tidsserie fra Workers Analytics Engine — hvert punkt er antall besøk i et tidsrom.',
     loading: 'Kalibrerer AE-35-enheten…',
     cardTitle: 'Besøk over tid',
     periodLabel: 'Periode',
@@ -245,7 +245,7 @@ const en: Dict = {
   trends: {
     eyebrow: 'Trends',
     title: 'Traffic over time',
-    lead: 'A sampled time series from Workers Analytics Engine — each dot is the number of visits in a time slot. No cookies, no tracking of individuals.',
+    lead: 'A sampled time series from Workers Analytics Engine — each dot is the number of visits in a time slot.',
     loading: 'Calibrating the AE-35 unit…',
     cardTitle: 'Visits over time',
     periodLabel: 'Period',
