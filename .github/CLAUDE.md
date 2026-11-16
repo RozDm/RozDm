@@ -123,10 +123,11 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
 - Every action is pinned to a full commit SHA with its release in a comment
   (`actions/checkout@<sha> # v7.0.1`); `tests/workflows.test.ts` fails on a
   bare tag; Dependabot bumps SHA and comment together.
-- `README.md` — the project README: GitHub shows `.github/README.md` on the
-  repository page ahead of the root one, which is the owner's profile card
-  (`docs/decisions.md`). The About box (description, website, topics) is a
-  repository setting: owner-only.
+- `README.md` — the project README, the one the repository page shows. None
+  in the root: it would show on github.com/RozDm (the profile repository),
+  which stays neutral (`docs/decisions.md`; `scripts/check-docs.mjs` fails
+  on one). The About box (description, website, topics) is a repository
+  setting: owner-only.
 - `pull_request_template.md` — What / Why and a three-box checklist (check,
   docs, build + e2e); PRs from sessions follow it too.
 - `dependabot.yml` — monthly (the 1st, 06:00 Europe/Oslo; owner's call
