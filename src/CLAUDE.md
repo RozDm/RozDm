@@ -32,10 +32,16 @@ file purposes: `node scripts/check-docs.mjs --map`; incidents: `docs/history.md`
   `reset-metrics`. Quote AE `INTERVAL '6' HOUR` (bare 422s).
 - Secrets live outside `wrangler.jsonc` (`src/env.d.ts`, synced by
   `deploy.yml`); `OWNER_INBOX` never enters the repo. Traces stay off.
+- Layout: `routes/<name>.ts` is HTTP only (method, `validate.ts`, domain
+  call, `http.ts` answer — no binding but `allowWrite`); rules live in
+  `domain/<name>.ts`, bindings in `domain/<name>-store.ts`. A refusal is
+  `apiError(code)` → `{ error: { code, message } }`, its status fixed per code
+  in `API_ERRORS`: a new code goes there and into `ApiErrorCode`; clients read
+  `code`, never `message`. No schema-validation dependency (owner's word).
 - `src/` checks under `tsconfig.worker.json`: `npm run cf-typegen` after a
-  `wrangler.jsonc` change or wrangler bump, commit it. `csp`, `contact`,
-  `status`, `metrics`, `timeseries`, `ip`, `api-types` also check under the
-  app tsconfig: DOM-compatible APIs only. A changed answer shape changes
-  `api-types.ts` (the `/api/*` contract) first.
+  `wrangler.jsonc` change or wrangler bump, commit it. `csp`, `ip`,
+  `validate`, `api-types` and the pure `domain/*` (not `*-store`) also check
+  under the app tsconfig: DOM-compatible APIs only. A changed answer shape
+  changes `api-types.ts` (the `/api/*` contract) first.
 - A new endpoint gets a worker test AND a `scripts/smoke.sh` check; a changed
   answer updates `e2e/api-stub.ts`. No `@cloudflare/vitest-pool-workers`.

@@ -6,7 +6,7 @@ import {
   encodeMimeHeader,
   validateContact,
   verifyTurnstile,
-} from '@/src/contact'
+} from '@/src/domain/contact'
 
 const valid = { name: 'Ola Nordmann', email: 'ola@example.no', message: 'Hei! Dette er en testmelding.' }
 

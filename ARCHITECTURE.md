@@ -22,7 +22,7 @@ flowchart LR
 Bindings are declared in `wrangler.jsonc` (`ASSETS`, `STATUS`, `METRICS`,
 `METRICS_AE`, `WRITE_LIMITER`, `CONTACT_EMAIL`; two crons: an uptime probe
 every five minutes and a daily prune of stored contact messages). Turnstile is
-an HTTP call from `src/routes/contact.ts`, not a binding. There is no R2.
+an HTTP call from `src/domain/contact.ts`, not a binding. There is no R2.
 
 ## Directories
 
@@ -32,7 +32,7 @@ an HTTP call from `src/routes/contact.ts`, not a binding. There is no R2.
 | `components/`, `context/` | React widgets (status, map, trends, contact form), theme |
 | `lib/`, `data/` | Helpers split by where they run (`lib/server/` build/export only, `lib/client/` browser, `lib/shared/` pure); copy, skills, tag canon |
 | `content/` | Blog posts (Markdown; English twins in `content/blog/en/`), diagram sources |
-| `src/` | The Worker: `index.ts` dispatches to `src/routes/*`; CSP, status, metrics, contact |
+| `src/` | The Worker: `index.ts` dispatches to `src/routes/*` (HTTP only), which call `src/domain/*` (rules; `*-store.ts` hold the bindings); CSP, the `/api/*` contract |
 | `schema/` | D1 schema (`metrics.sql`) |
 | `scripts/` | Build finalisation, CSP/WAF/docs checks, smoke test, read-only API tools |
 | `tests/`, `e2e/` | Vitest (Worker handlers on real SQLite) and Playwright browser tests |

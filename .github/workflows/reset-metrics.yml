@@ -74,10 +74,10 @@ jobs:
 
       # AE can't be wiped, so the chart only restarts in step with the map once
       # METRICS_EPOCH moves past this reset — rounded UP to a 6-hour UTC
-      # boundary (see src/timeseries.ts). Print the exact value to paste.
+      # boundary (see src/domain/timeseries.ts). Print the exact value to paste.
       - name: Reminder — bump METRICS_EPOCH
         run: |
           now=$(date -u +%s)
           next=$(( (now / 21600 + 1) * 21600 ))
           epoch=$(date -u -d "@$next" '+%Y-%m-%d %H:%M:%S')
-          echo "::warning::Set METRICS_EPOCH = '$epoch' in src/timeseries.ts and deploy, or the Trends chart keeps pre-reset visits the map no longer has."
+          echo "::warning::Set METRICS_EPOCH = '$epoch' in src/domain/timeseries.ts and deploy, or the Trends chart keeps pre-reset visits the map no longer has."

@@ -1,28 +1,21 @@
-// GET /api/timeseries — a bucketed Analytics Engine series for the front-page Trends card.
-// GET /api/timeseries?metric=view|geo|mailfail&range=24h|7d|30d|all
-//
-// Queries the Cloudflare Analytics Engine SQL API and returns a bucketed
-// [{ts, value}] series for the front-page Trends card. When the account id or
-// API token aren't set (deploy without the secrets), we fall back to an empty
-// series (flagged `degraded`) so the UI degrades gracefully instead of erroring. AE-side failures
-// (non-2xx, parse, fetch) log to Worker observability via console.error so an
-// unexpectedly empty chart is diagnosable from the dashboard.
-import type { SeriesPoint, TimeseriesError, TimeseriesResponse } from '../api-types'
-import { apiJson, cachedApiJson, putCachedApiJson } from '../http'
+// GET /api/timeseries?metric=view|geo|mailfail&range=24h|7d|30d|all — a bucketed AE series for the Trends card.
+// The series comes from domain/timeseries-store.ts. When AE doesn't answer
+// (secrets unset, AE down) the answer is an empty series flagged `degraded`,
+// so the UI degrades gracefully instead of erroring.
+import type { TimeseriesResponse } from '../api-types'
+import { apiError, cachedApiJson, putCachedApiJson } from '../http'
+import { parseMetric, parseRange } from '../domain/timeseries'
+import { querySeries } from '../domain/timeseries-store'
 
 // Must stay below the 30 s between the watchdog's three tries
 // (status-watchdog.yml), so each try asks AE again.
 const DEGRADED_TTL_S = 20
-import { buildSeriesSql, parseMetric, parseRange, parseSeriesResponse } from '../timeseries'
-
-const DATASET = 'rozsoshnykh_metrics'
-const AE_TIMEOUT_MS = 8_000
 
 export async function handleTimeseries(url: URL, env: Env, ctx: ExecutionContext): Promise<Response | null> {
   if (url.pathname !== '/api/timeseries') return null
 
   const metric = parseMetric(url.searchParams.get('metric'))
-  if (!metric) return apiJson(JSON.stringify({ error: 'bad metric' } satisfies TimeseriesError), 400)
+  if (!metric) return apiError('bad_metric')
   const { key: rangeKey, range } = parseRange(url.searchParams.get('range'))
 
   // Canonical key from the validated metric+range only — the raw URL would
@@ -30,49 +23,8 @@ export async function handleTimeseries(url: URL, env: Env, ctx: ExecutionContext
   const cache = await cachedApiJson(`${url.origin}${url.pathname}?metric=${metric}&range=${rangeKey}`)
   if (cache.hit) return cache.hit
 
-  let points: SeriesPoint[] = []
-  // Tracks whether the empty/filled series is a real answer from AE. Only
-  // real answers get edge-cached: caching a transient AE failure used to pin
-  // an empty chart at the colo for the whole TTL (up to 10 min on 30d), which
-  // looked like the graph "disappearing" on refresh.
-  let aeAnswered = false
-  if (env.CF_ACCOUNT_ID && env.AE_API_TOKEN) {
-    try {
-      const sql = buildSeriesSql(DATASET, metric, range)
-      const res = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/analytics_engine/sql`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.AE_API_TOKEN}`,
-            'Content-Type': 'text/plain',
-          },
-          body: sql,
-          // A slow AE answer degrades to an empty series instead of holding
-          // the request (and its Worker CPU wall time) open.
-          signal: AbortSignal.timeout(AE_TIMEOUT_MS),
-        },
-      )
-      const text = await res.text()
-      if (res.ok) {
-        try {
-          points = parseSeriesResponse(JSON.parse(text))
-          aeAnswered = true
-        } catch (err) {
-          console.error('timeseries: AE JSON parse failed', err, text.slice(0, 200))
-        }
-      } else {
-        // Surface the failure in Worker observability logs so we don't have
-        // to guess why the chart is empty (typical cause: token missing
-        // Account.Analytics:Read, returns 403 with a JSON error envelope).
-        console.error('timeseries: AE returned', res.status, text.slice(0, 200))
-      }
-    } catch (err) {
-      console.error('timeseries: AE fetch failed', err)
-    }
-  }
-
-  if (aeAnswered) {
+  const points = await querySeries(env, metric, range)
+  if (points) {
     return putCachedApiJson(
       ctx,
       cache.key,
@@ -82,13 +34,13 @@ export async function handleTimeseries(url: URL, env: Env, ctx: ExecutionContext
   }
   // Degraded answer (missing secrets or AE failure): cached for only
   // DEGRADED_TTL_S — bounds AE API calls while AE/the token is down without
-  // pinning an empty chart. The chart reads it as empty; `degraded` is for the watchdog
-  // (status-watchdog.yml) — an expired or revoked AE token otherwise looks
-  // exactly like a quiet week.
+  // pinning an empty chart. The chart reads it as empty; `degraded` is for
+  // the watchdog (status-watchdog.yml) — an expired or revoked AE token
+  // otherwise looks exactly like a quiet week.
   return putCachedApiJson(
     ctx,
     cache.key,
-    JSON.stringify({ metric, range: rangeKey, points, degraded: true } satisfies TimeseriesResponse),
+    JSON.stringify({ metric, range: rangeKey, points: [], degraded: true } satisfies TimeseriesResponse),
     DEGRADED_TTL_S,
   )
 }

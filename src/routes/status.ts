@@ -1,4 +1,4 @@
-// GET /api/status — serve the latest uptime snapshot from KV.
+// GET /api/status — the latest uptime snapshot from KV, edge-cached 60 s.
 //
 // The dashboard polls every 30–90 s and the footer dot fires once per page,
 // so this gets hit on nearly every visit. The KV snapshot only changes when
@@ -8,7 +8,7 @@
 // page view.
 import type { EmptyStatus } from '../api-types'
 import { apiJson, cachedApiJson, putCachedApiJson } from '../http'
-import { STATUS_KEY } from '../status'
+import { readStatusSnapshot } from '../domain/status-store'
 
 const STATUS_CACHE_TTL_S = 60
 // The answer when KV has no snapshot; a stored one is the cron's StatusData.
@@ -21,17 +21,9 @@ export async function handleStatus(url: URL, env: Env, ctx: ExecutionContext): P
   const cache = await cachedApiJson(`${url.origin}${url.pathname}`)
   if (cache.hit) return cache.hit
 
-  let body = EMPTY_STATUS
-  try {
-    body = (await env.STATUS.get(STATUS_KEY)) || body
-  } catch (err) {
-    // Logged, not thrown: the empty body reads as "no data yet" on the site.
-    console.error('status: KV read failed', err)
-  }
-  // Only cache positive snapshots; an empty body comes from a KV error and
+  const snapshot = await readStatusSnapshot(env)
+  // Only cache positive snapshots; an empty body (no snapshot, or a KV error)
   // shouldn't pin the bad state at the edge for a minute.
-  if (body !== EMPTY_STATUS) {
-    return putCachedApiJson(ctx, cache.key, body, STATUS_CACHE_TTL_S)
-  }
-  return apiJson(body)
+  if (snapshot) return putCachedApiJson(ctx, cache.key, snapshot, STATUS_CACHE_TTL_S)
+  return apiJson(EMPTY_STATUS)
 }

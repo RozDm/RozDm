@@ -1,20 +1,16 @@
-// POST /api/csp-report — records CSP violation reports as Analytics Engine points.
-// POST /api/csp-report — browsers report Content-Security-Policy violations
-// here (metaCsp() in ../csp.ts points report-to at it, through the
-// Reporting-Endpoints header in public/_headers). A POST becomes at most ONE
-// Analytics Engine point (blob1 = 'csp'): the first own-origin violation of
-// its batch. Anyone can POST here, and AE's 100k points/day on Free are
-// shared with the geo/view channels — a batch of ten used to cost ten. D1 and
-// KV are untouched; WRITE_LIMITER caps one client at 20 POSTs/min. A real
-// breakage still shows: every page view that hits it reports it.
-// Read them back with the "Analytics report" workflow.
+// POST /api/csp-report — browsers' CSP violation reports, kept as Analytics Engine points.
+// metaCsp() in ../csp.ts points report-to here, through the
+// Reporting-Endpoints header in public/_headers. D1 and KV are untouched;
+// WRITE_LIMITER caps one client at 20 POSTs/min; the point itself is
+// domain/csp-report-store.ts.
 //
 // Always answers 204 to a POST, even for junk: a browser's report delivery
 // must never see an error it would retry, and an attacker learns nothing.
-// GET gets a 405 so the smoke test can confirm the route is wired.
-import type { ApiError } from '../api-types'
-import { allowWrite, apiJson, readCapped } from '../http'
-import { CSP_REPORT_PATH, applyBaseHeaders, parseCspReports } from '../csp'
+// Any other method gets a 405 so the smoke test can confirm the route is wired.
+import { allowWrite, apiError, readCapped } from '../http'
+import { CSP_REPORT_PATH, applyBaseHeaders } from '../csp'
+import { parseJson } from '../validate'
+import { recordCspReport } from '../domain/csp-report-store'
 
 // A real report is a few hundred bytes; Reporting API batches stay well
 // under this. Anything bigger is dropped unread.
@@ -28,7 +24,7 @@ function noContent(): Response {
 
 export async function handleCspReport(url: URL, request: Request, env: Env): Promise<Response | null> {
   if (url.pathname !== CSP_REPORT_PATH) return null
-  if (request.method !== 'POST') return apiJson(JSON.stringify({ error: 'method not allowed' } satisfies ApiError), 405)
+  if (request.method !== 'POST') return apiError('method_not_allowed')
 
   if (Number(request.headers.get('content-length') ?? '0') > MAX_BODY_BYTES) return noContent()
   // Anyone can POST here; past the per-IP budget, drop reports silently.
@@ -38,22 +34,7 @@ export async function handleCspReport(url: URL, request: Request, env: Env): Pro
   const text = await readCapped(request, MAX_BODY_BYTES).catch(() => null)
   if (!text) return noContent()
 
-  let payload: unknown
-  try {
-    payload = JSON.parse(text)
-  } catch {
-    return noContent()
-  }
-
-  const [v] = parseCspReports(payload, url.origin, 1)
-  if (v) {
-    try {
-      env.METRICS_AE.writeDataPoint({
-        indexes: ['csp'],
-        blobs: ['csp', v.directive, v.blocked, v.page],
-        doubles: [1],
-      })
-    } catch {}
-  }
+  const payload = parseJson(text)
+  if (payload !== undefined) recordCspReport(env, payload, url.origin)
   return noContent()
 }

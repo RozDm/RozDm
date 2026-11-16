@@ -227,7 +227,7 @@ check "api/ts/view" "$BASE/api/timeseries?metric=view&range=7d" 200 '"points"'
 check "api/ts/mailfail" "$BASE/api/timeseries?metric=mailfail&range=24h" 200 '"points"'
 # GET is refused on purpose (reports are POSTed by browsers): 405 proves the
 # route is wired without writing a junk AE point on every deploy.
-check "csp-report"  "$BASE/api/csp-report"   405 '"method not allowed"'
+check "csp-report"  "$BASE/api/csp-report"   405 '"code":"method_not_allowed"'
 # /api/contact refuses an oversized body before anything else (no Turnstile,
 # no D1, no mail): 40 KB against the 32 KB cap.
 code=$(head -c 40000 /dev/zero | tr '\0' 'x' | curl -sS -o /dev/null -w '%{http_code}' --max-time 20 -A "$UA" \
@@ -235,9 +235,9 @@ code=$(head -c 40000 /dev/zero | tr '\0' 'x' | curl -sS -o /dev/null -w '%{http_
 if [ "$code" = 413 ]; then echo "OK   contact 413 (oversized body)"; else echo "FAIL contact oversized body -> $code (want 413)"; FAIL=1; fi
 # Turnstile is enforced: the Worker checks it only while TURNSTILE_SECRET is
 # set, and a lost secret would leave the form open with every other check
-# green. A valid message with no token must be refused as "challenge
-# required". Its own User-Agent: $UA is a bot to the Worker (403 "forbidden",
-# before Turnstile) — so the body is checked, not the code alone. Retried on
+# green. A valid message with no token must be refused with the code
+# challenge_required. Its own User-Agent: $UA is a bot to the Worker (403
+# forbidden, before Turnstile) — so the body is checked, not the code alone. Retried on
 # 429/5xx only: with Turnstile off each try is a mail to the owner, and that
 # one mail is the alarm.
 TS_BODY=$(printf '{"name":"deploy-check","email":"deploy-check@%s","message":"%s"}' "$SITE_HOST" \
@@ -248,10 +248,10 @@ for try in 1 2 3; do
     --data "$TS_BODY" "$BASE/api/contact" 2>/dev/null)
   case "$code" in 429 | 5??) [ "$try" = 3 ] || sleep 10 ;; *) break ;; esac
 done
-if [ "$code" = 403 ] && grep -q '"challenge required"' "$TMP"; then
-  echo "OK   contact Turnstile enforced (403 challenge required)"
+if [ "$code" = 403 ] && grep -q '"code":"challenge_required"' "$TMP"; then
+  echo "OK   contact Turnstile enforced (403 challenge_required)"
 else
-  echo "FAIL contact without a Turnstile token -> $code $(head -c 120 "$TMP") (want 403 challenge required)"; FAIL=1
+  echo "FAIL contact without a Turnstile token -> $code $(head -c 120 "$TMP") (want 403 challenge_required)"; FAIL=1
 fi
 check "robots.txt"  "$BASE/robots.txt"       200 "Sitemap: $BASE/sitemap.xml" "Disallow: /api/"
 check "sitemap"     "$BASE/sitemap.xml"      200 "<loc>$BASE/blogg/"

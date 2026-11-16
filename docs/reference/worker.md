@@ -34,31 +34,46 @@ The module inventory is the purpose header of each file
   on any host, canonical-host 301s for the API (www and mta-sts are the edge's;
   this is the backstop), dispatch to `routes/`, an `/api/` path no route
   claims → the 404 page (with the `_headers` set, which never reaches a Worker
-  response), the crons (5-min health checks, daily contact prune) and the
-  status-alert mail.
-- `routes/`: one handler per endpoint; each takes the parsed `URL` and returns
-  `null` when the path isn't its own, chained with `??`. Pure logic goes in a
-  top-level `src/*.ts` module, not a route.
-- `http.ts`: `apiJson()` (JSON + security headers), the edge-cache pair
+  response), and the cron dispatch (5-min health checks, daily contact
+  prune: both in `domain/*-store.ts`).
+- One structure for every `/api/*` route:
+  - `routes/<name>.ts` is HTTP only: the path/method check (`null` when the
+    path isn't its own, chained with `??` in `index.ts`), parse and validate
+    the input (`validate.ts`), call the domain, build the answer with the
+    `http.ts` helpers. No binding (D1, KV, AE, mail, ASSETS) is touched here,
+    except `allowWrite`'s rate limiter, which is an HTTP gate.
+  - `domain/<name>.ts` is the pure rules, DOM-compatible (the app and tests
+    import them under the app tsconfig): `contact.ts` (limits, validation,
+    Turnstile verify, MIME with the `Date` RFC 5322 requires and a
+    `Message-ID`, the windows `CONTACT_WINDOWS_MS`/`isoCutoff`, the prune's
+    `CONTACT_PRUNE_CRON`, held equal to `wrangler.jsonc` by a test — the
+    privacy notice promises 30 days), `status.ts` (`monitors(env)`, NetBox's
+    URL is the `NETBOX_URL` secret; snapshot/alert logic), `metrics.ts`
+    (slug/country validation, bot filter, the `isWriteAllowed` header gate:
+    Sec-Fetch-Site when sent, else — Safari < 16.4 — the `Origin` must be
+    ours), `timeseries.ts` (metric/range parsing, AE SQL builder and parser,
+    `METRICS_EPOCH`).
+  - `domain/<name>-store.ts` is the Worker-only half, everything that holds
+    a binding: `contact-store.ts` (the one-statement D1 windows + insert,
+    the mail, the honeypot point, the daily prune), `status-store.ts` (the
+    5-minute cron and the KV read), `geo-store.ts` (`recordGeo`, the D1
+    read), `views-store.ts` (the ASSETS post check, count, read),
+    `timeseries-store.ts` (the AE SQL API call), `csp-report-store.ts` (the
+    one AE point).
+  - `routes/mta-sts.ts` stays one file: it proxies a text policy with no
+    store, rules or JSON — a split would add a file and nothing else.
+- `validate.ts`: the hand-rolled validators (`oneOf`, `text`, `object`,
+  `parseJson`) — no schema dependency. A validator answers the clean value
+  or null; the route picks the code.
+- `http.ts`: `apiJson()` (JSON + security headers), `apiError(code)` (the one
+  error shape, status from `API_ERRORS`), the edge-cache pair
   `cachedApiJson()`/`putCachedApiJson()`, `allowWrite()`, `readCapped()` (a
   body read that gives up past a byte cap).
 - `csp.ts` is shared with the build (`metaCsp`, `withMetaCsp`, `cspProblems`
   run in `scripts/finalize-export.mjs` and `scripts/check-csp.mjs`; Node
   imports the `.ts` directly).
-- `status.ts`: `monitors(env)` (NetBox's URL is the `NETBOX_URL` secret) +
-  pure snapshot/alert logic.
-- `contact.ts`: validation limits, Turnstile verify, MIME building (with the
-  `Date` RFC 5322 requires and a `Message-ID`), the windows over `contact`
-  (`CONTACT_WINDOWS_MS`, `isoCutoff`) and the prune's cron pattern
-  (`CONTACT_PRUNE_CRON`, held equal to `wrangler.jsonc` by a test — the
-  privacy notice promises 30 days).
-- `metrics.ts`: slug/country validation, bot filter, the `isWriteAllowed`
-  header gate (Sec-Fetch-Site when sent; else — Safari < 16.4 — the `Origin`
-  must be ours).
 - `ip.ts`: `clientKey(ip)`: IPv4 as is, IPv6 as its /64 (`expandIpv6` first),
   IPv4-mapped back to IPv4.
-- `timeseries.ts`: metric/range parsing, AE SQL builder and parser,
-  `METRICS_EPOCH`.
 
 ## Bindings and data
 
@@ -105,6 +120,15 @@ The module inventory is the purpose header of each file
 
 The contract (each route's request/response JSON) is `src/api-types.ts`, types only: routes build bodies with `satisfies`, clients and `e2e/api-stub.ts` import it.
 
+Every refusal is `{ "error": { "code": "…", "message": "…" } }` (`ApiError`),
+no-store, via `apiError(code)`. Clients branch on `code` (snake_case, the
+`ApiErrorCode` union) and the HTTP status, never on `message`. A code has one
+status on every route (`API_ERRORS` in `src/http.ts`): `bad_slug`,
+`bad_metric`, `bad_request` 400; `forbidden`, `challenge_required`,
+`challenge_failed` 403; `method_not_allowed` 405; `payload_too_large` 413;
+`invalid` 422; `rate_limited` 429; `send_failed` 502; `unavailable` 503.
+`tests/worker/errors.test.ts` holds each route to it.
+
 - `/api/status` — GET, edge-cached 60 s. Public, so `buildStatusData`
   strips monitor URLs (`PublicMonitorResult`) — keep it so: one monitor is an
   admin login. Alert mails take the URL from the cron's own probes.
@@ -122,8 +146,8 @@ The contract (each route's request/response JSON) is `src/api-types.ts`, types o
   watchdog's, never charted). No AE secrets or a failed AE
   read → 200, empty `points`, `degraded: true`, edge-cached 20 s (under the watchdog's 30 s retry gap); the watchdog
   fails on `degraded`.
-- `/api/contact` — POST: a 32 KB body cap (413, by Content-Length and while
-  reading), `isWriteAllowed` (403 `forbidden`), honeypot (`HONEYPOT_FIELD`, a
+- `/api/contact` — POST: a 32 KB body cap (413 `payload_too_large`, by
+  Content-Length and while reading), `isWriteAllowed` (403 `forbidden`), honeypot (`HONEYPOT_FIELD`, a
   fake `ok:true` + a `honeypot` AE point), the burst cap,
   Turnstile when `TURNSTILE_SECRET` is set (siteverify bounded at 5 s; its
   `hostname` must be the request's), an e-mail pattern without
@@ -159,9 +183,10 @@ The contract (each route's request/response JSON) is `src/api-types.ts`, types o
 - Two tsconfigs: `src/` checks under `tsconfig.worker.json` (types from the
   generated `worker-configuration.d.ts`: `npm run cf-typegen` after any
   `wrangler.jsonc` change or wrangler bump — commit it — enforced by
-  `wrangler types --check`; `docs/gotchas.md`). `csp.ts`, `contact.ts`, `status.ts`, `metrics.ts`,
-  `timeseries.ts` and `ip.ts` are also checked under the app tsconfig (tests
-  and the app import them): DOM-compatible APIs only there.
+  `wrangler types --check`; `docs/gotchas.md`). `csp.ts`, `ip.ts`,
+  `validate.ts`, `api-types.ts` and the pure `domain/*.ts` (not `*-store.ts`)
+  are also checked under the app tsconfig (tests and the app import them):
+  DOM-compatible APIs only there.
 - A Worker can't fetch its own public URL: the site goes through ASSETS (the
   `/api/views` slug check). Don't monitor the site
   itself — it serves the dashboard.
@@ -253,7 +278,9 @@ The contract (each route's request/response JSON) is `src/api-types.ts`, types o
   Node ≥ 22.5) loaded with `schema/metrics.sql`; KV, AE, Email Routing and
   ASSETS are fakes; `cloudflare:email` is aliased to a stub in
   `vitest.config.mts`. They type-check under `tsconfig.worker.json` (Node
-  bits in `node-shims.d.ts`).
+  bits in `node-shims.d.ts`). `tests/worker/errors.test.ts`: one test per
+  route for the error shape (`errorBody(code)` in `fakes.ts` builds the
+  expected body); `tests/validate.test.ts`: the validators.
 - A new endpoint or route behaviour gets a test there AND a
   `scripts/smoke.sh` check. The browser tests' stand-in answers
   (`e2e/api-stub.ts`) are held to the handlers by

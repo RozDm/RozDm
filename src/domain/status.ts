@@ -1,5 +1,7 @@
-// Uptime monitoring: monitor list and the (pure) KV snapshot logic.
-import type { HistoryEntry, PublicMonitorResult, StatusData } from './api-types'
+// Uptime rules (pure): the monitor list, the KV snapshot, staleness and alert flap damping.
+// DOM-compatible APIs only (the dashboard imports isStale/failingSince). KV,
+// the probes and the alert mails: status-store.ts.
+import type { HistoryEntry, PublicMonitorResult, StatusData } from '../api-types'
 
 export interface Monitor {
   name: string

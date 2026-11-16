@@ -5,7 +5,7 @@ import Turnstile, { type TurnstileHandle } from './Turnstile'
 import { DICT } from '@/data/i18n'
 import { useLang } from '@/lib/client/use-lang'
 import type { ApiError, ContactErrorCode } from '@/src/api-types'
-import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/src/contact'
+import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/src/domain/contact'
 
 type FormState = 'idle' | 'sending' | 'sent' | 'error' | 'invalid' | 'ratelimited' | 'challenge' | 'blocked' | 'widget'
 
@@ -20,15 +20,15 @@ const inputClass =
 type Field = HTMLInputElement | HTMLTextAreaElement
 
 // What a refused submission means, from the status and the Worker's
-// `{"error": …}` (ContactErrorCode, src/api-types.ts). Only a Turnstile refusal asks the
+// `{"error": {"code": …}}` (ContactErrorCode, src/api-types.ts). Only a Turnstile refusal asks the
 // visitor to solve the challenge; the Sec-Fetch/UA filter ("forbidden") and
 // anything that isn't the Worker's own answer (an edge 429 when the daily
 // request quota is spent) send them to e-mail instead.
 function refusedState(status: number, error: ContactErrorCode | null | undefined): FormState {
-  if (status === 429) return error === 'rate limited' ? 'ratelimited' : 'error'
+  if (status === 429) return error === 'rate_limited' ? 'ratelimited' : 'error'
   if (status === 422) return 'invalid'
   if (status === 403) {
-    return SITE_KEY && (error === 'challenge required' || error === 'challenge failed') ? 'challenge' : 'blocked'
+    return SITE_KEY && (error === 'challenge_required' || error === 'challenge_failed') ? 'challenge' : 'blocked'
   }
   return 'error'
 }
@@ -99,7 +99,7 @@ export default function ContactForm() {
         // it rate-limited or failed to mail, so a retry needs a fresh one.
         turnstileRef.current?.reset()
         const error = await res.json().then(
-          (d: Partial<ApiError<ContactErrorCode>> | null) => d?.error,
+          (d: Partial<ApiError<ContactErrorCode>> | null) => d?.error?.code,
           () => null,
         )
         setState(refusedState(res.status, error))
@@ -211,7 +211,7 @@ export default function ContactForm() {
           type="email"
           required
           maxLength={CONTACT_LIMITS.email}
-          // The rule the Worker enforces (src/contact.ts): the browser's own
+          // The rule the Worker enforces (src/domain/contact.ts): the browser's own
           // type=email accepts "a@b" or a quoted local part, which the Worker
           // would then refuse with a 422.
           pattern={EMAIL_PATTERN}

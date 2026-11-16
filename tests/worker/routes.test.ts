@@ -3,7 +3,7 @@ import { handleCspReport } from '../../src/routes/csp-report'
 import { handleGeo } from '../../src/routes/geo'
 import { handleViews } from '../../src/routes/views'
 import { handleVisit } from '../../src/routes/visit'
-import { BROWSER_HEADERS, makeCtx, makeEnv } from './fakes'
+import { BROWSER_HEADERS, errorBody, makeCtx, makeEnv } from './fakes'
 
 const ORIGIN = 'https://rozsoshnykh.no'
 
@@ -139,7 +139,7 @@ describe('/api/geo', () => {
     await settle()
     expect(res.status).toBe(503)
     expect(res.headers.get('cache-control')).toBe('no-store')
-    expect(await res.json()).toEqual({ error: 'unavailable' })
+    expect(await res.json()).toEqual(errorBody('unavailable'))
     expect(puts).toEqual([])
     expect(error).toHaveBeenCalledWith('geo: D1 read failed', expect.any(Error))
     error.mockRestore()

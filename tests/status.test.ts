@@ -9,9 +9,9 @@ import {
   isStale,
   monitors,
   parseHistory,
-} from '@/src/status'
+} from '@/src/domain/status'
 import type { HistoryEntry } from '@/src/api-types'
-import type { MonitorResult } from '@/src/status'
+import type { MonitorResult } from '@/src/domain/status'
 
 const result = (name: string, ok: boolean): MonitorResult => ({
   name,
@@ -218,6 +218,6 @@ describe('monitors', () => {
   })
 
   it('keeps no NetBox address in the public source', () => {
-    expect(readFileSync('src/status.ts', 'utf8')).not.toContain('netboxapp')
+    expect(readFileSync('src/domain/status.ts', 'utf8')).not.toContain('netboxapp')
   })
 })

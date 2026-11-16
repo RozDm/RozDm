@@ -1,8 +1,13 @@
-// Pure helpers for the view/geo metrics (stored in D1).
+// Metrics rules (pure): slug and country validation, the bot filter and write gate, datacenter ASNs.
+// DOM-compatible APIs only (tests import it under the app tsconfig). D1/AE
+// access: views-store.ts and geo-store.ts.
+import { text } from '../validate'
 
 // Post slugs come from the URL — keep them boring before they touch SQL params.
+const slugParam = text({ max: 64, pattern: /^[a-z0-9][a-z0-9-]{0,63}$/, trim: false })
+
 export function isValidSlug(slug: string): boolean {
-  return /^[a-z0-9][a-z0-9-]{0,63}$/.test(slug)
+  return slugParam(slug) !== null
 }
 
 // Crawlers, previews and our own tooling shouldn't count as visitors.

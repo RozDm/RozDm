@@ -378,7 +378,9 @@ test.describe('contact form', () => {
   })
 
   test('says so on a rate limit and keeps the typed text', async ({ page, pageProblems }) => {
-    await page.route('**/api/contact', (r) => r.fulfill({ status: 429, body: '{"error":"rate limited"}' }))
+    await page.route('**/api/contact', (r) =>
+      r.fulfill({ status: 429, body: '{"error":{"code":"rate_limited","message":"Too many requests."}}' }),
+    )
     await fill(page)
     await expect(page.getByText(/For mange meldinger på kort tid/)).toBeVisible()
     await expect(page.getByLabel('Melding')).toHaveValue('Hei! Dette er en testmelding.')
@@ -388,7 +390,12 @@ test.describe('contact form', () => {
   })
 
   test('a filter refusal points to e-mail, not to a challenge', async ({ page, pageProblems }) => {
-    await page.route('**/api/contact', (r) => r.fulfill({ status: 403, body: '{"error":"forbidden"}' }))
+    await page.route('**/api/contact', (r) =>
+      r.fulfill({
+        status: 403,
+        body: '{"error":{"code":"forbidden","message":"Only the site itself may send this."}}',
+      }),
+    )
     await fill(page)
     // Filtered by text: Next's route announcer is an alert too.
     const alert = page.getByRole('alert').filter({ hasText: 'stanset av sikkerhetsfiltrene' })

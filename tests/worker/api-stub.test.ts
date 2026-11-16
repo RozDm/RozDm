@@ -11,7 +11,7 @@ import { handleStatus } from '../../src/routes/status'
 import { handleTimeseries } from '../../src/routes/timeseries'
 import { handleViews } from '../../src/routes/views'
 import { handleVisit } from '../../src/routes/visit'
-import { buildStatusData } from '../../src/status'
+import { buildStatusData } from '../../src/domain/status'
 import { BROWSER_HEADERS, makeCtx, makeEnv } from './fakes'
 
 const ORIGIN = 'https://rozsoshnykh.no'

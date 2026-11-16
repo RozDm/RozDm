@@ -54,7 +54,7 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
   metadata SHALLOWLY — a page setting part of `openGraph`/`alternates` drops
   the rest. The root layout has no canonical/og:url (the 404 inherits it).
   Name, roles, titles and `THEME_BG` live in `lib/shared/site.ts`; the contact
-  address in `src/contact.ts` — never hard-code them.
+  address in `src/domain/contact.ts` — never hard-code them.
 - SEO: canonicals with trailing slashes, OG images via `next/og` (Intel One
   Mono from Fontsource WOFF, `lib/server/og-fonts.ts` — next/og can't read WOFF2),
   JSON-LD (Person + WebSite sitewide from `personJsonLd()` in
