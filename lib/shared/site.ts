@@ -4,6 +4,13 @@ import type { Lang } from './i18n'
 export const SITE_URL = 'https://rozsoshnykh.no'
 export const SITE_HOST = 'rozsoshnykh.no'
 
+// Social profiles, in footer order. Labels are brand names (not translated);
+// AUTHOR.sameAs (JSON-LD) is derived from the URLs.
+export const SOCIAL_LINKS = [
+  { label: 'GitHub', url: 'https://github.com/RozDm' },
+  { label: 'LinkedIn', url: 'https://www.linkedin.com/in/dmytro-rozsoshnykh/' },
+]
+
 export const AUTHOR = {
   name: 'Dmytro Rozsoshnykh',
   // One positioning for every surface — hero eyebrow, OG images, meta
@@ -13,7 +20,7 @@ export const AUTHOR = {
   roles: ['Systemadministrator', 'DevOps', 'Utvikler'],
   jobTitle: 'Systemadministrator / DevOps',
   location: 'Askøy, Vestland, Norge',
-  sameAs: ['https://github.com/RozDm', 'https://www.linkedin.com/in/dmytro-rozsoshnykh/'],
+  sameAs: SOCIAL_LINKS.map((link) => link.url),
 }
 
 // The same positioning per language (the /en/ pages, their OG card and

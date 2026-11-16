@@ -7,6 +7,7 @@ import Eyebrow from './Eyebrow'
 import { DICT } from '@/data/dictionary'
 import { localePath, type Lang } from '@/lib/shared/i18n'
 import { CONTACT_ADDRESS } from '@/lib/shared/contact'
+import { AUTHOR, SOCIAL_LINKS } from '@/lib/shared/site'
 
 // py/-my: a 44px-tall tap target on a 20px line, without moving anything. The
 // footer is a phone's last stop, and its links were 20px (the privacy one
@@ -35,17 +36,11 @@ export default function Footer({ lang = 'nb', invite = true }: { lang?: Lang; in
               {t.form}
             </Link>
           )}
-          <a href="https://github.com/RozDm" target="_blank" rel="noopener noreferrer" className={LINK}>
-            GitHub
-          </a>
-          <a
-            href="https://www.linkedin.com/in/dmytro-rozsoshnykh/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={LINK}
-          >
-            LinkedIn
-          </a>
+          {SOCIAL_LINKS.map(({ label, url }) => (
+            <a key={url} href={url} target="_blank" rel="noopener noreferrer" className={LINK}>
+              {label}
+            </a>
+          ))}
         </div>
 
         <CopyEmail email={CONTACT_ADDRESS} />
@@ -59,7 +54,7 @@ export default function Footer({ lang = 'nb', invite = true }: { lang?: Lang; in
         </HashLink>
 
         <p className="text-xs text-gray-500 dark:text-gray-400 pt-8 font-mono">
-          &copy; <CopyrightYear built={new Date().getFullYear()} /> Dmytro Rozsoshnykh
+          &copy; <CopyrightYear built={new Date().getFullYear()} /> {AUTHOR.name}
           {' · '}
           <Link
             href={localePath(lang, '/personvern/')}
