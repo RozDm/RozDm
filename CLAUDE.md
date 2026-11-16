@@ -11,7 +11,7 @@ assets, plus a Worker for `/api/*`. React 19, TS 6, Tailwind v4. Norwegian
 Each of the rest loads only when a task touches its area:
 - `app/CLAUDE.md` — pages, routes, i18n, metadata, SEO, fonts (`app/`, `lib/`, `data/`);
 - `components/CLAUDE.md` — widgets, counters, contact form, theme, UI, e2e;
-- `src/CLAUDE.md` — the Worker, `/api/*`, CSP, worker tests;
+- `worker/CLAUDE.md` — the Worker, `/api/*`, CSP, worker tests;
 - `.github/CLAUDE.md` — CI/deploy, ops workflows;
 - `content/CLAUDE.md` — the blog (also before changing blog code);
 - `docs/reference/{worker,frontend,ci,app}.md` — the detail behind the four
@@ -30,7 +30,7 @@ Each of the rest loads only when a task touches its area:
   load when opening/watching a PR or checking a deploy).
 
 A PR that changes the `/api/*` surface, a workflow, a skill or a hook updates
-the matching doc in the same PR. Every file in `src/`, `lib/`, `scripts/` and
+the matching doc in the same PR. Every file in `worker/`, `lib/`, `scripts/` and
 each `app/` page/route opens with a one-line purpose comment;
 `node scripts/check-docs.mjs --map` prints the module map from them.
 `scripts/check-docs.mjs` (via `tests/docs.test.ts`, so CI blocks; Stop hook

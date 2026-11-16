@@ -1,4 +1,4 @@
-# Worker (src/)
+# Worker (worker/)
 
 Traps only. Surface, bindings, cache/CSP, tests: `docs/reference/worker.md`;
 file purposes: `node scripts/check-docs.mjs --map`; incidents: `docs/history.md`.
@@ -30,16 +30,16 @@ file purposes: `node scripts/check-docs.mjs --map`; incidents: `docs/history.md`
   write holds the mails. `HISTORY_LIMIT = 149` is intentional (1:4:9).
 - `METRICS_EPOCH`: 6-hour UTC boundary; bump (round UP) after each
   `reset-metrics`. Quote AE `INTERVAL '6' HOUR` (bare 422s).
-- Secrets live outside `wrangler.jsonc` (`src/env.d.ts`, synced by
+- Secrets live outside `wrangler.jsonc` (`worker/env.d.ts`, synced by
   `deploy.yml`); `OWNER_INBOX` never enters the repo. Traces stay off.
 - Layout: `routes/<name>.ts` is method, `validate.ts`, domain call, `http.ts`
   answer; rules live in `domain/<name>.ts`, bindings in
   `domain/<name>-store.ts` (a route touching `env.<binding>` and any import
-  outside `src/` but `lib/shared/` fail ESLint). A refusal is
+  outside `worker/` but `lib/shared/` fail ESLint). A refusal is
   `apiError(code)` → `{ error: { code, message } }`, its status fixed per code
   in `API_ERRORS`: a new code goes there and into `ApiErrorCode`; clients read
   `code`, never `message`. No schema-validation dependency (owner's word).
-- `src/` checks under `tsconfig.worker.json`: `npm run cf-typegen` after a
+- `worker/` checks under `tsconfig.worker.json`: `npm run cf-typegen` after a
   `wrangler.jsonc` change or wrangler bump, commit it. `csp`, `ip`,
   `validate`, `api-types`, the pure `domain/*` (not `*-store`) and the
   `lib/shared/` files they import also check under the app tsconfig:

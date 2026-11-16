@@ -9,8 +9,8 @@
 // requests/day run out. Here:
 //   1. HTTPS, then /.well-known/mta-sts.txt on any host (routes/mta-sts.ts).
 //   2. Canonical host for the API (www, mta-sts → apex).
-//   3. Dispatches /api/* to the route handlers in src/routes/ (HTTP only;
-//      the logic and bindings are src/domain/).
+//   3. Dispatches /api/* to the route handlers in worker/routes/ (HTTP only;
+//      the logic and bindings are worker/domain/).
 //   4. An /api/ path no route claims gets the asset server's 404 page.
 // The crons dispatch to domain/status-store.ts and domain/contact-store.ts.
 //

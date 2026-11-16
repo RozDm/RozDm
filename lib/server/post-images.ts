@@ -3,7 +3,7 @@
 // the file in public/. One rehype plugin for the post page (PostPage's
 // ReactMarkdown) and the RSS body (lib/server/markdown.ts); it runs at build and
 // fails the build rather than ship a broken image:
-//  - The pages' CSP takes images from 'self' and data: only (src/csp.ts): an
+//  - The pages' CSP takes images from 'self' and data: only (worker/csp.ts): an
 //    external image would be refused, silently, in every browser.
 //  - A local image must exist; its width and height go on the <img>, so the
 //    browser reserves the space before it loads (no layout shift), and it

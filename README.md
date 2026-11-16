@@ -38,7 +38,7 @@ hand from a sandbox; `npm run deploy` is for a machine with `wrangler login`.
 ## Use it as a template
 
 Fork it, then replace the personal parts: `lib/shared/site.ts`, `data/`, `content/`,
-the privacy pages in `app/`, `CONTACT_ADDRESS` in `src/domain/contact.ts`, and the ids
+the privacy pages in `app/`, `CONTACT_ADDRESS` in `worker/domain/contact.ts`, and the ids
 in `wrangler.jsonc`. Secrets and the zone setup are described in
 `.github/CLAUDE.md` and `docs/cloudflare-security.md`. Start with
 `robots.index: false` until you want to be found.

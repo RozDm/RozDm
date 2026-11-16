@@ -1,16 +1,16 @@
 // Every /api/* refusal has the one shape `{ error: { code, message } }`
-// (ApiError, src/api-types.ts) with the status API_ERRORS fixes for its code,
+// (ApiError, worker/api-types.ts) with the status API_ERRORS fixes for its code,
 // as a no-store JSON answer with the Worker's security headers.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { ApiErrorCode } from '../../src/api-types'
-import { API_ERRORS } from '../../src/http'
-import { handleContact } from '../../src/routes/contact'
-import { handleCspReport } from '../../src/routes/csp-report'
-import { handleGeo } from '../../src/routes/geo'
-import { handleStatus } from '../../src/routes/status'
-import { handleTimeseries } from '../../src/routes/timeseries'
-import { handleViews } from '../../src/routes/views'
-import { handleVisit } from '../../src/routes/visit'
+import type { ApiErrorCode } from '../../worker/api-types'
+import { API_ERRORS } from '../../worker/http'
+import { handleContact } from '../../worker/routes/contact'
+import { handleCspReport } from '../../worker/routes/csp-report'
+import { handleGeo } from '../../worker/routes/geo'
+import { handleStatus } from '../../worker/routes/status'
+import { handleTimeseries } from '../../worker/routes/timeseries'
+import { handleViews } from '../../worker/routes/views'
+import { handleVisit } from '../../worker/routes/visit'
 import { BROWSER_HEADERS, makeCtx, makeEnv } from './fakes'
 
 const ORIGIN = 'https://rozsoshnykh.no'

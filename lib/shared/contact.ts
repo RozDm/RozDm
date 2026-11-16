@@ -1,6 +1,6 @@
 // Contact constants the form and the Worker share: public address, field limits, honeypot name, the email pattern.
-// Pure, no DOM and no Workers APIs: the app (form, footer, privacy pages) and src/domain/contact.ts both import it.
-import type { ContactRequest } from '../../src/api-types'
+// Pure, no DOM and no Workers APIs: the app (form, footer, privacy pages) and worker/domain/contact.ts both import it.
+import type { ContactRequest } from '../../worker/api-types'
 
 // The site's public address (the form's fallback, the footer, the privacy
 // notice; public/.well-known/security.txt is held to it by a test) — also the

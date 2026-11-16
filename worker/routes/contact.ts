@@ -17,7 +17,7 @@ import { isWriteAllowed } from '../domain/metrics'
 // same cap either way (a client need not send the header).
 export const CONTACT_MAX_BODY = 32_768
 
-// The answers (ContactResponse, src/api-types.ts): the form reads the codes.
+// The answers (ContactResponse, worker/api-types.ts): the form reads the codes.
 const OK = JSON.stringify({ ok: true } satisfies ApiOk)
 
 export async function handleContact(url: URL, request: Request, env: Env): Promise<Response | null> {

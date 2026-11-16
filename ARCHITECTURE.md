@@ -9,7 +9,7 @@ so a spent Worker quota cannot take them down.
 flowchart LR
   B[Browser] --> E[Cloudflare edge: WAF, rate limit, TLS]
   E -->|pages, files, misses| A[Static assets: out/]
-  E -->|/api/*, MTA-STS| W[Worker: src/]
+  E -->|/api/*, MTA-STS| W[Worker: worker/]
   W --> KV[(KV STATUS: uptime snapshot)]
   W --> D1[(D1 METRICS: counters, contact log)]
   W --> AE[(Analytics Engine METRICS_AE: time series)]
@@ -22,7 +22,7 @@ flowchart LR
 Bindings are declared in `wrangler.jsonc` (`ASSETS`, `STATUS`, `METRICS`,
 `METRICS_AE`, `WRITE_LIMITER`, `CONTACT_EMAIL`; two crons: an uptime probe
 every five minutes and a daily prune of stored contact messages). Turnstile is
-an HTTP call from `src/domain/contact.ts`, not a binding. There is no R2.
+an HTTP call from `worker/domain/contact.ts`, not a binding. There is no R2.
 
 ## Directories
 
@@ -32,12 +32,12 @@ an HTTP call from `src/domain/contact.ts`, not a binding. There is no R2.
 | `components/`, `context/` | React widgets (status, map, trends, contact form), theme |
 | `lib/`, `data/` | Helpers split by where they run (`lib/server/` build/export only, `lib/client/` browser, `lib/shared/` pure, also imported by the Worker); copy, skills, tag canon |
 | `content/` | Blog posts (Markdown; English twins in `content/blog/en/`), diagram sources |
-| `src/` | The Worker: `index.ts` dispatches to `src/routes/*` (HTTP only), which call `src/domain/*` (rules; `*-store.ts` hold the bindings); CSP, the `/api/*` contract |
+| `worker/` | The Worker: `index.ts` dispatches to `worker/routes/*` (HTTP only), which call `worker/domain/*` (rules; `*-store.ts` hold the bindings); CSP, the `/api/*` contract |
 | `schema/` | D1 schema (`metrics.sql`) |
 | `scripts/` | Build finalisation, CSP/WAF/docs checks, smoke test, read-only API tools |
 | `tests/`, `e2e/` | Vitest (Worker handlers on real SQLite) and Playwright browser tests |
 
-Who may import whom between these (the app never reaches into `src/` but for the `api-types.ts` types; `src/` takes only `lib/shared/`; browser code never takes `lib/server/`) is enforced by ESLint (`eslint.config.mjs`), not by this page.
+Who may import whom between these (the app never reaches into `worker/` but for the `api-types.ts` types; `worker/` takes only `lib/shared/`; browser code never takes `lib/server/`) is enforced by ESLint (`eslint.config.mjs`), not by this page.
 | `.github/` | CI, deploy, monitoring and one-shot ops workflows, zone rules |
 | `.claude/` | Agent config: skills, hooks, permissions |
 | `docs/` | Decisions, incident history, gotchas, edge security |
@@ -68,7 +68,7 @@ Playwright) → squash auto-merge → `deploy.yml` (secret-free build job, then
 ## Where the rules live
 
 The root `CLAUDE.md` holds commands and hard rules and maps the rest: one
-`CLAUDE.md` per area (`app/`, `components/`, `src/`, `.github/`, `content/`),
+`CLAUDE.md` per area (`app/`, `components/`, `worker/`, `.github/`, `content/`),
 and `docs/`: `gotchas.md` (root config), `decisions.md` (the owner's standing
 decisions), `history.md` (incidents behind the rules),
 `cloudflare-security.md` (the zone). Skills in `.claude/skills/` (`audit`,

@@ -1,7 +1,7 @@
 // Docs drift check and module map: docs name real paths, source files state their purpose.
 // (1) The agent docs (CLAUDE.md files, docs/reference/, README, skills) name
 // only paths that exist. (2) They mention every /api/* route, workflow, skill
-// and hook. (3) Every Worker module (src/), lib/ file, scripts/ file and
+// and hook. (3) Every Worker module (worker/), lib/ file, scripts/ file and
 // app/ page or route file opens with a one-line purpose comment, so the module
 // inventory lives in the code, not in prose. Run by tests/docs.test.ts (so
 // `npm test`, CI and deploy enforce it) and by the Stop hook
@@ -25,7 +25,7 @@ const FILE_EXT = /\.(tsx?|mjs|js|jsonc?|md|sh|ya?ml|sql|css|svg|woff2|xml|txt|pn
 
 // Source files that must open with a purpose line: the Worker, lib/, scripts/,
 // and each app/ route (its page.tsx or route.ts).
-const HEADER_SCOPE = [/^(src|lib|scripts)\/(?!.*\.md$).+/, /^app\/(.+\/)?(page\.tsx|route\.tsx?)$/]
+const HEADER_SCOPE = [/^(worker|lib|scripts)\/(?!.*\.md$).+/, /^app\/(.+\/)?(page\.tsx|route\.tsx?)$/]
 // `//` comments that are tool directives, not a purpose.
 const DIRECTIVE = /^(@ts-|eslint|prettier|istanbul|c8 |vitest)/
 
@@ -99,7 +99,7 @@ export function checkDocs(root = ROOT) {
     'CLAUDE.md',
     'app/CLAUDE.md',
     'components/CLAUDE.md',
-    'src/CLAUDE.md',
+    'worker/CLAUDE.md',
     '.github/CLAUDE.md',
     'content/CLAUDE.md',
     'README.md',
@@ -138,11 +138,11 @@ export function checkDocs(root = ROOT) {
 
   // Every route serves /api/<file name>, but for the few outside /api/.
   const ROUTE_PATHS = { 'mta-sts': '/.well-known/mta-sts.txt' }
-  for (const f of ls('src/routes', /\.ts$/)) {
+  for (const f of ls('worker/routes', /\.ts$/)) {
     const stem = f.replace(/\.ts$/, '')
     const route = ROUTE_PATHS[stem] ?? `/api/${stem}`
     need(
-      anyDoc(route, ['src/CLAUDE.md', 'docs/reference/worker.md']),
+      anyDoc(route, ['worker/CLAUDE.md', 'docs/reference/worker.md']),
       `docs/reference/worker.md: route ${route} is not in the API surface`,
     )
   }

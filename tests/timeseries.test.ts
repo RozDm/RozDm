@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildSeriesSql, parseMetric, parseRange, parseSeriesResponse } from '@/src/domain/timeseries'
+import { buildSeriesSql, parseMetric, parseRange, parseSeriesResponse } from '@/worker/domain/timeseries'
 import { METRICS_EPOCH, normalizeBucketKey } from '@/lib/shared/timeseries-keys'
 
 describe('METRICS_EPOCH', () => {

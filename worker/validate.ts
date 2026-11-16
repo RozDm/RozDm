@@ -1,8 +1,8 @@
 // Hand-rolled input validators for the /api/* routes: each answers the clean value or null.
 // No dependency on purpose (a schema library is a new dependency: the owner's
-// word). Pure and DOM-compatible — src/domain/contact.ts uses it, and the app
+// word). Pure and DOM-compatible — worker/domain/contact.ts uses it, and the app
 // tsconfig checks that file too. A validator never throws: null is "refuse",
-// and the route picks the error code (src/http.ts apiError).
+// and the route picks the error code (worker/http.ts apiError).
 
 export type Validator<T> = (input: unknown) => T | null
 

@@ -32,7 +32,7 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
   re-run Deploy.
 - `d1-repair.yml` `sql` refuses any statement naming `contact` (public logs):
   contact rows are the dashboard's D1 console, never a workflow.
-- `reset-metrics.yml` is followed by a `METRICS_EPOCH` bump (`src/CLAUDE.md`).
+- `reset-metrics.yml` is followed by a `METRICS_EPOCH` bump (`worker/CLAUDE.md`).
 - `zone-rules.yml` never writes the deprecated `ai_bots_protection`, and fails
   if a bot setting would block search engines or CI. A `403` carrying
   `X-Frame-Options: SAMEORIGIN` is Cloudflare's, not the site's.

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { HISTORY_LIMIT, buildStatusData, detectTransitions, monitors, parseHistory } from '@/src/domain/status'
+import { HISTORY_LIMIT, buildStatusData, detectTransitions, monitors, parseHistory } from '@/worker/domain/status'
 import { STALE_AFTER_MS, failingSince, isStale } from '@/lib/shared/status'
-import type { HistoryEntry } from '@/src/api-types'
-import type { MonitorResult } from '@/src/domain/status'
+import type { HistoryEntry } from '@/worker/api-types'
+import type { MonitorResult } from '@/worker/domain/status'
 
 const result = (name: string, ok: boolean): MonitorResult => ({
   name,
@@ -210,6 +210,6 @@ describe('monitors', () => {
   })
 
   it('keeps no NetBox address in the public source', () => {
-    expect(readFileSync('src/domain/status.ts', 'utf8')).not.toContain('netboxapp')
+    expect(readFileSync('worker/domain/status.ts', 'utf8')).not.toContain('netboxapp')
   })
 })

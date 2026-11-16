@@ -57,7 +57,7 @@ describe('check-docs purpose headers', () => {
     'scripts/ok.mjs': '#!/usr/bin/env node\n// Prints hello for the demo.\nconsole.log("hi")\n',
     'scripts/ok.sh': '#!/usr/bin/env bash\n# Checks that the demo site answers.\ntrue\n',
     'lib/client.ts': "'use client'\n\n// A client hook for the demo widget.\nexport const y = 1\n",
-    'src/worker.ts': HEADED,
+    'worker/worker.ts': HEADED,
     'app/blogg/page.tsx': '// Blog index (Norwegian).\nexport default function P() { return null }\n',
   }
 
@@ -68,7 +68,7 @@ describe('check-docs purpose headers', () => {
   })
 
   it.each([
-    ['no comment at all', 'src/worker.ts', 'export const x = 1\n'],
+    ['no comment at all', 'worker/worker.ts', 'export const x = 1\n'],
     [
       'a comment after the imports',
       'lib/client.ts',
@@ -82,7 +82,7 @@ describe('check-docs purpose headers', () => {
     expect(res.stderr).toContain(`${file}: no purpose header`)
   })
 
-  it('does not ask for headers outside src/, lib/, scripts/ and app routes', () => {
+  it('does not ask for headers outside worker/, lib/, scripts/ and app routes', () => {
     const res = run({
       ...files,
       'components/Widget.tsx': 'export const w = 1\n',
@@ -104,12 +104,12 @@ describe('check-docs purpose headers', () => {
       'lib/client.ts — A client hook for the demo widget.',
       'scripts/ok.mjs — Prints hello for the demo.',
       'scripts/ok.sh — Checks that the demo site answers.',
-      'src/worker.ts — Does the thing the module exists for.',
+      'worker/worker.ts — Does the thing the module exists for.',
     ])
   })
 
   it('--map marks a file without a header', () => {
-    const res = run({ 'src/bare.ts': 'export const z = 1\n' }, '--map')
-    expect(res.stdout).toContain('src/bare.ts — (no purpose header)')
+    const res = run({ 'worker/bare.ts': 'export const z = 1\n' }, '--map')
+    expect(res.stdout).toContain('worker/bare.ts — (no purpose header)')
   })
 })

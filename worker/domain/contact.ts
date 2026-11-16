@@ -27,7 +27,7 @@ export function isoCutoff(nowMs: number, windowMs: number): string {
   return new Date(nowMs - windowMs).toISOString()
 }
 
-// The validated message (the wire body is ContactRequest, src/api-types.ts).
+// The validated message (the wire body is ContactRequest, worker/api-types.ts).
 export type ContactPayload = Pick<ContactRequest, 'name' | 'email' | 'message'>
 
 export interface ContactInput extends ContactPayload {

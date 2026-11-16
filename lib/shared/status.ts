@@ -1,6 +1,6 @@
 // Status rules the dashboard and the Worker share: when a snapshot is stale, since when a monitor has been failing.
 // Pure, no DOM and no Workers APIs.
-import type { HistoryEntry } from '../../src/api-types'
+import type { HistoryEntry } from '../../worker/api-types'
 
 // When a monitor's current outage began, as far as the history shows: the
 // time of the first check in its unbroken run of failures up to now, or null

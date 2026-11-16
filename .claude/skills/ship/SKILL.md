@@ -31,7 +31,7 @@ below.
 | pages, components, metadata, the export or `scripts/` | `npm run check`, then `NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA npm run build`, `npm run check:csp`, `npm run check:waf`, `npm run check:dict`, `npm run test:e2e` |
 
 A change to the `/api/*` surface, a workflow, a skill or a hook updates its doc
-in the same commit; a new `src/`, `lib/`, `scripts/` or `app/` file opens with a
+in the same commit; a new `worker/`, `lib/`, `scripts/` or `app/` file opens with a
 one-line purpose comment (`node scripts/check-docs.mjs` checks both).
 
 ## Commit and PR

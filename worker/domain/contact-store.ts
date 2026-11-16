@@ -25,7 +25,7 @@ export function recordHoneypot(env: Env): void {
 }
 
 // Store and mail one validated message. `sender` is clientKey(ip): the per-IP
-// window counts a whole IPv6 /64 as one sender (src/ip.ts) — and that prefix,
+// window counts a whole IPv6 /64 as one sender (worker/ip.ts) — and that prefix,
 // not the full address, is what the row keeps.
 export async function submitContact(env: Env, payload: ContactPayload, sender: string): Promise<ContactOutcome> {
   // The address the limits and the stored row use: `A@x.no` and `a@x.no` are

@@ -1,5 +1,5 @@
 // Client-side helpers for the visitor-country data (/api/geo).
-import type { GeoResponse } from '@/src/api-types'
+import type { GeoResponse } from '@/worker/api-types'
 
 // Colour intensity for a country on the world map (1/2/3, null = no visits),
 // relative to the busiest country on a log scale. The CSS owns the actual

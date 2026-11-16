@@ -9,7 +9,7 @@ import {
   metaCsp,
   parseCspReports,
   withMetaCsp,
-} from '@/src/csp'
+} from '@/worker/csp'
 
 describe('inlineScriptHashes', () => {
   it('hashes a single inline script', async () => {

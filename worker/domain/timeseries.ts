@@ -10,7 +10,7 @@ import { oneOf } from '../validate'
 // `mailfail` is not charted: one point per mail the Worker failed to send
 // (contact form or status alert), read by status-watchdog.yml — the mail path
 // can't report its own death by mail.
-// (SeriesMetric, SeriesRangeKey, SeriesPoint: src/api-types.ts.)
+// (SeriesMetric, SeriesRangeKey, SeriesPoint: worker/api-types.ts.)
 export const SERIES_METRICS = ['view', 'geo', 'mailfail'] as const satisfies readonly SeriesMetric[]
 export const parseMetric = oneOf(SERIES_METRICS)
 

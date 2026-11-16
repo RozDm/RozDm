@@ -1,7 +1,7 @@
-# Worker reference (src/)
+# Worker reference (worker/)
 
 On-demand detail for the Worker, `/api/*` and serving. The traps to know
-before editing `src/` are in `src/CLAUDE.md`; this file holds the surface,
+before editing `worker/` are in `worker/CLAUDE.md`; this file holds the surface,
 bindings, rules and test setup. Per-file purposes: run `node scripts/check-docs.mjs --map`.
 Incident background: `docs/history.md`.
 
@@ -11,7 +11,7 @@ Incident background: `docs/history.md`.
   unlimited, no Worker request (`run_worker_first`: `/api/*` and the MTA-STS
   policy only). The Worker's 100k requests/day (then 429) can only take out
   `/api/*`. `scripts/finalize-export.mjs` (postbuild) bakes each page's hash
-  CSP `<meta>` (`src/csp.ts`; re-checked by `npm run check:csp`), `lang="en"`,
+  CSP `<meta>` (`worker/csp.ts`; re-checked by `npm run check:csp`), `lang="en"`,
   the body font's preload on the 404, `/favicon.ico` and the slash-less 301s
   (`out/_redirects`). Headers: `public/_headers`, equal to the Worker's set
   (`tests/static-assets.test.ts`). Details: Rules below.
@@ -115,19 +115,19 @@ The module inventory is the purpose header of each file
   privacy notice's «ingen IP-adresser lagres i statistikken».
 - Runtime secrets (`OWNER_INBOX`, `TURNSTILE_SECRET`, `CF_ACCOUNT_ID`,
   `AE_API_TOKEN`, `NETBOX_URL`) aren't in `wrangler.jsonc`: typed in
-  `src/env.d.ts`, synced by `deploy.yml`. `OWNER_INBOX` is where contact and
+  `worker/env.d.ts`, synced by `deploy.yml`. `OWNER_INBOX` is where contact and
   status mail goes (the repo is public, so no inbox in the code; the
   `send_email` binding has no `destination_address`). Unset → every send
   fails: 502 / a `mailfail` point, so the watchdog goes red. (`CF_ACCOUNT_ID` → `vars` was declined: no gain.)
 
 ## API surface
 
-The contract (each route's request/response JSON) is `src/api-types.ts`, types only: routes build bodies with `satisfies`, clients and `e2e/api-stub.ts` import it.
+The contract (each route's request/response JSON) is `worker/api-types.ts`, types only: routes build bodies with `satisfies`, clients and `e2e/api-stub.ts` import it.
 
 Every refusal is `{ "error": { "code": "…", "message": "…" } }` (`ApiError`),
 no-store, via `apiError(code)`. Clients branch on `code` (snake_case, the
 `ApiErrorCode` union) and the HTTP status, never on `message`. A code has one
-status on every route (`API_ERRORS` in `src/http.ts`): `bad_slug`,
+status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
 `bad_metric`, `bad_request` 400; `forbidden`, `challenge_required`,
 `challenge_failed` 403; `method_not_allowed` 405; `payload_too_large` 413;
 `invalid` 422; `rate_limited` 429; `send_failed` 502; `unavailable` 503.
@@ -184,7 +184,7 @@ status on every route (`API_ERRORS` in `src/http.ts`): `bad_slug`,
 
 ## Rules
 
-- Two tsconfigs: `src/` checks under `tsconfig.worker.json` (types from the
+- Two tsconfigs: `worker/` checks under `tsconfig.worker.json` (types from the
   generated `worker-configuration.d.ts`: `npm run cf-typegen` after any
   `wrangler.jsonc` change or wrangler bump — commit it — enforced by
   `wrangler types --check`; `docs/gotchas.md`). `csp.ts`, `ip.ts`,

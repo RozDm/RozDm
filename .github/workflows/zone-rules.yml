@@ -213,7 +213,7 @@ jobs:
           }
 
           # 0 = Respect Existing Headers: the edge stops rewriting max-age on
-          # Cache API hits (withStoredTtl in src/http.ts undoes it; kept as a
+          # Cache API hits (withStoredTtl in worker/http.ts undoes it; kept as a
           # backstop). Every response here already sets its own Cache-Control.
           ensure browser_cache_ttl 0
           # 0-RTT resumption: Cloudflare takes only GET/HEAD/OPTIONS in early

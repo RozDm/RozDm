@@ -1,13 +1,13 @@
-// The Worker entry (src/index.ts): request dispatch, the two crons, and the
+// The Worker entry (worker/index.ts): request dispatch, the two crons, and the
 // two cached GET routes that had no route test — /api/status and
 // /api/timeseries, whose "cache only a real answer" rules each fixed an
 // incident (an empty snapshot or chart pinned at the edge).
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import worker from '../../src/index'
-import { CONTACT_PRUNE_CRON } from '../../src/domain/contact'
-import { HEADER_CSP } from '../../src/csp'
-import { handleStatus } from '../../src/routes/status'
-import { handleTimeseries } from '../../src/routes/timeseries'
+import worker from '../../worker/index'
+import { CONTACT_PRUNE_CRON } from '../../worker/domain/contact'
+import { HEADER_CSP } from '../../worker/csp'
+import { handleStatus } from '../../worker/routes/status'
+import { handleTimeseries } from '../../worker/routes/timeseries'
 import { makeCtx, makeEnv } from './fakes'
 import wranglerConfig from '../../wrangler.jsonc?raw'
 

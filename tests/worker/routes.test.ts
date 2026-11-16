@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { handleCspReport } from '../../src/routes/csp-report'
-import { handleGeo } from '../../src/routes/geo'
-import { handleViews } from '../../src/routes/views'
-import { handleVisit } from '../../src/routes/visit'
+import { handleCspReport } from '../../worker/routes/csp-report'
+import { handleGeo } from '../../worker/routes/geo'
+import { handleViews } from '../../worker/routes/views'
+import { handleVisit } from '../../worker/routes/visit'
 import { BROWSER_HEADERS, errorBody, makeCtx, makeEnv } from './fakes'
 
 const ORIGIN = 'https://rozsoshnykh.no'

@@ -12,9 +12,9 @@ Produce a focused, opinionated improvement list for `rozsoshnykh.no`. The output
 
 Audit everything that ships:
 - App: `app/`, `components/`, `lib/`, `data/`, `content/`, `public/`, `app/globals.css`.
-- Worker: `src/` (`index.ts`, `csp.ts`, `http.ts`, `ip.ts`, `status.ts`, `metrics.ts`, `contact.ts`, `timeseries.ts`, `routes/*`) — it serves only `/api/*`; pages are asset-served with a build-time CSP (`scripts/finalize-export.mjs`).
+- Worker: `worker/` (`index.ts`, `csp.ts`, `http.ts`, `ip.ts`, `status.ts`, `metrics.ts`, `contact.ts`, `timeseries.ts`, `routes/*`) — it serves only `/api/*`; pages are asset-served with a build-time CSP (`scripts/finalize-export.mjs`).
 - Build/deploy: `package.json`, `next.config.mjs`, `wrangler.jsonc`, `.github/workflows/*`, `scripts/*`, `tsconfig*.json`.
-- Docs: `CLAUDE.md`, `app/CLAUDE.md`, `components/CLAUDE.md`, `src/CLAUDE.md`, `.github/CLAUDE.md`, `content/CLAUDE.md`, `README.md`, `docs/decisions.md`, `docs/gotchas.md`, `docs/history.md`, `docs/cloudflare-security.md` (drift against code or the live zone is a finding; narrative belongs in history.md, rules in the CLAUDE.md files).
+- Docs: `CLAUDE.md`, `app/CLAUDE.md`, `components/CLAUDE.md`, `worker/CLAUDE.md`, `.github/CLAUDE.md`, `content/CLAUDE.md`, `README.md`, `docs/decisions.md`, `docs/gotchas.md`, `docs/history.md`, `docs/cloudflare-security.md` (drift against code or the live zone is a finding; narrative belongs in history.md, rules in the CLAUDE.md files).
 - Tests: `tests/` (Vitest, the Worker's in `tests/worker/`) and `e2e/` (Playwright).
 
 Look for:

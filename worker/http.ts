@@ -4,7 +4,7 @@ import { ENFORCED_CSP, HSTS, applyBaseHeaders } from './csp'
 import { clientKey } from './ip'
 
 // Per-client throttle for the public write endpoints (wrangler.jsonc
-// ratelimits): keyed per IPv4 address or IPv6 /64 (src/ip.ts).
+// ratelimits): keyed per IPv4 address or IPv6 /64 (worker/ip.ts).
 // `scope` keeps each endpoint's budget separate. Fails open: a limiter hiccup
 // (or a binding missing in tests/dev) must never drop a real visit.
 export async function allowWrite(env: Env, request: Request, scope: string): Promise<boolean> {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { object, oneOf, parseJson, text } from '@/src/validate'
+import { object, oneOf, parseJson, text } from '@/worker/validate'
 
-describe('src/validate', () => {
+describe('worker/validate', () => {
   it('oneOf takes only the listed strings', () => {
     const v = oneOf(['a', 'b'])
     expect(v('a')).toBe('a')
