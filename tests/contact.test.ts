@@ -5,7 +5,7 @@ import {
   encodeMimeHeader,
   validateContact,
   verifyTurnstile,
-} from '@/src/domain/contact'
+} from '@/worker/domain/contact'
 import { EMAIL_PATTERN } from '@/lib/shared/contact'
 
 const valid = { name: 'Ola Nordmann', email: 'ola@example.no', message: 'Hei! Dette er en testmelding.' }

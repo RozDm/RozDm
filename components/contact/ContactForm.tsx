@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Turnstile, { type TurnstileHandle } from './Turnstile'
 import { DICT } from '@/data/i18n'
 import { useLang } from '@/lib/client/use-lang'
-import type { ApiError, ContactErrorCode } from '@/src/api-types'
+import type { ApiError, ContactErrorCode } from '@/worker/api-types'
 import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/lib/shared/contact'
 
 type FormState = 'idle' | 'sending' | 'sent' | 'error' | 'invalid' | 'ratelimited' | 'challenge' | 'blocked' | 'widget'
@@ -20,7 +20,7 @@ const inputClass =
 type Field = HTMLInputElement | HTMLTextAreaElement
 
 // What a refused submission means, from the status and the Worker's
-// `{"error": {"code": …}}` (ContactErrorCode, src/api-types.ts). Only a Turnstile refusal asks the
+// `{"error": {"code": …}}` (ContactErrorCode, worker/api-types.ts). Only a Turnstile refusal asks the
 // visitor to solve the challenge; the Sec-Fetch/UA filter ("forbidden") and
 // anything that isn't the Worker's own answer (an edge 429 when the daily
 // request quota is spent) send them to e-mail instead.
@@ -211,7 +211,7 @@ export default function ContactForm() {
           type="email"
           required
           maxLength={CONTACT_LIMITS.email}
-          // The rule the Worker enforces (src/domain/contact.ts): the browser's own
+          // The rule the Worker enforces (worker/domain/contact.ts): the browser's own
           // type=email accepts "a@b" or a quoted local part, which the Worker
           // would then refuse with a 422.
           pattern={EMAIL_PATTERN}

@@ -20,7 +20,7 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
   are the edge's, `zone-rules.yml`).
   `https://mta-sts.rozsoshnykh.no/.well-known/mta-sts.txt` is the mail
   MTA-STS policy, a Worker custom domain proxying Cloudflare Email Routing's
-  (`src/routes/mta-sts.ts`). `error.tsx` / `global-error.tsx`: HAL-voiced
+  (`worker/routes/mta-sts.ts`). `error.tsx` / `global-error.tsx`: HAL-voiced
   «Systemfeil» boundaries.
 - `app/template.tsx` cross-fades client-side route changes (450 ms,
   OPACITY ONLY — a transform would trap the fixed intro overlays and sticky

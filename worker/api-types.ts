@@ -1,14 +1,14 @@
 // The /api/* wire contract: request and response shapes shared by the Worker routes and the front end.
 // Types only — no runtime code and no globals (neither DOM nor Workers), so
 // both tsconfigs import it: the Worker as './api-types', the app as
-// '@/src/api-types'. A route builds its body with `satisfies` one of these;
+// '@/worker/api-types'. A route builds its body with `satisfies` one of these;
 // a client reads its answer as one. Change a shape here and both sides (and
 // e2e/api-stub.ts) fail to typecheck until they follow.
 
 // The refusal every route answers with: a machine `code` (what clients
 // branch on) and a human `message` (for logs and curl; never shown as is).
 // `E` narrows the codes one route can send. The code fixes the HTTP status
-// (src/http.ts API_ERRORS), so a code means the same thing on every route.
+// (worker/http.ts API_ERRORS), so a code means the same thing on every route.
 export interface ApiError<E extends string = ApiErrorCode> {
   error: { code: E; message: string }
 }
@@ -29,10 +29,10 @@ export interface ApiOk {
 }
 
 // ── GET /api/status ─────────────────────────────────────────────────────────
-// The cron's KV snapshot (src/domain/status.ts buildStatusData), or EmptyStatus when
+// The cron's KV snapshot (worker/domain/status.ts buildStatusData), or EmptyStatus when
 // KV has none or its read failed.
 
-// Per monitor, without its URL (one is an admin login: src/domain/status.ts).
+// Per monitor, without its URL (one is an admin login: worker/domain/status.ts).
 export interface PublicMonitorResult {
   name: string
   ok: boolean
@@ -110,7 +110,7 @@ export type TimeseriesErrorCode = 'bad_metric' // 400
 export type TimeseriesError = ApiError<TimeseriesErrorCode>
 
 // ── POST /api/contact ───────────────────────────────────────────────────────
-// JSON body. The Worker trims and validates it (src/domain/contact.ts
+// JSON body. The Worker trims and validates it (worker/domain/contact.ts
 // validateContact); a non-string token reads as none.
 export interface ContactRequest {
   name: string
@@ -135,7 +135,7 @@ export type ContactErrorCode =
 export type ContactResponse = ApiOk | ApiError<ContactErrorCode>
 
 // ── POST /api/csp-report ────────────────────────────────────────────────────
-// The browser's own Reporting API body (src/csp.ts parseCspReports reads it);
+// The browser's own Reporting API body (worker/csp.ts parseCspReports reads it);
 // always a 204 with no body. Any other method → CspReportError, 405.
 export type CspReportErrorCode = 'method_not_allowed' // 405
 export type CspReportError = ApiError<CspReportErrorCode>

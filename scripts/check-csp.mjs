@@ -6,7 +6,7 @@
 // A miss here means a page whose inline scripts the browser refuses — the
 // site renders but nothing on it runs.
 import { readFileSync } from 'node:fs'
-import { HEADER_CSP, cspProblems } from '../src/csp.ts'
+import { HEADER_CSP, cspProblems } from '../worker/csp.ts'
 import { htmlFiles } from './finalize-export.mjs'
 import { die } from './cli.mjs'
 

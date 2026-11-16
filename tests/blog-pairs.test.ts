@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getPostBySlug, getPostSlugs } from '@/lib/server/blog'
-import { isValidSlug } from '@/src/domain/metrics'
+import { isValidSlug } from '@/worker/domain/metrics'
 
 // Runs against the real content/blog/ (no fs mock): the two language versions
 // of a post must not drift apart. A twin pair shares its date, revision date,

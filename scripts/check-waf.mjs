@@ -310,7 +310,7 @@ const MUST_BLOCK = `/wp-login.php /WP-LOGIN.PHP /wp-admin/ //wp-admin/ /xmlrpc.p
   /secure/Dashboard.jspa /web.config /config.json /docker-compose.yml /Dockerfile /appsettings.json /backup.zip
   /db.sql /x.pyc /etc/passwd /server-status /HNAP1/ /_ignition/execute-solution /swagger.json`.split(/\s+/)
 
-// Paths the Worker answers without a file in out/ (src/index.ts).
+// Paths the Worker answers without a file in out/ (worker/index.ts).
 const WORKER_ROUTES = [
   '/api/status',
   '/api/geo',

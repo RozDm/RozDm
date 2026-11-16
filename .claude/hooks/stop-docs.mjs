@@ -2,7 +2,7 @@
 // Stop hook: don't let a session finish with stale docs. Blocks once (the
 // model gets the reason and either fixes the docs or says why not) when
 //   - scripts/check-docs.mjs reports a problem, or
-//   - this branch adds/removes/renames an /api/* route (src/routes/), a
+//   - this branch adds/removes/renames an /api/* route (worker/routes/), a
 //     workflow, a skill or a hook without touching any doc. Other files carry
 //     a one-line purpose header instead, which check-docs.mjs enforces.
 // Fails open: no git, no origin/main or any error → let the stop through.
@@ -31,7 +31,7 @@ try {
   }
   if (!changes.length) process.exit(0)
 
-  const STRUCTURE = /^(src\/routes|\.github\/workflows|\.claude\/(skills|hooks))\//
+  const STRUCTURE = /^(worker\/routes|\.github\/workflows|\.claude\/(skills|hooks))\//
   const DOCS = /(^|\/)(CLAUDE|README)\.md$|^docs\/|^\.claude\/skills\/.+\/SKILL\.md$/
   const structural = changes
     .filter((c) => 'ADR'.includes(c.status) && c.paths.some((p) => STRUCTURE.test(p)))

@@ -1,6 +1,6 @@
 // CSP report storage: at most ONE Analytics Engine point per report POST (blob1 = 'csp').
 // Worker-only (AE). Parsing and sanitising the Reporting API body is
-// src/csp.ts parseCspReports (shared with the build). Anyone can POST
+// worker/csp.ts parseCspReports (shared with the build). Anyone can POST
 // reports, and AE's 100k points/day on Free are shared with the geo/view
 // channels — a batch of ten used to cost ten; now only the first own-origin
 // violation of a batch is kept. A real breakage still shows: every page view

@@ -8,7 +8,7 @@
 //      get the front page's — with display: 'optional' a page without it
 //      renders in the system monospace (app/layout.tsx);
 //   2. every page gets its hash CSP atop <head>, after the charset and ahead
-//      of any script (withMetaCsp from src/csp.ts: its inline scripts' hashes);
+//      of any script (withMetaCsp from worker/csp.ts: its inline scripts' hashes);
 //   3. /favicon.ico — a copy of the build-time /icons/favicon.ico (feed
 //      readers and unfurlers ask for it directly);
 //   4. out/_redirects (public/_redirects + generated lines) gains a 301 from
@@ -18,7 +18,7 @@
 import { appendFileSync, copyFileSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { withMetaCsp } from '../src/csp.ts'
+import { withMetaCsp } from '../worker/csp.ts'
 import { flags } from './cli.mjs'
 
 const OUT = 'out'

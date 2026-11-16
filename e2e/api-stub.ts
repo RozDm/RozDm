@@ -1,9 +1,9 @@
 // The /api/* answers the browser tests run against — the Worker isn't running
 // in e2e; e2e/fixtures.ts routes every /api/* request here. Each answer has
-// the status and JSON shape of the real route handler's (src/routes/), and
+// the status and JSON shape of the real route handler's (worker/routes/), and
 // tests/worker/api-stub.test.ts holds them to it: a handler change that
 // alters an answer fails there until the stub follows. No Playwright import —
-// Vitest loads this file too. Bodies `satisfies` the contract (src/api-types.ts).
+// Vitest loads this file too. Bodies `satisfies` the contract (worker/api-types.ts).
 import type {
   ApiError,
   ApiErrorCode,
@@ -14,7 +14,7 @@ import type {
   TimeseriesError,
   TimeseriesResponse,
   ViewsResponse,
-} from '../src/api-types'
+} from '../worker/api-types'
 
 export interface StubAnswer {
   status: number
@@ -39,7 +39,7 @@ const RANGES: string[] = ['24h', '7d', '30d', 'all'] satisfies SeriesRangeKey[]
 export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer {
   const path = url.pathname
   const json = (body: unknown, status = 200): StubAnswer => ({ status, body: JSON.stringify(body) })
-  // The Worker's refusal shape (src/http.ts apiError); the message is free text.
+  // The Worker's refusal shape (worker/http.ts apiError); the message is free text.
   const refuse = (code: ApiErrorCode, status: number, message: string): StubAnswer =>
     json({ error: { code, message } } satisfies ApiError, status)
 

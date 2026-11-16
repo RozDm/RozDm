@@ -83,7 +83,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   components `Status.tsx`, `Visitors.tsx`, `Trends.tsx` (through
   `SectionHeading`, a server component too) — `smoke.sh` greps them.
 - Every `/api/*` call is a Worker request (client fetches use
-  `cache: 'no-store'`; `src/CLAUDE.md`). Shared fetches:
+  `cache: 'no-store'`; `worker/CLAUDE.md`). Shared fetches:
   `fetchGeoCountries` (`lib/client/geo.ts`: map + the Trends «Alt» total) and
   `fetchStatus` (`lib/client/status-fetch.ts`: dashboard + footer dot). The status
   dashboard, map, Trends chart and footer status dot mount and fetch only as

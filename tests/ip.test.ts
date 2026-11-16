@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clientKey, expandIpv6 } from '@/src/ip'
+import { clientKey, expandIpv6 } from '@/worker/ip'
 
 describe('clientKey', () => {
   it('keeps an IPv4 address as is', () => {

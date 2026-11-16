@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { countriesFromRows, isCountableCountry, isDatacenterAsn, isValidSlug, looksLikeBot } from '@/src/domain/metrics'
+import {
+  countriesFromRows,
+  isCountableCountry,
+  isDatacenterAsn,
+  isValidSlug,
+  looksLikeBot,
+} from '@/worker/domain/metrics'
 
 describe('isValidSlug', () => {
   it('accepts normal slugs', () => {

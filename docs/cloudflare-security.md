@@ -64,10 +64,10 @@ Dashboard:
   holds the registration-time zone, but Norid delegates only to Cloudflare
   (RDAP 2026-11-06): inert. **Mail**: Email Routing (locked MX/SPF/DKIM
   records), DMARC `p=reject`, CAA = the Universal SSL CAs; MTA-STS
-  (`enforce`) proxied by `src/routes/mta-sts.ts`, TLS-RPT to `contact@`.
+  (`enforce`) proxied by `worker/routes/mta-sts.ts`, TLS-RPT to `contact@`.
   `send_email` has no `destination_address`; the inbox is the `OWNER_INBOX`
   secret, never the repo.
-- **HSTS** is the site's (`src/csp.ts`; the apex is `preloaded`): leave Edge
+- **HSTS** is the site's (`worker/csp.ts`; the apex is `preloaded`): leave Edge
   Certificates → HSTS off — a weaker dashboard policy would override it, and
   a preloaded domain that drops `preload` can leave the list.
 - **workers.dev / previews**: `workers_dev`/`preview_urls: false`

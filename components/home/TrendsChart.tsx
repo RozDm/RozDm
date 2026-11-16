@@ -8,7 +8,7 @@ import { noteServerDate, serverNow } from '@/lib/client/server-clock'
 import { DICT } from '@/data/i18n'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import { useLang } from '@/lib/client/use-lang'
-import type { SeriesRangeKey, TimeseriesResponse } from '@/src/api-types'
+import type { SeriesRangeKey, TimeseriesResponse } from '@/worker/api-types'
 
 type Series = TimeseriesResponse
 type Range = SeriesRangeKey

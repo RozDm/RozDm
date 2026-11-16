@@ -5,20 +5,20 @@ import nextTypeScript from 'eslint-config-next/typescript'
 // import specifier as written, so the `@/…` alias and a relative path both hit.
 // Not covered: dynamic import(), require(), and a type-only import from a
 // layer that is otherwise barred is still flagged (no escape hatch).
-const API_TYPES = '**/src/api-types'
+const API_TYPES = '**/worker/api-types'
 const lib = (layer) => `**/lib/${layer}/**`
 
 const noSrcFromApp = [
   {
-    group: ['**/src/**', `!${API_TYPES}`],
+    group: ['**/worker/**', `!${API_TYPES}`],
     message:
-      'src/ is the Worker: the app and lib/ never import it. Shared rules and constants live in lib/shared/ (the Worker imports those); the /api/* contract is src/api-types.ts.',
+      'worker/ is the Worker: the app and lib/ never import it. Shared rules and constants live in lib/shared/ (the Worker imports those); the /api/* contract is worker/api-types.ts.',
   },
   {
     group: [API_TYPES],
     allowTypeImports: true,
     message:
-      'src/api-types.ts is the shared /api/* contract: import it as `import type` only — it carries types, never runtime values.',
+      'worker/api-types.ts is the shared /api/* contract: import it as `import type` only — it carries types, never runtime values.',
   },
 ]
 const noServerLib = {
@@ -43,7 +43,7 @@ const noFrontendFromWorker = [
   {
     group: ['**/app/**', '**/components/**', '**/data/**', '**/context/**', lib('client'), lib('server')],
     message:
-      'src/ is the Worker: it never imports the frontend, lib/client/, lib/server/ or data/. What both sides need goes in lib/shared/ (pure, no DOM, no Node) or src/api-types.ts.',
+      'worker/ is the Worker: it never imports the frontend, lib/client/, lib/server/ or data/. What both sides need goes in lib/shared/ (pure, no DOM, no Node) or worker/api-types.ts.',
   },
 ]
 const restrictImports = (...patterns) => ['error', { patterns: patterns.flat() }]
@@ -64,12 +64,12 @@ const clientSelectors = [
 ]
 
 // Routes are HTTP only: the bindings (KV, D1, Analytics Engine, mail) are
-// touched in src/domain/*-store.ts, never in a handler.
+// touched in worker/domain/*-store.ts, never in a handler.
 const routeSelectors = [
   {
     selector: "MemberExpression[object.name='env'][property.name=/^(STATUS|METRICS|METRICS_AE|CONTACT_EMAIL)$/]",
     message:
-      'src/routes/ is HTTP only: read and write KV, D1, Analytics Engine and mail through a src/domain/*-store.ts function, not env.<binding> in a handler.',
+      'worker/routes/ is HTTP only: read and write KV, D1, Analytics Engine and mail through a worker/domain/*-store.ts function, not env.<binding> in a handler.',
   },
 ]
 
@@ -87,7 +87,7 @@ const config = [
   // The two rules that need types: a promise nobody awaits. In the Worker a
   // forgotten `await` is a write that may never land (the isolate can stop
   // once the response is out), and no untyped rule sees it. Both tsconfigs:
-  // the app's leaves out src/ and tests/worker, the Worker's has them. A
+  // the app's leaves out worker/ and tests/worker, the Worker's has them. A
   // deliberate fire-and-forget is marked `void`, not disabled. JSX handlers
   // (`onClick={async …}`) are exempt: React ignores what they return.
   {
@@ -126,9 +126,12 @@ const config = [
       ),
     },
   },
-  { files: ['src/**'], rules: { '@typescript-eslint/no-restricted-imports': restrictImports(noFrontendFromWorker) } },
+  {
+    files: ['worker/**'],
+    rules: { '@typescript-eslint/no-restricted-imports': restrictImports(noFrontendFromWorker) },
+  },
   { files: ['**/*.ts', '**/*.tsx'], rules: { 'no-restricted-syntax': ['error', ...clientSelectors] } },
-  { files: ['src/routes/**'], rules: { 'no-restricted-syntax': ['error', ...clientSelectors, ...routeSelectors] } },
+  { files: ['worker/routes/**'], rules: { 'no-restricted-syntax': ['error', ...clientSelectors, ...routeSelectors] } },
 ]
 
 export default config
