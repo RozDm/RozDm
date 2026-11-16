@@ -7,7 +7,12 @@ secret model. The traps to know before editing `.github/` are in
 
 ## Workflows
 
-- `ci.yml` — on PRs, four jobs. `actionlint`: `go run` of actionlint at a
+- `ci.yml` — on PRs, five jobs. `authors` (no checkout, `pull-requests:
+  read`): the PR's commits from the API; red on a commit whose GitHub author
+  isn't the repository owner (an e-mail no account has counts as not) or
+  whose message has a `Co-authored-by` line, because a squash would credit
+  that author and the Contributors box counts co-authors (#39 put
+  dependabot[bot] there). The log names logins, never e-mails. `actionlint`: `go run` of actionlint at a
   pinned version over every workflow and the setup action, with shellcheck
   on `run:` blocks (pyflakes off; bump the version by hand — Dependabot
   can't), then shellcheck over `scripts/*.sh` and `.claude/hooks/*.sh`; both
@@ -160,15 +165,17 @@ secret model. The traps to know before editing `.github/` are in
   semver-major is ignored (migrations by hand — ESLint 9, TypeScript 6:
   `docs/gotchas.md`; the Actions entry has no such rule, so action
   majors do come). Dependabot PRs get no secrets.
-  Merge one by enabling squash auto-merge as the owner, so the merge push is
-  the owner's and `deploy.yml` gets its secrets (never a GITHUB_TOKEN merge
-  workflow). The wrangler PR stays red until `npm run cf-typegen` is
-  committed on it; the Playwright PR until `ci.yml`'s image tag and digest
-  follow (the `Docker-Content-Digest` header of
+  A Dependabot PR is never merged: `ci.yml`'s `authors` keeps it red, since
+  its squash would add dependabot[bot] to the repository's contributors
+  (`docs/decisions.md`). The owner forwards Dependabot's e-mail to a session,
+  which redoes the bump on its own branch from `main` as owner-authored
+  commits (`npm install <pkg>@<version>`, never a cherry-pick, merge or
+  rebase of Dependabot's commit) and opens its own PR; once that merges,
+  Dependabot closes its PR. The wrangler bump needs `npm run cf-typegen`
+  committed with it; the Playwright bump `ci.yml`'s image tag and digest
+  (the `Docker-Content-Digest` header of
   `https://mcr.microsoft.com/v2/playwright/manifests/v<version>-noble`).
-  Pushing to a Dependabot branch stops its rebases. The owner forwards
-  Dependabot's e-mail to a session, which supersedes a red PR with its fix
-  from the session's own branch (done once, 2026-11-09). A weekly scheduled task
+  Pushing to a Dependabot branch stops its rebases: don't. A weekly scheduled task
   doing this unattended was tried and declined (owner's call, 2026-11-09;
   `docs/decisions.md`): don't re-propose it.
 - Repository settings (owner-only, no session token can read or switch
