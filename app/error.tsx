@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import HalEye from '@/components/effects/HalEye'
 import Eyebrow from '@/components/layout/Eyebrow'
-import { ERROR_COPY } from '@/data/i18n-error'
+import { ERROR_COPY } from '@/data/dictionary-error'
 import { localePath } from '@/lib/shared/i18n'
 import { useLang } from '@/lib/client/use-lang'
 

@@ -1,4 +1,4 @@
-import { Certification } from '@/types'
+import { Certification } from '@/lib/shared/types'
 
 // Add `url` (a public verification page) to make a card a link.
 

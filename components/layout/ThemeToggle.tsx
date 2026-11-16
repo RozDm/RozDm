@@ -1,7 +1,7 @@
 'use client'
 
-import { useTheme } from '@/context/ThemeContext'
-import { DICT } from '@/data/i18n'
+import { useTheme } from '@/components/theme/ThemeContext'
+import { DICT } from '@/data/dictionary'
 import { useLang } from '@/lib/client/use-lang'
 
 export default function ThemeToggle() {

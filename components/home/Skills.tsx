@@ -1,5 +1,5 @@
 import SectionHeading from './SectionHeading'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { skillGroups } from '@/data/skills'
 import { pick, type Lang } from '@/lib/shared/i18n'
 

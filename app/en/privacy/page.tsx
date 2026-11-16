@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Eyebrow from '@/components/layout/Eyebrow'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { pageMetadata } from '@/lib/shared/metadata'
 import { CONTACT_ADDRESS } from '@/lib/shared/contact'
 

@@ -1,7 +1,7 @@
 // Renders the build-time social card (OG image) for one blog post.
 
 import { ImageResponse } from 'next/og'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { getPostBySlug } from './blog'
 import type { Lang } from '@/lib/shared/i18n'
 import { OG_FONT_FAMILY, ogFonts } from './og-fonts'

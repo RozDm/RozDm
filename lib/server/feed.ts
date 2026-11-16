@@ -1,6 +1,6 @@
 // Builds the RSS 2.0 feed Response for one language's blog.
 
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { getPostBySlug, getPostSlugs } from './blog'
 import { blogPath, feedPath, postPath } from '@/lib/shared/blog-paths'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'

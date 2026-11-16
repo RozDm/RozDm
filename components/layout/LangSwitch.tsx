@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { HREFLANG, langFromPath, switchPath } from '@/lib/shared/i18n'
 
 // NO ⇄ EN: the same page in the other language, or that language's front page

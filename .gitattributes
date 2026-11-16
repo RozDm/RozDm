@@ -3,6 +3,5 @@
 # thousands of lines. `git diff --stat` still lists them; merges stay textual.
 /package-lock.json linguist-generated=true -diff
 /worker-configuration.d.ts linguist-generated=true -diff
-/public/world.svg linguist-generated=true -diff
 # Post diagrams: outlined glyphs, built from content/diagrams/ (npm run diagrams).
 /public/images/**/*.svg linguist-generated=true -diff

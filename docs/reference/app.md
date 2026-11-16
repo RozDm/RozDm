@@ -29,10 +29,10 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
 
 ## Languages
 
-- ALL UI copy lives in `data/i18n.ts` (`nb` defines the shape,
+- ALL UI copy lives in `data/dictionary.ts` (`nb` defines the shape,
   `en` is typed against it, `tests/i18n.test.ts` checks parity) — never in a
   component. Exceptions: `app/error.tsx` reads `ERROR_COPY`
-  (`data/i18n-error.ts`, spread into both): importing `DICT` there put a
+  (`data/dictionary-error.ts`, spread into both): importing `DICT` there put a
   second dictionary copy on every page; and the privacy notices' text stays
   in their pages (`app/personvern/page.tsx`, `app/en/privacy/page.tsx`) — a
   document, not UI copy, and the dictionary ships with every page (only the

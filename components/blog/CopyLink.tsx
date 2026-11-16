@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { copyText } from '@/lib/client/clipboard'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { useLang } from '@/lib/client/use-lang'
 
 export default function CopyLink({ url }: { url: string }) {

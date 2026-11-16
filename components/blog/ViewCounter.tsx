@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import type { ViewsResponse } from '@/worker/api-types'
 import { useLang } from '@/lib/client/use-lang'
 import { onFirstHumanInput } from '@/lib/client/visit'

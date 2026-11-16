@@ -11,14 +11,14 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import ShareRow from './ShareRow'
 import ViewCounter from './ViewCounter'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { formatDate, getAdjacentPosts, getPostBySlug, getPostSlugs, getTranslation, viewKey } from '@/lib/server/blog'
 import { blogPath, postPath, tagPath } from '@/lib/shared/blog-paths'
 import { INTL_LOCALE, localePath, type Lang } from '@/lib/shared/i18n'
 import { pageMetadata, serializeJsonLd } from '@/lib/shared/metadata'
 import { AUTHOR, SITE_URL } from '@/lib/shared/site'
 import { tagLabel } from '@/lib/shared/tags'
-import type { Post } from '@/types'
+import type { Post } from '@/lib/shared/types'
 
 // A blog post, shared by /blogg/<slug>/ and /en/blog/<slug>/.
 

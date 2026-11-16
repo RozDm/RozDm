@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { formatDate } from '@/lib/server/blog'
 import { postPath, tagPath } from '@/lib/shared/blog-paths'
 import { tagLabel } from '@/lib/shared/tags'
-import { DICT } from '@/data/i18n'
-import type { PostMeta } from '@/types'
+import { DICT } from '@/data/dictionary'
+import type { PostMeta } from '@/lib/shared/types'
 
 // One post in a list (the blog index and the tag pages, both languages). The
 // whole card is clickable through a stretched title link (after:absolute

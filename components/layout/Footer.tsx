@@ -4,7 +4,7 @@ import StatusDot from './StatusDot'
 import CopyEmail from './CopyEmail'
 import CopyrightYear from './CopyrightYear'
 import Eyebrow from './Eyebrow'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { localePath, type Lang } from '@/lib/shared/i18n'
 import { CONTACT_ADDRESS } from '@/lib/shared/contact'
 

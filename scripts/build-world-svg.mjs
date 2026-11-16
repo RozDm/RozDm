@@ -1,7 +1,6 @@
-// Generates public/world.svg (the visit map) from country shapes at build time.
-// Generates public/world.svg from world-map-country-shapes at build time so
-// the runtime doesn't have to ship 85 kB of JSON to draw the map. Re-run when
-// the package version bumps:  node scripts/build-world-svg.mjs
+// Generates public/world.svg (the visit map, gitignored) from country shapes.
+// Runs as `predev` and `prebuild`, so the runtime doesn't ship 85 kB of JSON to
+// draw the map. Manual run: node scripts/build-world-svg.mjs
 import fs from 'node:fs'
 import shapesPkg from 'world-map-country-shapes'
 import { flags } from './cli.mjs'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import { useLang } from '@/lib/client/use-lang'
 import type { HistoryEntry } from '@/worker/api-types'

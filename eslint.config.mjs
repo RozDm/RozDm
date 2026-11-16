@@ -41,7 +41,7 @@ const noNodeInShared = {
 }
 const noFrontendFromWorker = [
   {
-    group: ['**/app/**', '**/components/**', '**/data/**', '**/context/**', lib('client'), lib('server')],
+    group: ['**/app/**', '**/components/**', '**/data/**', lib('client'), lib('server')],
     message:
       'worker/ is the Worker: it never imports the frontend, lib/client/, lib/server/ or data/. What both sides need goes in lib/shared/ (pure, no DOM, no Node) or worker/api-types.ts.',
   },

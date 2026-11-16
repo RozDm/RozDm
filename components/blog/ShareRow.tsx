@@ -1,5 +1,5 @@
 import CopyLink from './CopyLink'
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import type { Lang } from '@/lib/shared/i18n'
 
 // Plain share links — no third-party SDKs, no extra scripts, CSP untouched.

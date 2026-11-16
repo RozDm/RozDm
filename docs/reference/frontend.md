@@ -24,7 +24,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
 - Secondary links (footer, tag chips, the NO/EN switch) set
   `prefetch={false}` (each prefetch is several RSC requests — mobile data);
   primary nav, post cards and prev/next keep the default.
-- Theme (`context/ThemeContext.tsx`): localStorage `theme` holds a
+- Theme (`components/theme/ThemeContext.tsx`): localStorage `theme` holds a
   hand-picked theme; none = follow the OS, live (`matchMedia` listener). The
   toggle flips on every click, and a pick equal to the OS's theme is not
   stored — flipping back is the way back to the OS.

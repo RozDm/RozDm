@@ -1,6 +1,6 @@
 'use client'
 
-import { DICT } from '@/data/i18n'
+import { DICT } from '@/data/dictionary'
 import { useLang } from '@/lib/client/use-lang'
 import { lazyNearViewport } from '@/components/lazy-near-viewport'
 
