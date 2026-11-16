@@ -26,7 +26,7 @@ secret model. The traps to know before editing `.github/` are in
   (`mcr.microsoft.com/playwright:v<version>-noble@sha256:…`, `--user 1001`),
   which brings Chromium, WebKit and their packages (installing them took
   3–37 min). Its tag equals `@playwright/test`'s version
-  (`tests/workflows.test.ts`): bump tag and digest with the package. `check`
+  (`tests/repo/workflows.test.ts`): bump tag and digest with the package. `check`
   is green only when all three are (`if: always()` — a skipped required check
   would pass); it is the one required status check on `main`, so it decides
   the auto-merge. `deploy.yml` doesn't repeat the browser tests. Protection
@@ -98,7 +98,7 @@ secret model. The traps to know before editing `.github/` are in
   --binding METRICS` (patches the runner's `wrangler.jsonc` so the
   `migrations apply METRICS` that follows reaches the new id), `sql` (one statement on
   `views`/`geo`). `sql` refuses any statement naming `contact`
-  (`tests/workflows.test.ts`): the statement shows in the step's env block
+  (`tests/repo/workflows.test.ts`): the statement shows in the step's env block
   and its rows in the output, and a public repository's run logs are
   public. Contact rows (reading one, an erasure request) are the
   dashboard's D1 console, never a workflow.
@@ -139,7 +139,7 @@ secret model. The traps to know before editing `.github/` are in
 ## Conventions, Dependabot, repository settings, secrets
 
 - Every action is pinned to a full commit SHA with its release in a comment
-  (`actions/checkout@<sha> # v7.0.1`); `tests/workflows.test.ts` fails on a
+  (`actions/checkout@<sha> # v7.0.1`); `tests/repo/workflows.test.ts` fails on a
   bare tag; Dependabot bumps SHA and comment together.
 - `.github/actions/setup/action.yml` — the one composite action: setup-node
   (`.nvmrc`) + `npm ci`, called after the checkout step by every job that
@@ -198,7 +198,7 @@ secret model. The traps to know before editing `.github/` are in
   (Account Analytics: Read), `NETBOX_URL`, `OWNER_INBOX` (the owner's inbox
   for contact/status mail; kept out of the public repo). `TURNSTILE_SITE_KEY` is a
   repository variable (public). `ci.yml` uses no secrets, nor does
-  `status-watchdog.yml` but for its `cpu` job. `tests/workflows.test.ts` holds the workflows to this: a job
+  `status-watchdog.yml` but for its `cpu` job. `tests/repo/workflows.test.ts` holds the workflows to this: a job
   reading a secret runs in `production`, whose workflows start only from a
   push to `main`, a manual run or the schedule, and it installs with `npm ci
   --ignore-scripts` and no npm cache (no package code next to a token — the

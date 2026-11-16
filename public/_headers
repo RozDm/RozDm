@@ -1,7 +1,7 @@
 # Headers for everything the asset server serves — every page and file; the
 # Worker runs only for /api/* (run_worker_first in wrangler.jsonc). _headers
 # never applies to a Worker response; the Worker sets the same set itself
-# (worker/csp.ts BASE_SECURITY_HEADERS + HSTS — tests/static-assets.test.ts
+# (worker/csp.ts BASE_SECURITY_HEADERS + HSTS — tests/repo/static-assets.test.ts
 # keeps the two equal). Matching rules stack, and a header set by two of
 # them is joined with a comma — so each header lives in exactly one rule.
 # _headers matches on path only, so it also stamps a MISS (the 404 page) —
@@ -23,7 +23,7 @@
 
 # X-Frame-Options on the page paths only (frame-ancestors covers the rest):
 # world.svg must not carry it — smoke.sh's canary for "served without the
-# Worker". A new top-level route gets a line here (tests/static-assets.test.ts).
+# Worker". A new top-level route gets a line here (tests/repo/static-assets.test.ts).
 /
   X-Frame-Options: DENY
 

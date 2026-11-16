@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { object, oneOf, parseJson, text } from '@/worker/validate'
+import { object, oneOf, parseJson, text } from '../../worker/validate'
 
 describe('worker/validate', () => {
   it('oneOf takes only the listed strings', () => {

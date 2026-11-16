@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import pkg from '../package.json'
+import pkg from '../../package.json'
 
 // Every action is pinned to a full commit SHA, with the release it is in a
 // comment: a tag can be moved to other code, a SHA can't, and the comment is

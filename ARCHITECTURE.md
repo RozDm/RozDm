@@ -35,7 +35,7 @@ an HTTP call from `worker/domain/contact.ts`, not a binding. There is no R2.
 | `worker/` | The Worker: `index.ts` dispatches to `worker/routes/*` (HTTP only), which call `worker/domain/*` (rules; `*-store.ts` hold the bindings); CSP, the `/api/*` contract |
 | `migrations/` | D1 schema as numbered `wrangler d1 migrations` (`0001_init.sql`, …); never edit an applied one |
 | `scripts/` | Build finalisation, CSP/WAF/docs checks, smoke test, read-only API tools |
-| `tests/`, `e2e/` | Vitest (Worker handlers on real SQLite) and Playwright browser tests |
+| `tests/`, `e2e/` | Vitest (mirrors `lib/`, `worker/`, `scripts/`; `tests/repo` for repo-wide checks; Worker handlers on real SQLite) and Playwright browser tests |
 
 Who may import whom between these (the app never reaches into `worker/` but for the `api-types.ts` types; `worker/` takes only `lib/shared/`; browser code never takes `lib/server/`) is enforced by ESLint (`eslint.config.mjs`), not by this page.
 | `.github/` | CI, deploy, monitoring and one-shot ops workflows, zone rules |

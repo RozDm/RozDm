@@ -13,9 +13,9 @@ public repository (owner's call, `docs/decisions.md`).
 - Checks: reading a post checks it (`lib/server/post-frontmatter.ts`: no unknown
   field, `draft` a real boolean, real days, tags from `STANDARD_TAGS`,
   description 50–160 chars), so a slip stops dev, tests and the build instead
-  of going live; `tests/blog-content.test.ts` adds the text: headings from
+  of going live; `tests/lib/server/blog-content.test.ts` adds the text: headings from
   `##`, one level at a time, links to other posts only to published ones.
-- Twins share date, `updated`, tags and draft (`tests/blog-pairs.test.ts`);
+- Twins share date, `updated`, tags and draft (`tests/lib/server/blog-pairs.test.ts`);
   `/new-post` writes both drafts and publishes them (date = the publish day).
 - Code: `lib/server/blog.ts` takes `lang` everywhere, URLs come from
   `lib/shared/blog-paths.ts`, one view counter per post (`viewKey`: the Norwegian
@@ -38,7 +38,7 @@ public repository (owner's call, `docs/decisions.md`).
 - Diagrams: SVG, the source with live `<text>` in
   `content/diagrams/<slug>/`, the copy in `public/images/<slug>/` built by
   `npm run diagrams` (`scripts/build-diagrams.mjs`: text outlined in Intel
-  One Mono, which an SVG in `<img>` can't load; `tests/diagrams.test.ts`
+  One Mono, which an SVG in `<img>` can't load; `tests/scripts/build-diagrams.test.ts`
   fails on a stale copy; the copies are skipped by Grep and binary to
   `git diff`). Draw for the light theme on a white card: the dark theme
   inverts post SVGs (`app/globals.css`).

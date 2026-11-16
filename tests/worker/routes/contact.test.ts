@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { handleContact } from '../../worker/routes/contact'
-import { HONEYPOT_FIELD } from '../../lib/shared/contact'
-import { BROWSER_HEADERS, errorBody, makeEnv } from './fakes'
-import wranglerConfig from '../../wrangler.jsonc?raw'
+import { handleContact } from '../../../worker/routes/contact'
+import { HONEYPOT_FIELD } from '../../../lib/shared/contact'
+import { BROWSER_HEADERS, errorBody, makeEnv } from '../fakes'
+import wranglerConfig from '../../../wrangler.jsonc?raw'
 
 const URL_ = new URL('https://rozsoshnykh.no/api/contact')
 const FORM = { name: 'Kari', email: 'kari@example.no', message: 'Hei! Dette er en test.' }

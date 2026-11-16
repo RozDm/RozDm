@@ -6,7 +6,7 @@
 // public/ draws every text in Intel One Mono outlines, from Fontsource's WOFF
 // files like the OG cards (lib/server/og-fonts.ts): one <path> per glyph, placed by
 // <use>. After editing a source:  npm run diagrams
-// tests/diagrams.test.ts fails while a copy is stale (`--check`).
+// tests/scripts/build-diagrams.test.ts fails while a copy is stale (`--check`).
 //
 // A source <text> is one line of plain text with x, y, font-size, fill and,
 // if needed, font-weight="700" and text-anchor="middle" or "end"; no <tspan>,

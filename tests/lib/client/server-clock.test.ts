@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SKEW_IGNORED_MS, clockSkew } from '../lib/client/server-clock'
+import { SKEW_IGNORED_MS, clockSkew } from '../../../lib/client/server-clock'
 
 const SERVER = Date.parse('Tue, 10 Nov 2026 18:22:07 GMT')
 

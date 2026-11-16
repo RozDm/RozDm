@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { execFileSync } from 'node:child_process'
-import { outlineText } from '../scripts/build-diagrams.mjs'
+import { outlineText } from '../../scripts/build-diagrams.mjs'
 
 // Post diagrams: public/images/ holds copies of content/diagrams/ with the
 // text outlined in Intel One Mono (scripts/build-diagrams.mjs). A source

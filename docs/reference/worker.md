@@ -14,7 +14,7 @@ Incident background: `docs/history.md`.
   CSP `<meta>` (`worker/csp.ts`; re-checked by `npm run check:csp`), `lang="en"`,
   the body font's preload on the 404, `/favicon.ico` and the slash-less 301s
   (`out/_redirects`). Headers: `public/_headers`, equal to the Worker's set
-  (`tests/static-assets.test.ts`). Details: Rules below.
+  (`tests/repo/static-assets.test.ts`). Details: Rules below.
 - Worker: `/api/status`, `/api/views/<slug>`, `/api/geo`,
   `/api/visit`, `/api/timeseries`, `/api/contact`, `/api/csp-report`, the
   MTA-STS policy, the crons. Stores: KV `STATUS` (uptime snapshot), D1
@@ -220,7 +220,7 @@ status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
   Analytics is gone; `smoke.sh` ("no edge script") fails on an injected
   script. Turnstile's iframe logs `Refused to connect to 'data:,'` on the
   contact pages — Cloudflare's own iframe CSP, unreachable from ours and
-  never reported; leave it (tested in `tests/csp.test.ts`). Trusted Types is
+  never reported; leave it (tested in `tests/worker/csp.test.ts`). Trusted Types is
   off: Next 16's chunk loader assigns `script.src` a plain string (revisit
   when Next supports it).
 - Only `/api/*` and the MTA-STS policy run the Worker (`run_worker_first`;
@@ -229,7 +229,7 @@ status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
   100k/day quota too. Their headers come from `public/_headers` (security
   set on `/*`, `X-Frame-Options` on page paths, `immutable` on
   `/_next/static/*`, a week on stable files, PNG type on OG cards), which
-  never applies to a Worker response — `tests/static-assets.test.ts` keeps
+  never applies to a Worker response — `tests/repo/static-assets.test.ts` keeps
   it equal to `BASE_SECURITY_HEADERS` + HSTS + `HEADER_CSP` and no header in
   two rules (they'd join with a comma). A miss gets its path's `_headers`
   cache, which the `zone-rules.yml` rule turns into `no-store` on every
@@ -277,6 +277,10 @@ status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
 
 ## Tests
 
+- Tests mirror the code: `tests/lib/{server,client,shared}`, `tests/worker/{routes,domain}`
+  (+ `csp`, `ip`, `validate`, `index`), `tests/scripts`, repo-wide checks in
+  `tests/repo`; a new test goes at its module's path. Under `tests/worker/**`
+  imports are relative (`tsconfig.worker.json` has no `@/` alias).
 - Route handlers, the entry's dispatch and both crons
   (`tests/worker/index.test.ts`) run under plain Vitest with in-process
   bindings from `tests/worker/fakes.ts`: D1 is REAL SQLite (`node:sqlite`,
@@ -285,7 +289,7 @@ status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
   `vitest.config.mts`. They type-check under `tsconfig.worker.json` (Node
   bits in `node-shims.d.ts`). `tests/worker/errors.test.ts`: one test per
   route for the error shape (`errorBody(code)` in `fakes.ts` builds the
-  expected body); `tests/validate.test.ts`: the validators.
+  expected body); `tests/worker/validate.test.ts`: the validators.
 - A new endpoint or route behaviour gets a test there AND a
   `scripts/smoke.sh` check. The browser tests' stand-in answers
   (`e2e/api-stub.ts`) are held to the handlers by
