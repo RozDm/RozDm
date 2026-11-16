@@ -7,8 +7,8 @@ import rehypeHighlight from 'rehype-highlight'
 import { HIGHLIGHT_OPTIONS } from '@/lib/server/markdown'
 import { rehypeInlineCode } from '@/lib/server/inline-code'
 import { rehypePostImages } from '@/lib/server/post-images'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
+import BackLink from '@/components/layout/BackLink'
+import PageShell from '@/components/layout/PageShell'
 import ShareRow from './ShareRow'
 import ViewCounter from './ViewCounter'
 import { DICT } from '@/data/dictionary'
@@ -129,16 +129,10 @@ export default function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs) }} />
-      <Header lang={lang} alternate={twin ? postPath(other(lang), twin.slug) : blogPath(other(lang))} />
-      <main id="main" className="max-w-3xl mx-auto px-4 md:px-8 py-20">
-        <Link
-          href={blogPath(lang)}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-        >
-          &larr; {t.back}
-        </Link>
+      <PageShell lang={lang} alternate={twin ? postPath(other(lang), twin.slug) : blogPath(other(lang))}>
+        <BackLink href={blogPath(lang)}>{t.back}</BackLink>
 
-        <article className="mt-8">
+        <article>
           <header className="mb-8">
             {isDraft && (
               <p
@@ -232,8 +226,7 @@ export default function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
             </nav>
           )}
         </article>
-      </main>
-      <Footer lang={lang} />
+      </PageShell>
     </>
   )
 }

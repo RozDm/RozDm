@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
-import Eyebrow from '@/components/layout/Eyebrow'
+import BackLink from '@/components/layout/BackLink'
+import PageShell from '@/components/layout/PageShell'
+import PageTitle from '@/components/layout/PageTitle'
 import PostCard from './PostCard'
 import { DICT } from '@/data/dictionary'
 import { getAllTags, getPostsByTag, isTagIndexed } from '@/lib/server/blog'
@@ -56,27 +55,17 @@ export default function TagPage({ lang, slug }: { lang: Lang; slug: string }) {
   const posts = getPostsByTag(tag, lang)
 
   return (
-    <>
-      <Header lang={lang} alternate={twinPath(lang, tag) ?? blogPath(other(lang))} />
-      <main id="main" className="max-w-3xl mx-auto px-4 md:px-8 py-20 min-h-[70vh]">
-        <Link
-          href={blogPath(lang)}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors mb-8"
-        >
-          &larr; {t.back}
-        </Link>
+    <PageShell lang={lang} alternate={twinPath(lang, tag) ?? blogPath(other(lang))}>
+      <BackLink href={blogPath(lang)}>{t.back}</BackLink>
 
-        <Eyebrow>{t.topic}</Eyebrow>
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">{tagLabel(tag, lang)}</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-10">{t.count(posts.length)}</p>
+      <PageTitle eyebrow={t.topic}>{tagLabel(tag, lang)}</PageTitle>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-10">{t.count(posts.length)}</p>
 
-        <div className="flex flex-col gap-4">
-          {posts.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-      </main>
-      <Footer lang={lang} />
-    </>
+      <div className="flex flex-col gap-4">
+        {posts.map((post) => (
+          <PostCard key={post.slug} post={post} />
+        ))}
+      </div>
+    </PageShell>
   )
 }

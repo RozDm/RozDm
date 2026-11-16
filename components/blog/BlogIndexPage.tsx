@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
-import Eyebrow from '@/components/layout/Eyebrow'
+import BackLink from '@/components/layout/BackLink'
+import PageShell from '@/components/layout/PageShell'
+import PageTitle from '@/components/layout/PageTitle'
 import BlogList from './BlogList'
 import { DICT } from '@/data/dictionary'
 import { getAllPosts, getAllTags } from '@/lib/server/blog'
@@ -19,34 +18,24 @@ export function blogIndexMetadata(lang: Lang): Metadata {
 export default function BlogIndexPage({ lang }: { lang: Lang }) {
   const t = DICT[lang]
   return (
-    <>
-      <Header lang={lang} />
-      <main id="main" className="max-w-3xl mx-auto px-4 md:px-8 py-20 min-h-[70vh]">
-        <Link
-          href={localePath(lang, '/')}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors mb-8"
-        >
-          &larr; {t.backHome}
-        </Link>
+    <PageShell lang={lang}>
+      <BackLink href={localePath(lang, '/')}>{t.backHome}</BackLink>
 
-        <Eyebrow>{t.blog.eyebrow}</Eyebrow>
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">{t.blog.title}</h1>
-        {/* The feed was only a <link rel="alternate"> in the head: nothing a
+      <PageTitle eyebrow={t.blog.eyebrow}>{t.blog.title}</PageTitle>
+      {/* The feed was only a <link rel="alternate"> in the head: nothing a
             reader could see. A plain <a> — it is a file, not a page. */}
-        <p className="mt-3 mb-10 text-sm text-gray-500 dark:text-gray-400">
-          {t.blog.feedLead}{' '}
-          <a
-            href={feedPath(lang)}
-            type="application/rss+xml"
-            className="py-2 text-red-600 dark:text-red-400 underline underline-offset-4 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-          >
-            {t.blog.feedLink}
-          </a>
-        </p>
+      <p className="mb-10 text-sm text-gray-500 dark:text-gray-400">
+        {t.blog.feedLead}{' '}
+        <a
+          href={feedPath(lang)}
+          type="application/rss+xml"
+          className="py-2 text-red-600 dark:text-red-400 underline underline-offset-4 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+        >
+          {t.blog.feedLink}
+        </a>
+      </p>
 
-        <BlogList posts={getAllPosts(lang)} tags={getAllTags(lang)} lang={lang} />
-      </main>
-      <Footer lang={lang} />
-    </>
+      <BlogList posts={getAllPosts(lang)} tags={getAllTags(lang)} lang={lang} />
+    </PageShell>
   )
 }
