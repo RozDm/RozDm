@@ -8,8 +8,11 @@ secret model. The traps to know before editing `.github/` are in
 ## Workflows
 
 - `ci.yml` — on PRs, four jobs. `actionlint`: `go run` of actionlint at a
-  pinned version over every workflow and the setup action (shellcheck and
-  pyflakes off; bump the version by hand — Dependabot can't). `build` (bare runner): format check, lint, typecheck
+  pinned version over every workflow and the setup action, with shellcheck
+  on `run:` blocks (pyflakes off; bump the version by hand — Dependabot
+  can't), then shellcheck over `scripts/*.sh` and `.claude/hooks/*.sh`; both
+  at `--severity=warning`, an intentional finding gets an inline
+  `# shellcheck disable=SCxxxx  # reason` on its line only. `build` (bare runner): format check, lint, typecheck
   (starting with `wrangler types --check`), test, build (with Cloudflare's
   public always-pass TEST Turnstile site key `1x00000000000000000000AA`, so
   the widget renders as in production; `e2e/fixtures.ts` fakes its script),

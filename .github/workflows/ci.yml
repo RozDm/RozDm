@@ -100,13 +100,18 @@ jobs:
   # needs/outputs, action inputs. Most ops workflows only run by hand, so a
   # mistake there would otherwise surface on the day they are needed. Built
   # by `go run` at a fixed version (the Go checksum database verifies the
-  # module; Dependabot doesn't bump it — do it by hand). shellcheck and
-  # pyflakes integrations are off for now.
+  # module; Dependabot doesn't bump it — do it by hand). Its shellcheck
+  # pass covers `run:` blocks (shellcheck is preinstalled on ubuntu-latest);
+  # the next step covers the standalone scripts. pyflakes stays off: no
+  # Python in run blocks.
   actionlint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -color -shellcheck= -pyflakes=
+      - run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -color -pyflakes=
+        env:
+          SHELLCHECK_OPTS: --severity=warning
+      - run: shellcheck --version && shellcheck --severity=warning scripts/*.sh .claude/hooks/*.sh
 
   # The one required status check on main (branch protection names `check`):
   # green only when every job above is. `always()` so a failed or skipped
