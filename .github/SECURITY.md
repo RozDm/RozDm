@@ -8,7 +8,7 @@ a small Worker for `/api/*` (contact form, visit counters, status).
 
 Please report privately — not in a public issue:
 
-- **GitHub:** Security → [Report a vulnerability](https://github.com/RozDm/RozDm/security/advisories/new)
+- **GitHub:** Security → [Report a vulnerability](https://github.com/RozDm/rozsoshnykh.no/security/advisories/new)
   (private vulnerability reporting), or
 - **E-mail:** <contact@rozsoshnykh.no> (also in
   [`/.well-known/security.txt`](https://rozsoshnykh.no/.well-known/security.txt)).

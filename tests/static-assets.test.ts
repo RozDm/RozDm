@@ -116,10 +116,10 @@ describe('/.well-known/security.txt', () => {
   it('names the site address first, the private advisory form and the policy', () => {
     expect(all('Contact')).toEqual([
       `mailto:${CONTACT_ADDRESS}`,
-      'https://github.com/RozDm/RozDm/security/advisories/new',
+      'https://github.com/RozDm/rozsoshnykh.no/security/advisories/new',
     ])
     expect(fields.get('Canonical')).toBe(`${SITE_URL}/.well-known/security.txt`)
-    expect(fields.get('Policy')).toBe('https://github.com/RozDm/RozDm/security/policy')
+    expect(fields.get('Policy')).toBe('https://github.com/RozDm/rozsoshnykh.no/security/policy')
   })
 
   it('expires more than 30 days and at most a year from now', () => {

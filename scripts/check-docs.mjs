@@ -66,7 +66,7 @@ export function checkDocs(root = ROOT) {
     'src/CLAUDE.md',
     '.github/CLAUDE.md',
     'content/CLAUDE.md',
-    '.github/README.md',
+    'README.md',
     'docs/gotchas.md',
     'docs/decisions.md',
     ...skills,
@@ -108,11 +108,8 @@ export function checkDocs(root = ROOT) {
     need(text['src/CLAUDE.md'].includes(route), `src/CLAUDE.md: route ${route} is not in the API surface`)
   }
   for (const f of ls('lib', /\.tsx?$/)) {
-    need(anyDoc(f, ['app/CLAUDE.md', '.github/README.md']), `.github/README.md: lib/${f} is not in the layout`)
+    need(anyDoc(f, ['app/CLAUDE.md', 'README.md']), `README.md: lib/${f} is not in the layout`)
   }
-  // RozDm/RozDm is the GitHub profile repository: a root README would become
-  // github.com/RozDm, which stays neutral (docs/decisions.md).
-  need(!fileSet.has('README.md'), 'README.md: no README in the root — it would show on github.com/RozDm')
   for (const d of subdirs('app')) {
     need(text['app/CLAUDE.md'].includes(d), `app/CLAUDE.md: app/${d} is not in the routes`)
   }

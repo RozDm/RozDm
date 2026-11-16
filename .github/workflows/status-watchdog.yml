@@ -39,7 +39,7 @@ jobs:
       - name: Site answers
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 --retry 2 --retry-delay 10 \
-            -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' https://rozsoshnykh.no/)
+            -A 'status-watchdog/1.0 (+https://github.com/RozDm/rozsoshnykh.no)' https://rozsoshnykh.no/)
           echo "GET / -> $code"
           [ "$code" = "200" ] || { echo "::error::rozsoshnykh.no answered $code"; exit 1; }
 
@@ -48,7 +48,7 @@ jobs:
       - name: Status snapshot is fresh
         run: |
           body=$(curl -sf --max-time 20 --retry 2 --retry-delay 10 \
-            -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' https://rozsoshnykh.no/api/status)
+            -A 'status-watchdog/1.0 (+https://github.com/RozDm/rozsoshnykh.no)' https://rozsoshnykh.no/api/status)
           printf '%s' "$body" | python3 -c '
           import json, sys, datetime as dt
           d = json.load(sys.stdin)
@@ -70,7 +70,7 @@ jobs:
       - name: Visitor data (D1) answers
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 --retry 2 --retry-delay 10 \
-            -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' https://rozsoshnykh.no/api/geo)
+            -A 'status-watchdog/1.0 (+https://github.com/RozDm/rozsoshnykh.no)' https://rozsoshnykh.no/api/geo)
           echo "GET /api/geo -> $code"
           [ "$code" = "200" ] || { echo "::error::/api/geo answered $code — D1 read failed (Workers Logs: 'geo: D1 read failed')"; exit 1; }
 
@@ -83,7 +83,7 @@ jobs:
       - name: Time series (Analytics Engine) answers
         run: |
           for try in 1 2 3; do
-            body=$(curl -sf --max-time 20 -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' \
+            body=$(curl -sf --max-time 20 -A 'status-watchdog/1.0 (+https://github.com/RozDm/rozsoshnykh.no)' \
               'https://rozsoshnykh.no/api/timeseries?metric=geo&range=24h') || body=''
             if printf '%s' "$body" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if "points" in d and not d.get("degraded") else 1)' 2>/dev/null; then
               echo "GET /api/timeseries -> AE answered (try $try)"
@@ -103,7 +103,7 @@ jobs:
       # report, not this one's.
       - name: No mail failed to send (last 24 h)
         run: |
-          body=$(curl -sf --max-time 20 --retry 2 --retry-delay 10 -A 'status-watchdog/1.0 (+https://github.com/RozDm/RozDm)' \
+          body=$(curl -sf --max-time 20 --retry 2 --retry-delay 10 -A 'status-watchdog/1.0 (+https://github.com/RozDm/rozsoshnykh.no)' \
             'https://rozsoshnykh.no/api/timeseries?metric=mailfail&range=24h') || body='{}'
           failed=$(printf '%s' "$body" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(0 if d.get("degraded") else int(sum(p.get("value", 0) for p in d.get("points", []))))' 2>/dev/null || echo 0)
           echo "mails that failed to send in 24 h: $failed"
