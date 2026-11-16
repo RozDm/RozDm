@@ -86,8 +86,8 @@ and blocks once when the branch changes that structure but no doc.
 
 ## Commands
 
-- `npm run check` = format check + lint + typecheck + tests; must pass
-  before a PR (`npm run format` fixes formatting).
+- `npm run check` = format check + lint + typecheck + tests, quiet when green
+  (`-s` drops npm's banner); must pass before a PR (`npm run format` fixes formatting).
 - `npm run build` exports to `out/` and finalizes it — only when the change
   touches pages, metadata, the export or `scripts/`. CI and deploy then run
   `check:waf`, `check:csp`, `check:dict` and `npx wrangler deploy --dry-run`
