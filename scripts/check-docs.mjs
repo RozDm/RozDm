@@ -103,6 +103,7 @@ export function checkDocs(root = ROOT) {
     '.github/CLAUDE.md',
     'content/CLAUDE.md',
     'README.md',
+    'ARCHITECTURE.md',
     'docs/gotchas.md',
     'docs/decisions.md',
     ...skills,
