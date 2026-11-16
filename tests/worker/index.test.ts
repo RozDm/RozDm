@@ -4,7 +4,7 @@
 // incident (an empty snapshot or chart pinned at the edge).
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import worker from '../../src/index'
-import { CONTACT_PRUNE_CRON } from '../../src/contact'
+import { CONTACT_PRUNE_CRON } from '../../src/domain/contact'
 import { HEADER_CSP } from '../../src/csp'
 import { handleStatus } from '../../src/routes/status'
 import { handleTimeseries } from '../../src/routes/timeseries'

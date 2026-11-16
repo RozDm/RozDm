@@ -34,9 +34,9 @@
   ],
   // src + worker-configuration.d.ts use the Workers runtime types, which clash
   // with lib.dom — they are type-checked separately via tsconfig.worker.json.
-  // src/csp.ts, contact.ts, status.ts, metrics.ts and timeseries.ts are still
-  // checked here transitively (tests and app code import them); only
-  // DOM-compatible web APIs are allowed in those files.
+  // src/csp.ts, ip.ts, validate.ts, api-types.ts and the pure src/domain/*.ts
+  // (not *-store.ts) are still checked here transitively (tests and app code
+  // import them); only DOM-compatible web APIs are allowed in those files.
   "exclude": [
     "node_modules",
     "src",

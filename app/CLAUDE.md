@@ -25,7 +25,7 @@ detail: `docs/reference/app.md`; blog: `content/CLAUDE.md`; root configs:
   setting part of `openGraph`/`alternates` drops the rest. The root layout has
   no canonical/og:url (the 404 inherits it); canonicals keep the trailing slash.
 - Name, roles, titles and `THEME_BG` live in `lib/shared/site.ts`, the contact
-  address in `src/contact.ts`: never hard-code them.
+  address in `src/domain/contact.ts`: never hard-code them.
 - `app/template.tsx` cross-fades route changes with OPACITY ONLY (a transform
   traps the fixed intro overlays and sticky header); both front pages opt out.
 - `/.well-known/security.txt`: bump `Expires` yearly (a test fails 30 days

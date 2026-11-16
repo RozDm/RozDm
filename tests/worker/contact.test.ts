@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { handleContact } from '../../src/routes/contact'
-import { HONEYPOT_FIELD } from '../../src/contact'
-import { BROWSER_HEADERS, makeEnv } from './fakes'
+import { HONEYPOT_FIELD } from '../../src/domain/contact'
+import { BROWSER_HEADERS, errorBody, makeEnv } from './fakes'
 import wranglerConfig from '../../wrangler.jsonc?raw'
 
 const URL_ = new URL('https://rozsoshnykh.no/api/contact')
@@ -88,7 +88,7 @@ describe('POST /api/contact', () => {
     const fake = makeEnv({ TURNSTILE_SECRET: 'secret' })
     fake.setRateLimit(0)
     const res = await send(fake, { ...FORM, turnstileToken: 'tok' })
-    expect(res).toEqual({ status: 429, body: { error: 'rate limited' } })
+    expect(res).toEqual({ status: 429, body: errorBody('rate_limited') })
     // Refused before siteverify and before any row or mail.
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(rows(fake)).toBe(0)
@@ -129,7 +129,7 @@ describe('POST /api/contact', () => {
   it('without the OWNER_INBOX secret it fails like a send: 502, no row, a mailfail point', async () => {
     const fake = makeEnv({ OWNER_INBOX: undefined })
     const log = vi.spyOn(console, 'error').mockImplementation(() => {})
-    expect(await send(fake)).toEqual({ status: 502, body: { error: 'send failed' } })
+    expect(await send(fake)).toEqual({ status: 502, body: errorBody('send_failed') })
     expect(rows(fake)).toBe(0)
     expect(fake.sent).toHaveLength(0)
     expect(fake.aePoints).toEqual([{ indexes: ['mailfail'], blobs: ['mailfail', 'contact'], doubles: [1] }])
@@ -140,7 +140,7 @@ describe('POST /api/contact', () => {
     const fake = makeEnv()
     fake.failMail(true)
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    expect(await send(fake)).toEqual({ status: 502, body: { error: 'send failed' } })
+    expect(await send(fake)).toEqual({ status: 502, body: errorBody('send_failed') })
     expect(rows(fake)).toBe(0)
     // The failure the watchdog can read: one AE point, nothing of the visitor's.
     expect(fake.aePoints).toEqual([{ indexes: ['mailfail'], blobs: ['mailfail', 'contact'], doubles: [1] }])
@@ -175,7 +175,7 @@ describe('POST /api/contact', () => {
     seed(fake, 1, { email: 'a@example.no', message: 'første melding her' })
     seed(fake, 2, { email: 'b@example.no', message: 'andre melding her' })
     seed(fake, 3, { email: 'c@example.no', message: 'tredje melding her' })
-    expect(await send(fake)).toEqual({ status: 429, body: { error: 'rate limited' } })
+    expect(await send(fake)).toEqual({ status: 429, body: errorBody('rate_limited') })
   })
 
   it('counts a whole IPv6 /64 as one sender, and stores only that prefix', async () => {
@@ -272,7 +272,7 @@ describe('POST /api/contact', () => {
 
   it('enforces Turnstile when the secret is set', async () => {
     const fake = makeEnv({ TURNSTILE_SECRET: 'secret' })
-    expect(await send(fake)).toEqual({ status: 403, body: { error: 'challenge required' } })
+    expect(await send(fake)).toEqual({ status: 403, body: errorBody('challenge_required') })
 
     vi.stubGlobal(
       'fetch',
@@ -280,7 +280,7 @@ describe('POST /api/contact', () => {
     )
     expect(await send(fake, { ...FORM, turnstileToken: 'spent' })).toEqual({
       status: 403,
-      body: { error: 'challenge failed' },
+      body: errorBody('challenge_failed'),
     })
 
     // A token solved on another host using our site key doesn't pass.
@@ -290,7 +290,7 @@ describe('POST /api/contact', () => {
     )
     expect(await send(fake, { ...FORM, turnstileToken: 'elsewhere' })).toEqual({
       status: 403,
-      body: { error: 'challenge failed' },
+      body: errorBody('challenge_failed'),
     })
 
     vi.stubGlobal(
@@ -304,10 +304,10 @@ describe('POST /api/contact', () => {
   it('refuses an oversized body with 413, by its Content-Length or as it is read', async () => {
     const fake = makeEnv()
     const big = { ...FORM, message: 'x'.repeat(40_000) }
-    expect(await send(fake, big)).toEqual({ status: 413, body: { error: 'payload too large' } })
+    expect(await send(fake, big)).toEqual({ status: 413, body: errorBody('payload_too_large') })
     expect(await send(fake, FORM, { ...BROWSER_HEADERS, 'content-length': '999999' })).toEqual({
       status: 413,
-      body: { error: 'payload too large' },
+      body: errorBody('payload_too_large'),
     })
     expect(rows(fake)).toBe(0)
     expect(await send(fake)).toEqual({ status: 200, body: { ok: true } })

@@ -1,7 +1,8 @@
-// Pure helpers for the Analytics Engine time-series endpoint.
-// Pure helpers for the AE-backed time-series endpoint. DOM-compatible APIs
-// only — tests import this under the app tsconfig.
-import type { SeriesMetric, SeriesPoint, SeriesRangeKey } from './api-types'
+// Time-series rules (pure): metric/range parsing, the AE SQL builder and parser, METRICS_EPOCH.
+// DOM-compatible APIs only — tests and lib/shared/timeseries-fill.ts import this
+// under the app tsconfig. The AE query itself: timeseries-store.ts.
+import type { SeriesMetric, SeriesPoint, SeriesRangeKey } from '../api-types'
+import { oneOf } from '../validate'
 
 // Supported metrics: keep the surface small and explicit so a typo in the
 // query string can't fan out into an arbitrary SQL clause.
@@ -9,9 +10,8 @@ import type { SeriesMetric, SeriesPoint, SeriesRangeKey } from './api-types'
 // (contact form or status alert), read by status-watchdog.yml — the mail path
 // can't report its own death by mail.
 // (SeriesMetric, SeriesRangeKey, SeriesPoint: src/api-types.ts.)
-export function parseMetric(value: string | null): SeriesMetric | null {
-  return value === 'view' || value === 'geo' || value === 'mailfail' ? value : null
-}
+export const SERIES_METRICS = ['view', 'geo', 'mailfail'] as const satisfies readonly SeriesMetric[]
+export const parseMetric = oneOf(SERIES_METRICS)
 
 // Range options aligned to common dashboard windows. Each maps to a SQL
 // INTERVAL and a bucket size that keeps the resulting series under ~200 points
@@ -44,8 +44,10 @@ const RANGES: Record<SeriesRangeKey, SeriesRange> = {
   },
 }
 
+const rangeKey = oneOf(Object.keys(RANGES) as SeriesRangeKey[])
+
 export function parseRange(value: string | null): { key: SeriesRangeKey; range: SeriesRange } {
-  const key = value && Object.hasOwn(RANGES, value) ? (value as SeriesRangeKey) : '7d'
+  const key = rangeKey(value) ?? '7d'
   return { key, range: RANGES[key] }
 }
 

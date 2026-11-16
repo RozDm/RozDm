@@ -5,20 +5,34 @@
 // a client reads its answer as one. Change a shape here and both sides (and
 // e2e/api-stub.ts) fail to typecheck until they follow.
 
-// The refusal every route answers with; `E` names the codes a route can send.
-export interface ApiError<E extends string = string> {
-  error: E
+// The refusal every route answers with: a machine `code` (what clients
+// branch on) and a human `message` (for logs and curl; never shown as is).
+// `E` narrows the codes one route can send. The code fixes the HTTP status
+// (src/http.ts API_ERRORS), so a code means the same thing on every route.
+export interface ApiError<E extends string = ApiErrorCode> {
+  error: { code: E; message: string }
 }
+
+// Every code a route can send. `not_found` is e2e/api-stub.ts's alone: the
+// Worker answers an unclaimed /api/ path with the asset server's 404 page.
+export type ApiErrorCode =
+  | ViewsErrorCode
+  | GeoErrorCode
+  | VisitErrorCode
+  | TimeseriesErrorCode
+  | ContactErrorCode
+  | CspReportErrorCode
+  | 'not_found'
 
 export interface ApiOk {
   ok: true
 }
 
 // ── GET /api/status ─────────────────────────────────────────────────────────
-// The cron's KV snapshot (src/status.ts buildStatusData), or EmptyStatus when
+// The cron's KV snapshot (src/domain/status.ts buildStatusData), or EmptyStatus when
 // KV has none or its read failed.
 
-// Per monitor, without its URL (one is an admin login: src/status.ts).
+// Per monitor, without its URL (one is an admin login: src/domain/status.ts).
 export interface PublicMonitorResult {
   name: string
   ok: boolean
@@ -51,14 +65,16 @@ export type StatusResponse = StatusData | EmptyStatus
 export interface ViewsResponse {
   views: number
 }
-export type ViewsError = ApiError<'bad slug'>
+export type ViewsErrorCode = 'bad_slug' // 400
+export type ViewsError = ApiError<ViewsErrorCode>
 
 // ── GET /api/geo ────────────────────────────────────────────────────────────
 // Visits per ISO country code, all time (D1). A failed read is a 503.
 export interface GeoResponse {
   countries: Record<string, number>
 }
-export type GeoError = ApiError<'unavailable'>
+export type GeoErrorCode = 'unavailable' // 503
+export type GeoError = ApiError<GeoErrorCode>
 
 // ── /api/visit ──────────────────────────────────────────────────────────────
 // POST (no body) → ApiOk; GET is a diagnostic that stores nothing.
@@ -68,7 +84,8 @@ export interface VisitProbe {
   countable: boolean
   note: string
 }
-export type VisitError = ApiError<'forbidden' | 'rate limited'>
+export type VisitErrorCode = 'forbidden' | 'rate_limited' // 403, 429
+export type VisitError = ApiError<VisitErrorCode>
 
 // ── GET /api/timeseries?metric=…&range=… ────────────────────────────────────
 export type SeriesMetric = 'view' | 'geo' | 'mailfail'
@@ -89,10 +106,11 @@ export interface TimeseriesResponse {
   // (read by status-watchdog.yml; the chart draws it as empty).
   degraded?: true
 }
-export type TimeseriesError = ApiError<'bad metric'>
+export type TimeseriesErrorCode = 'bad_metric' // 400
+export type TimeseriesError = ApiError<TimeseriesErrorCode>
 
 // ── POST /api/contact ───────────────────────────────────────────────────────
-// JSON body. The Worker trims and validates it (src/contact.ts
+// JSON body. The Worker trims and validates it (src/domain/contact.ts
 // validateContact); a non-string token reads as none.
 export interface ContactRequest {
   name: string
@@ -105,17 +123,19 @@ export interface ContactRequest {
 }
 
 export type ContactErrorCode =
-  | 'payload too large' // 413
+  | 'payload_too_large' // 413
   | 'forbidden' // 403: isWriteAllowed
-  | 'bad request' // 400: not JSON
+  | 'bad_request' // 400: not JSON
   | 'invalid' // 422: validateContact
-  | 'rate limited' // 429: burst cap or a D1 window
-  | 'challenge required' // 403: Turnstile on, no token
-  | 'challenge failed' // 403: siteverify said no
-  | 'send failed' // 502: the mail didn't go (nothing stored)
+  | 'rate_limited' // 429: burst cap or a D1 window
+  | 'challenge_required' // 403: Turnstile on, no token
+  | 'challenge_failed' // 403: siteverify said no
+  | 'send_failed' // 502: the mail didn't go (nothing stored)
 
 export type ContactResponse = ApiOk | ApiError<ContactErrorCode>
 
 // ── POST /api/csp-report ────────────────────────────────────────────────────
 // The browser's own Reporting API body (src/csp.ts parseCspReports reads it);
-// always a 204 with no body. GET → ApiError<'method not allowed'>, 405.
+// always a 204 with no body. Any other method → CspReportError, 405.
+export type CspReportErrorCode = 'method_not_allowed' // 405
+export type CspReportError = ApiError<CspReportErrorCode>

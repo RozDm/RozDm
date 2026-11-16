@@ -1,4 +1,5 @@
-// Shared HTTP helper for the worker's JSON API responses.
+// Shared HTTP helpers for the /api/* routes: JSON answers, the one error shape, edge cache, throttle, capped body reads.
+import type { ApiError, ApiErrorCode } from './api-types'
 import { ENFORCED_CSP, HSTS, applyBaseHeaders } from './csp'
 import { clientKey } from './ip'
 
@@ -25,6 +26,31 @@ export function apiJson(body: string, status = 200, cacheControl = 'no-store'): 
   response.headers.set('Strict-Transport-Security', HSTS)
   response.headers.set('Content-Security-Policy', ENFORCED_CSP)
   return response
+}
+
+// Each code's HTTP status and message — one table, so a code answers alike
+// on every route. The statuses are the ones the routes always sent: clients
+// (components/contact/ContactForm.tsx) and smoke.sh branch on them.
+export const API_ERRORS: Record<ApiErrorCode, { status: number; message: string }> = {
+  bad_slug: { status: 400, message: 'The slug is not a valid post slug.' },
+  bad_metric: { status: 400, message: 'Unknown metric: use view, geo or mailfail.' },
+  bad_request: { status: 400, message: 'The body is not JSON.' },
+  forbidden: { status: 403, message: 'Only the site itself may send this.' },
+  challenge_required: { status: 403, message: 'A Turnstile token is required.' },
+  challenge_failed: { status: 403, message: 'The Turnstile check failed.' },
+  not_found: { status: 404, message: 'No such endpoint.' },
+  method_not_allowed: { status: 405, message: 'Method not allowed.' },
+  payload_too_large: { status: 413, message: 'The body is too large.' },
+  invalid: { status: 422, message: 'A field is missing or out of bounds.' },
+  rate_limited: { status: 429, message: 'Too many requests; try again later.' },
+  send_failed: { status: 502, message: 'The message could not be sent; nothing was stored.' },
+  unavailable: { status: 503, message: 'The data store is unavailable.' },
+}
+
+// The refusal: `{ error: { code, message } }` (ApiError), never cached.
+export function apiError(code: ApiErrorCode): Response {
+  const { status, message } = API_ERRORS[code]
+  return apiJson(JSON.stringify({ error: { code, message } } satisfies ApiError), status)
 }
 
 // Edge-cached read for JSON endpoints whose source-of-truth (KV/D1) changes

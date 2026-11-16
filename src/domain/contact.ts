@@ -1,7 +1,8 @@
-// Pure logic for outbound mail: contact-form validation, MIME building, status-alert mail.
-// Pure logic for outbound mail: contact-form validation/MIME and status-alert
-// MIME. (DOM-compatible APIs only — tests import this under the app tsconfig.)
-import type { ContactRequest } from './api-types'
+// Contact rules (pure): form limits and validation, Turnstile verify, MIME for contact and status-alert mail.
+// DOM-compatible APIs only — the app (the form, the privacy pages) and tests
+// import this under the app tsconfig. D1 and the mail binding: contact-store.ts.
+import type { ContactRequest } from '../api-types'
+import { object, text } from '../validate'
 
 // The site's public address (the form's fallback, the footer, the privacy
 // notice; public/.well-known/security.txt is held to it by a test) — also the
@@ -62,22 +63,19 @@ const EMAIL_CHAR = '[^\\s@<>,;"\\(\\)\\[\\]\\\\:]'
 export const EMAIL_PATTERN = `${EMAIL_CHAR}+@${EMAIL_CHAR}+\\.${EMAIL_CHAR}{2,}`
 const EMAIL_RE = new RegExp(`^${EMAIL_PATTERN}$`)
 
+const contactFields = object({
+  name: text({ max: CONTACT_LIMITS.name }),
+  email: text({ max: CONTACT_LIMITS.email, pattern: EMAIL_RE }),
+  message: text({ min: CONTACT_LIMITS.messageMin, max: CONTACT_LIMITS.message }),
+})
+// Any non-empty string, as sent; anything else reads as no token.
+const turnstileTokenField = text({ max: Infinity, trim: false })
+
+// The wire body (ContactRequest) trimmed and checked, or null (a 422).
 export function validateContact(input: unknown): ContactInput | null {
-  if (typeof input !== 'object' || input === null) return null
-  const { name, email, message, turnstileToken } = input as Record<string, unknown>
-  if (typeof name !== 'string' || typeof email !== 'string' || typeof message !== 'string') return null
-  const n = name.trim()
-  const e = email.trim()
-  const m = message.trim()
-  if (!n || n.length > CONTACT_LIMITS.name) return null
-  if (!EMAIL_RE.test(e) || e.length > CONTACT_LIMITS.email) return null
-  if (m.length < CONTACT_LIMITS.messageMin || m.length > CONTACT_LIMITS.message) return null
-  return {
-    name: n,
-    email: e,
-    message: m,
-    turnstileToken: typeof turnstileToken === 'string' && turnstileToken.length > 0 ? turnstileToken : null,
-  }
+  const fields = contactFields(input)
+  if (!fields) return null
+  return { ...fields, turnstileToken: turnstileTokenField((input as Record<string, unknown>).turnstileToken) }
 }
 
 // A hung siteverify must not hold the form open; past this it fails closed.

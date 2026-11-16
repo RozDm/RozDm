@@ -6,6 +6,7 @@
 // Vitest loads this file too. Bodies `satisfies` the contract (src/api-types.ts).
 import type {
   ApiError,
+  ApiErrorCode,
   ApiOk,
   GeoResponse,
   SeriesRangeKey,
@@ -38,6 +39,9 @@ const RANGES: string[] = ['24h', '7d', '30d', 'all'] satisfies SeriesRangeKey[]
 export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer {
   const path = url.pathname
   const json = (body: unknown, status = 200): StubAnswer => ({ status, body: JSON.stringify(body) })
+  // The Worker's refusal shape (src/http.ts apiError); the message is free text.
+  const refuse = (code: ApiErrorCode, status: number, message: string): StubAnswer =>
+    json({ error: { code, message } } satisfies ApiError, status)
 
   if (path === '/api/status') {
     const up = Object.fromEntries(STUB_MONITORS.map((name) => [name, true]))
@@ -51,7 +55,7 @@ export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer 
   if (path === '/api/timeseries') {
     const metric = url.searchParams.get('metric')
     if (metric !== 'geo' && metric !== 'view' && metric !== 'mailfail')
-      return json({ error: 'bad metric' } satisfies TimeseriesError, 400)
+      return json({ error: { code: 'bad_metric', message: 'Unknown metric.' } } satisfies TimeseriesError, 400)
     const asked = url.searchParams.get('range') ?? ''
     const range = (RANGES.includes(asked) ? asked : '7d') as SeriesRangeKey
     // No mail has failed in the stub's world.
@@ -62,5 +66,5 @@ export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer 
   if (/^\/api\/views\/[^/]+$/.test(path)) return json({ views: method === 'POST' ? 4 : 3 } satisfies ViewsResponse)
   if (path === '/api/visit' && method === 'POST') return json({ ok: true } satisfies ApiOk)
   if (path === '/api/contact' && method === 'POST') return json({ ok: true } satisfies ApiOk)
-  return json({ error: 'not found' } satisfies ApiError, 404)
+  return refuse('not_found', 404, 'No such endpoint.')
 }

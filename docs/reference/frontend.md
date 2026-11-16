@@ -96,7 +96,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   read as an alarm on a service that was up, and the «1:4:9» aside went
   with it (`HISTORY_LIMIT` stays 149). The count stays for screen readers
   (`sr-only`: it is the hidden bar's text), and while a service is down the
-  caption adds since when (`failingSince`, `src/status.ts`). "Now" is the server's (`lib/client/server-clock.ts`):
+  caption adds since when (`failingSince`, `src/domain/status.ts`). "Now" is the server's (`lib/client/server-clock.ts`):
   `fetchStatus` and the Trends fetch note each answer's `Date` header
   (stamped by the edge on cached answers too), and the stale check and the
   chart's bucket grid use `serverNow()` — on a visitor's clock that is days
@@ -155,7 +155,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   failed load is forgotten, so a return to the form retries and reports
   again. The widget takes the site's theme (not the OS's) and is redrawn
   when the toggle flips it. Limits, the e-mail `pattern` and the address
-  come from `src/contact.ts` (`CONTACT_LIMITS`, `EMAIL_PATTERN`,
+  come from `src/domain/contact.ts` (`CONTACT_LIMITS`, `EMAIL_PATTERN`,
   `CONTACT_ADDRESS`), so the browser refuses what the Worker would. The
   honeypot's name is `HONEYPOT_FIELD` (`topic`: autofill fills
   website/url/company-like fields, and a filled one drops a real message). The form

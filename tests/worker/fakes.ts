@@ -4,6 +4,11 @@
 // what production gets, which is what caught the ISO-vs-datetime() bug.
 import { DatabaseSync } from 'node:sqlite'
 import schema from '../../schema/metrics.sql?raw'
+import type { ApiError, ApiErrorCode } from '../../src/api-types'
+import { API_ERRORS } from '../../src/http'
+
+// The body a refusal with `code` carries (src/http.ts apiError).
+export const errorBody = (code: ApiErrorCode): ApiError => ({ error: { code, message: API_ERRORS[code].message } })
 
 export interface FakeEnv {
   env: Env

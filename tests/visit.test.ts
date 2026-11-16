@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isWriteAllowed } from '@/src/metrics'
+import { isWriteAllowed } from '@/src/domain/metrics'
 
 const ORIGIN = 'https://rozsoshnykh.no'
 const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
