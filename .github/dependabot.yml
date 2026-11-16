@@ -47,7 +47,7 @@ updates:
       # eslint 10 (the React plugin eslint-config-next pulls in isn't
       # ESLint-10-ready, see docs/gotchas.md), typescript 7, next 17 / react 20 with
       # @types/react* and eslint-config-next, @types/node past the .nvmrc
-      # Node major, vitest 5, world-map-country-shapes 2 (the prebuild map).
+      # Node major, vitest 5.
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
 
