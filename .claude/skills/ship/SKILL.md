@@ -41,7 +41,7 @@ commit (`node scripts/check-docs.mjs`).
   merge adds `Co-authored-by: Claude`:
   `git -c user.name='RozDm' -c user.email='187502949+RozDm@users.noreply.github.com' commit …`
 - Push the branch (retry network errors up to 4× with backoff).
-- Open the PR on RozDm/RozDm into `main` through the GitHub MCP tools — ready,
+- Open the PR on RozDm/rozsoshnykh.no into `main` through the GitHub MCP tools — ready,
   not a draft — and enable squash auto-merge. Body: short bullets, what and
   why; no footer.
 

@@ -29,10 +29,10 @@ Each file loads only when a task touches its area:
   security or when a 403/429 isn't the Worker's;
 - `docs/history.md` — incidents behind the hard rules: only when a rule
   seems wrong or you want to undo one;
-- `.github/README.md` — the project README (the repository page shows it).
-  No README in the root, on purpose: RozDm/RozDm is the profile repository,
-  so a root one would become github.com/RozDm, which stays neutral
-  (`docs/decisions.md`; `scripts/check-docs.mjs` fails on one);
+- `README.md` — the project README. The repository is RozDm/rozsoshnykh.no
+  (renamed from RozDm/RozDm so github.com/RozDm stays neutral,
+  `docs/decisions.md`): never create a repository named RozDm — it would
+  become the profile again and end the old URLs' redirects;
 - skills: `.claude/skills/browser-check` (Playwright on a built page),
   `new-post`, `audit`, `ship` (delegate a planned change, ship one PR).
 

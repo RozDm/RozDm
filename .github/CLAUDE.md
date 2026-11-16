@@ -123,11 +123,7 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
 - Every action is pinned to a full commit SHA with its release in a comment
   (`actions/checkout@<sha> # v7.0.1`); `tests/workflows.test.ts` fails on a
   bare tag; Dependabot bumps SHA and comment together.
-- `README.md` — the project README, the one the repository page shows. None
-  in the root: it would show on github.com/RozDm (the profile repository),
-  which stays neutral (`docs/decisions.md`; `scripts/check-docs.mjs` fails
-  on one). The About box (description, website, topics) is a repository
-  setting: owner-only.
+- The repository was RozDm/RozDm until 2026-11-16 (renamed: `docs/decisions.md`); GitHub redirects the old URLs. The About box (description, website, topics) is a repository setting: owner-only.
 - `pull_request_template.md` — What / Why and a three-box checklist (check,
   docs, build + e2e); PRs from sessions follow it too.
 - `dependabot.yml` — monthly (the 1st, 06:00 Europe/Oslo; owner's call
@@ -162,7 +158,7 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
   no `security-events: write` here; its PR checks aren't required), private
   vulnerability reporting (`.github/SECURITY.md` and `security.txt` point
   at it), secret scanning with push protection. Checkable: `GET
-  /repos/RozDm/RozDm/private-vulnerability-reporting` → `{"enabled": true}`; a
+  /repos/RozDm/rozsoshnykh.no/private-vulnerability-reporting` → `{"enabled": true}`; a
   `CodeQL` entry in the repo's workflows list; push protection has no
   public read.
 - Secrets: every workflow's `GITHUB_TOKEN` is read-only. All secrets live in

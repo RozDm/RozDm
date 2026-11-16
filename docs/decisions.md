@@ -6,14 +6,13 @@ it says "don't re-propose", don't — not in an audit, a PR or a reply. The
 detail lives in the doc named after each entry; a new decision goes here and
 gets a one-line pointer there.
 
-- **2026-11-16 — github.com/RozDm stays neutral; the project README is
-  `.github/README.md`**: RozDm/RozDm is the GitHub profile repository, so a
-  README in its root becomes the profile page. None there: the profile is
-  GitHub's default (pinned repositories, activity). A short profile card
-  shipped first and was taken out the same day (owner's call). The
-  repository page shows `.github/README.md`. Renaming the repository was
-  declined (it breaks the RozDm/RozDm links in `security.txt`, `SECURITY.md`
-  and the session setup). (root `CLAUDE.md`)
+- **2026-11-16 — github.com/RozDm stays neutral; the repository is
+  RozDm/rozsoshnykh.no**: as RozDm/RozDm it was the GitHub profile
+  repository, and the profile showed its README — from the root and from
+  .github/README.md alike (a profile card, then `.github/` alone, were
+  tried the same day). Renamed by the owner; GitHub redirects the old URLs,
+  and the links in the repository moved to the new name. Never create a
+  repository named RozDm. (root `CLAUDE.md`)
 - **2026-11-16 — Cloudflare API in sessions: read-only, on demand**: a
   read-only token (no D1, R2, KV or Turnstile) as a network secret of the
   `RozDm` cloud environment (not Default, shared by the owner's other
