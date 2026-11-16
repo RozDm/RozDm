@@ -192,6 +192,61 @@ test.describe('first visit', () => {
   })
 })
 
+// The intro and HAL's idle screen cover the page and sit outside every
+// landmark: axe's `region` rule once flagged the greeting card and the skip
+// hint. The intro is a labelled dialog now, HAL's screen is aria-hidden. The
+// scans skip color-contrast: both fade, and mid-fade colours are not the point.
+async function overlayViolations(page: import('@playwright/test').Page, label: string) {
+  const { violations } = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
+  return violations.map((v) => `${label} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
+}
+
+test.describe('overlays and axe', () => {
+  for (const scheme of ['light', 'dark'] as const) {
+    test.describe(`first visit (${scheme})`, () => {
+      test.use({ introSeen: false })
+
+      test('the intro has no axe violations and reads as a dialog', async ({ page }) => {
+        await page.emulateMedia({ colorScheme: scheme })
+        for (const path of ['/', '/en/']) {
+          await page.goto(path)
+          const dialog = page.getByRole('dialog')
+          await expect(dialog).toBeVisible()
+          // The skip hint is the dialog's description: it carries meaning.
+          await expect(dialog).toHaveAccessibleDescription(/\S/)
+          await expect(dialog).toHaveAccessibleName(/\S/)
+          // Past the greeting, with the skip hint showing.
+          const hint = page.locator('#intro-skip')
+          await expect.poll(() => hint.evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(1)
+          expect(await overlayViolations(page, path)).toEqual([])
+        }
+      })
+    })
+
+    test(`HAL's idle screen has no axe violations (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme })
+      // A fake clock instead of waiting out the 75 s idle timer.
+      await page.clock.install()
+      for (const path of ['/', '/en/']) {
+        await page.goto(path)
+        const hal = page.locator('[role="presentation"].fixed')
+        // The lazy chunk mounts (and arms the timer) after hydration, so keep
+        // winding the clock until HAL wakes.
+        await expect
+          .poll(
+            async () => {
+              await page.clock.runFor(5_000)
+              return hal.count()
+            },
+            { intervals: [200], timeout: 20_000 },
+          )
+          .toBe(1)
+        expect(await overlayViolations(page, path)).toEqual([])
+      }
+    })
+  }
+})
+
 test('theme toggle switches and remembers the theme', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' })
   await page.goto('/')

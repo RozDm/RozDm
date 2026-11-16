@@ -127,6 +127,10 @@ export default function Intro() {
     <div
       className={`fixed inset-0 z-[100] bg-black cursor-pointer select-none overflow-hidden transition-opacity duration-[1400ms] ease-in-out ${phase >= 7 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       onClick={skip}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="intro-greeting"
+      aria-describedby="intro-skip"
     >
       {/* Opening greeting card: appears first, fades out before the
           starfield reveal. */}
@@ -134,11 +138,13 @@ export default function Intro() {
         className="absolute inset-0 flex items-center justify-center transition-opacity duration-[1600ms] ease-in-out"
         style={{ opacity: phase === 1 ? 1 : 0 }}
       >
-        <p className="font-mono text-sm md:text-base tracking-[0.3em] text-gray-500">{t.greeting}</p>
+        <p id="intro-greeting" className="font-mono text-sm md:text-base tracking-[0.3em] text-gray-500">
+          {t.greeting}
+        </p>
       </div>
 
-      {/* Main sequence: stars, monolith, HAL eye */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      {/* Main sequence: stars, monolith, HAL eye (decoration only) */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center" aria-hidden>
         <Starfield stars={stars} lit={phase >= 3} zoom={phase >= 7} />
 
         {/* Monolith: solos on phase 4, the HAL eye joins on phase 5, on
@@ -174,8 +180,11 @@ export default function Intro() {
         />
       </div>
 
-      {/* Skip hint */}
+      {/* Skip hint: carries meaning, so it stays readable and is the
+          dialog's description (axe `region` wants overlay content in a
+          landmark; role="dialog" is one). */}
       <p
+        id="intro-skip"
         className="absolute bottom-8 inset-x-0 px-4 text-center text-[11px] tracking-widest text-gray-400 uppercase transition-opacity duration-[1600ms] ease-in-out"
         style={{ opacity: phase >= 1 && phase < 7 ? 1 : 0 }}
       >
