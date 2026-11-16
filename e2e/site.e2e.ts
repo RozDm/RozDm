@@ -608,6 +608,20 @@ test('the contact page’s footer doesn’t invite to the contact page', async (
   await expect(footer.getByRole('link', { name: 'Kontaktskjema' })).toHaveCount(0)
 })
 
+test('the privacy pages’ footer doesn’t link to itself', async ({ page }) => {
+  for (const [path, name] of [
+    ['/personvern/', 'Personvern'],
+    ['/en/privacy/', 'Privacy'],
+  ]) {
+    await page.goto(path)
+    const footer = page.locator('footer')
+    await expect(footer.getByText('GitHub')).toBeVisible()
+    await expect(footer.getByRole('link', { name })).toHaveCount(0)
+  }
+  await page.goto('/kontakt/')
+  await expect(page.locator('footer').getByRole('link', { name: 'Personvern' })).toHaveCount(1)
+})
+
 for (const scheme of ['light', 'dark'] as const) {
   test(`no axe violations (${scheme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme })

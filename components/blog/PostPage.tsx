@@ -159,17 +159,19 @@ export default function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
             )}
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white leading-tight">{post.title}</h1>
             <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-              <time dateTime={post.date}>{formatDate(post.date, lang)}</time>
+              <time dateTime={post.date} className="whitespace-nowrap">
+                {formatDate(post.date, lang)}
+              </time>
               {updated && (
                 <>
                   {' · '}
-                  <span className="text-gray-500 dark:text-gray-400">
+                  <span className="whitespace-nowrap">
                     {t.updated} <time dateTime={updated}>{formatDate(updated, lang)}</time>
                   </span>
                 </>
               )}
               {' · '}
-              {t.read(post.readingMinutes)}
+              <span className="whitespace-nowrap">{t.read(post.readingMinutes)}</span>
               <ViewCounter slug={viewKey(post)} />
             </p>
           </header>
