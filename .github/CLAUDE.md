@@ -128,6 +128,11 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
   from the session's own branch (done once, 2026-11-09). A weekly scheduled task
   doing this unattended was tried and declined (owner's call, 2026-11-09;
   `docs/decisions.md`): don't re-propose it.
+- Repository settings (owner-only, no session token can read or switch
+  them): auto-merge allowed (the PR flow depends on it; found off once,
+  2026-11-15), head branches deleted on merge, Wikis and Projects off.
+  Checkable: `has_wiki`/`has_projects` in `gh api search/repositories`; a
+  merged `claude/*` branch still on the remote means auto-delete is off.
 - Repository security (owner-only settings, no CI or session token can
   switch them): CodeQL in default setup (GitHub-managed: no workflow file,
   no `security-events: write` here; its PR checks aren't required), private

@@ -213,7 +213,7 @@ scripts/            smoke.sh, build-world-svg.mjs, finalize-export.mjs
                     (postbuild), check-csp.mjs, check-waf.mjs, check-docs.mjs
                     (docs drift), serve-out.mjs (out/ for the browser tests),
                     build-diagrams.mjs (post diagrams: npm run diagrams),
-                    webhuset.mjs (the registrar's read-only tools, on demand)
+                    mcp.mjs (read-only Webhuset + Cloudflare API tools, on demand)
 src/                Cloudflare Worker for /api/* + MTA-STS (index.ts, csp.ts, http.ts,
                     ip.ts, status.ts, metrics.ts, contact.ts, timeseries.ts,
                     routes/*)
