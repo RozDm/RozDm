@@ -104,7 +104,7 @@ describe('asset server headers (public/_headers)', () => {
 
 // RFC 9116: a security.txt past its Expires is to be treated as stale, and
 // one more than a year out is discouraged. Fails 30 days ahead, so the yearly
-// bump happens in time (app/CLAUDE.md, routes).
+// bump happens in time (docs/reference/app.md, routes).
 describe('/.well-known/security.txt', () => {
   const lines = readFileSync('public/.well-known/security.txt', 'utf8')
     .split('\n')

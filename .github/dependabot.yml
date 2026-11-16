@@ -4,7 +4,7 @@
 # schedule. Each runs the required `check` (ci.yml needs no secrets).
 # Merge by enabling squash auto-merge as the owner, so the merge push is the
 # owner's and deploy.yml gets the `production` environment's secrets
-# (.github/CLAUDE.md).
+# (docs/reference/ci.md).
 version: 2
 updates:
   - package-ecosystem: npm
