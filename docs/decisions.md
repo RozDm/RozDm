@@ -6,6 +6,13 @@ it says "don't re-propose", don't — not in an audit, a PR or a reply. The
 detail lives in the doc named after each entry; a new decision goes here and
 gets a one-line pointer there.
 
+- **2026-11-16 — Profile card and project README apart**: RozDm/RozDm is
+  the GitHub profile repository, so its root `README.md` is what
+  github.com/RozDm shows: a short English card (who, the site, contacts). The
+  project README is `.github/README.md`, which the repository page shows
+  first. Renaming the repository was declined (it breaks the RozDm/RozDm
+  links in `security.txt`, `SECURITY.md` and the session setup).
+  (root `CLAUDE.md`)
 - **2026-11-16 — Cloudflare API in sessions: read-only, on demand**: a
   read-only token (no D1, R2, KV or Turnstile) as a network secret of the
   `RozDm` cloud environment (not Default, shared by the owner's other

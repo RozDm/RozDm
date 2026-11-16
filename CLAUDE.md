@@ -29,6 +29,9 @@ Each file loads only when a task touches its area:
   security or when a 403/429 isn't the Worker's;
 - `docs/history.md` — incidents behind the hard rules: only when a rule
   seems wrong or you want to undo one;
+- `.github/README.md` — the project README (the repository page shows it
+  first); the root `README.md` is the owner's GitHub profile card, since
+  RozDm/RozDm is the profile repository — keep it short, no project detail;
 - skills: `.claude/skills/browser-check` (Playwright on a built page),
   `new-post`, `audit`, `ship` (delegate a planned change, ship one PR).
 
