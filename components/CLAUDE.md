@@ -16,7 +16,8 @@ Traps only. Conventions, widgets, counters, contact form, e2e:
   `scroll-padding-top`, no rAF); keep `<html data-scroll-behavior="smooth">`.
 - Every `/api/*` call is a Worker request: `cache: 'no-store'`, share fetches
   (`fetchGeoCountries`, `fetchStatus`), mount and fetch only near the viewport
-  (`useNearViewport`; `Lazy*.tsx` placeholders keep the final height), poll
+  (`useNearViewport`; `Lazy*.tsx` = `lazyNearViewport(() => import(...), Placeholder)`,
+  placeholders keep the final height), poll
   only what's on screen.
 - The Status/Visitors/Trends headings stay in server components (smoke greps).
 - "Now" is the server's (`serverNow()`), never the visitor's clock;
