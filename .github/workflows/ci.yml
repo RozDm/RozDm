@@ -96,15 +96,28 @@ jobs:
           retention-days: 3
           if-no-files-found: ignore
 
+  # Lints every workflow and .github/actions/setup: syntax, expressions,
+  # needs/outputs, action inputs. Most ops workflows only run by hand, so a
+  # mistake there would otherwise surface on the day they are needed. Built
+  # by `go run` at a fixed version (the Go checksum database verifies the
+  # module; Dependabot doesn't bump it — do it by hand). shellcheck and
+  # pyflakes integrations are off for now.
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -color -shellcheck= -pyflakes=
+
   # The one required status check on main (branch protection names `check`):
-  # green only when both jobs above are. `always()` so a failed or skipped
+  # green only when every job above is. `always()` so a failed or skipped
   # job makes it red rather than skipped — a skipped required check passes.
   check:
-    needs: [build, e2e]
+    needs: [build, e2e, actionlint]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - run: test "$BUILD" = success && test "$E2E" = success
+      - run: test "$BUILD" = success && test "$E2E" = success && test "$ACTIONLINT" = success
         env:
           BUILD: ${{ needs.build.result }}
           E2E: ${{ needs.e2e.result }}
+          ACTIONLINT: ${{ needs.actionlint.result }}
