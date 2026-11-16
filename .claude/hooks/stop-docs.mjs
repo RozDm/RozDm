@@ -41,7 +41,8 @@ try {
   const problems = checkDocs(root)
 
   const reasons = []
-  if (problems.length) reasons.push(`scripts/check-docs.mjs found doc drift:\n${problems.join('\n')}`)
+  if (problems.length)
+    reasons.push(`scripts/check-docs.mjs found doc drift or a missing purpose header:\n${problems.join('\n')}`)
   if (structural.length && !docsTouched) {
     reasons.push(
       `This branch changes the file structure but no doc:\n${structural.join('\n')}\n` +

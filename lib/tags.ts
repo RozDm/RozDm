@@ -1,3 +1,5 @@
+// Tag normalisation, URL slugs and per-language labels.
+
 import { STANDARD_TAGS, TAG_ALIASES, TAG_LABELS_EN } from '@/data/tags'
 import type { Lang } from './i18n'
 

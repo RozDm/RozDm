@@ -1,3 +1,4 @@
+// Pure helpers for the Analytics Engine time-series endpoint.
 // Pure helpers for the AE-backed time-series endpoint. DOM-compatible APIs
 // only — tests import this under the app tsconfig.
 

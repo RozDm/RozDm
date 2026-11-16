@@ -1,3 +1,5 @@
+// Builds every page's Next metadata and the Person JSON-LD in one place.
+
 import type { Metadata } from 'next'
 import { AUTHOR, SITE_CARD_SIZE, SITE_URL, siteCardAlt } from './site'
 import { OG_LOCALE, languageAlternates, pick, type Lang } from './i18n'

@@ -1,3 +1,5 @@
+// Home page (Norwegian, /).
+
 import type { Metadata } from 'next'
 import HomePage from '@/components/home/HomePage'
 import { pageMetadata } from '@/lib/metadata'

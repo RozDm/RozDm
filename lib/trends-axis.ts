@@ -1,3 +1,4 @@
+// Picks 1–3 x-axis ticks for the Trends card so labels stay readable.
 // Pure helper for the Trends-card x-axis: picks 1–3 ticks from a series so
 // labels stay readable on every range. Lives outside the React component so
 // it can be unit-tested without rendering.

@@ -1,3 +1,4 @@
+// CI guard: the "Block scanners" WAF expression must not match any page, RSC payload or /api/views URL.
 // CI guard for the "Block scanners" WAF rule: .github/waf/scanner-block.expr,
 // applied by .github/workflows/zone-rules.yml. Cloudflare 403s a match before
 // the Worker sees it, so a pattern that hits a page, its RSC payload or its

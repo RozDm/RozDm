@@ -1,3 +1,4 @@
+// Wraps each word of inline code in a nowrap span so lines break between words only.
 // Inline code on the post page: each word of a command goes in its own
 // .code-word span (white-space: nowrap, app/globals.css), so a narrow screen
 // breaks a line between words only. Left alone, the browser breaks right

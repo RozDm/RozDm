@@ -1,3 +1,4 @@
+// Copies text to the clipboard, with a legacy fallback when the async API is blocked.
 // Clipboard copy with a legacy execCommand fallback for browsers/contexts
 // where the async Clipboard API is blocked.
 function legacyCopy(text: string): boolean {

@@ -1,3 +1,5 @@
+// Renders post Markdown to HTML, with code highlighting (the RSS body, build time).
+
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'

@@ -1,3 +1,4 @@
+// POST /api/csp-report — records CSP violation reports as Analytics Engine points.
 // POST /api/csp-report — browsers report Content-Security-Policy violations
 // here (metaCsp() in ../csp.ts points report-to at it, through the
 // Reporting-Endpoints header in public/_headers). A POST becomes at most ONE

@@ -1,3 +1,4 @@
+// Rate-limit identity of a client address (IPv6 collapses to its /64).
 // Rate-limit identity of a client address. An IPv6 subscriber usually gets a
 // whole /64 and can rotate through it at will, so a limit keyed on the full
 // address hands out a fresh budget per address; the /64 is the unit one

@@ -30,9 +30,9 @@ below.
 | Worker, `lib/`, tests | `npm run check` |
 | pages, components, metadata, the export or `scripts/` | `npm run check`, then `NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA npm run build`, `npm run check:csp`, `npm run check:waf`, `npm run check:dict`, `npm run test:e2e` |
 
-A structural change (files added/moved/removed in `src/`, `app/`,
-`components/`, `lib/`, or the `/api/*` surface) updates its doc in the same
-commit (`node scripts/check-docs.mjs`).
+A change to the `/api/*` surface, a workflow, a skill or a hook updates its doc
+in the same commit; a new `src/`, `lib/`, `scripts/` or `app/` file opens with a
+one-line purpose comment (`node scripts/check-docs.mjs` checks both).
 
 ## Commit and PR
 

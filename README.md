@@ -69,9 +69,10 @@ The repository is written for agents as much as for people.
   incidents behind the rules, and `docs/decisions.md` the owner's standing
   decisions, so a session does not re-propose what was already ruled on.
 - **Docs cannot drift.** `scripts/check-docs.mjs` (run by `tests/docs.test.ts`
-  and by a Stop hook) fails when a doc names a missing path or when a Worker
-  module, `/api/*` route, route directory, workflow, script, skill or hook is
-  in no doc.
+  and by a Stop hook) fails when a doc names a missing path, when an
+  `/api/*` route, workflow, skill or hook is in no doc, or when a Worker
+  module, `lib/` or `scripts/` file or `app/` page lacks a one-line purpose
+  comment; `node scripts/check-docs.mjs --map` prints the module map.
 - **Skills** in `.claude/skills/`: `audit` (a prioritised whole-project
   audit), `new-post` (a Norwegian and English post pair), `ship` (delegate a
   planned change and ship it as one PR), `browser-check` (look at a built page

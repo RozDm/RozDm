@@ -1,3 +1,5 @@
+// Self-hosted Intel One Mono (the body font) as next/font classes, no network at build.
+
 import localFont from 'next/font/local'
 
 // Intel One Mono, the body font, self-hosted from @fontsource-variable/

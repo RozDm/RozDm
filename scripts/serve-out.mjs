@@ -1,3 +1,4 @@
+// Serves out/ the way the asset server does, for the browser (e2e) tests.
 // Serves out/ for the browser tests (playwright.config.ts, e2e/) the way the
 // asset server does in production, minus public/_headers: a page at its
 // trailing-slash path, a 301 from the slash-less one, and the 404 page (with a

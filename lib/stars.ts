@@ -1,3 +1,5 @@
+// Random star field for the intro and the HAL idle screensaver.
+
 export interface Star {
   x: number
   y: number

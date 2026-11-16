@@ -1,3 +1,4 @@
+// Zero-fills a sparse Analytics Engine series into a dense, gap-free bucket list.
 // Zero-fill a sparse AE time-series into a dense, gap-free bucket list so the
 // front-end wave chart shows real lulls as zero instead of interpolating a
 // straight line across empty hours. Pure + deterministic (pass `now` in

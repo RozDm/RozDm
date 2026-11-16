@@ -1,3 +1,5 @@
+// Privacy policy (Norwegian, /personvern/).
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'

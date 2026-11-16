@@ -1,3 +1,5 @@
+// Contact page (Norwegian, /kontakt/).
+
 import type { Metadata } from 'next'
 import ContactPage from '@/components/contact/ContactPage'
 import { pageMetadata } from '@/lib/metadata'

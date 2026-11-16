@@ -1,3 +1,4 @@
+// /api/views/<slug> — GET reads a post's view counter, POST counts one view.
 // /api/views/<slug> — GET reads the counter, POST counts one view. Only the
 // page's own same-origin fetch() counts, so crawlers and external spam can't
 // inflate it.

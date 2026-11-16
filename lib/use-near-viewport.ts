@@ -1,3 +1,5 @@
+// React hook that turns true once an element nears the viewport (lazy-loads widgets).
+
 import { useEffect, useState, type RefObject } from 'react'
 
 // True once the element comes within `margin` of the viewport, and true from

@@ -1,3 +1,5 @@
+// Posts under one tag (English, /en/blog/tag/<tag>/).
+
 import type { Metadata } from 'next'
 import TagPage, { tagMetadata, tagStaticParams } from '@/components/blog/TagPage'
 

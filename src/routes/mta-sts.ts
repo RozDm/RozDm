@@ -1,3 +1,4 @@
+// GET /.well-known/mta-sts.txt — the MTA-STS policy (RFC 8461) for the site's mail domain.
 // GET /.well-known/mta-sts.txt — the MTA-STS policy (RFC 8461) for mail to
 // @rozsoshnykh.no. Sending servers fetch it from
 // https://mta-sts.rozsoshnykh.no/ (a custom domain of this Worker) and then

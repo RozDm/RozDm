@@ -1,3 +1,5 @@
+// Renders the build-time site-wide social card (OG image).
+
 import { ImageResponse } from 'next/og'
 import type { Lang } from './i18n'
 import { OG_FONT_FAMILY, ogFonts } from './og-fonts'

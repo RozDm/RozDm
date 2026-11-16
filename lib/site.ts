@@ -1,4 +1,4 @@
-// Sentral konfigurasjon for nettstedet (brukt i metadata, sitemap og JSON-LD)
+// Site-wide configuration: URL, author and card copy (used by metadata, sitemap and JSON-LD).
 import type { Lang } from './i18n'
 
 export const SITE_URL = 'https://rozsoshnykh.no'

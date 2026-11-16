@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Post-deploy smoke test of the live site; fails the pipeline if the basics are broken.
 # Post-deploy smoke test: hits the live site and fails the pipeline if the
 # basics are broken. Retries tolerate cert/route propagation right after
 # a deploy.

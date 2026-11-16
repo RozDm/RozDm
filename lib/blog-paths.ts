@@ -1,3 +1,5 @@
+// URL paths for the blog index, posts, tags and RSS feed, per language.
+
 import type { Lang } from './i18n'
 import { tagLabel, tagToSlug } from './tags'
 

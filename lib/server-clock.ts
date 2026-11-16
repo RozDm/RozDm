@@ -1,3 +1,4 @@
+// Server-clock "now" for the live widgets, so a skewed visitor clock cannot break them.
 // "Now" for the live widgets, by the server's clock rather than the
 // visitor's. The stale banner compares the snapshot's time with now, and the
 // Trends grid is laid out back from now: on a machine whose clock is days

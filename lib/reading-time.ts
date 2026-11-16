@@ -1,3 +1,4 @@
+// Estimates reading time for a Markdown body.
 // Estimated reading time for a markdown body. Code blocks read slower than
 // prose, but for short technical posts a flat words-per-minute rate is fine.
 const WORDS_PER_MINUTE = 200
