@@ -177,6 +177,14 @@ describe('D1 schema', () => {
     }
   })
 
+  // Owner's call (2026-11-16): a deploy can't roll a migration back, so it
+  // only warns on pending ones; applying stays a manual d1-bootstrap run.
+  it('is never applied by deploy.yml, which only lists pending migrations', () => {
+    const yml = readFileSync(join(DIR, 'deploy.yml'), 'utf8')
+    expect(yml).not.toMatch(/d1 migrations apply/)
+    expect(yml).toContain('npx wrangler d1 migrations list METRICS --remote')
+  })
+
   it('names migration files NNNN_<what>.sql', () => {
     const files = readdirSync('migrations')
     expect(files.length).toBeGreaterThan(0)
