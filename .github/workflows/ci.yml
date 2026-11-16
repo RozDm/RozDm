@@ -113,16 +113,48 @@ jobs:
           SHELLCHECK_OPTS: --severity=warning
       - run: shellcheck --version && shellcheck --severity=warning scripts/*.sh .claude/hooks/*.sh
 
+  # Every commit on the PR is the owner's (by GitHub account, as the API maps
+  # its author e-mail) and has no Co-authored-by line. A squash merge credits
+  # every other commit author as a co-author, and the repository's
+  # Contributors box counts co-authors: dependabot[bot] got in that way through
+  # #39 (docs/history.md). So a Dependabot PR stays red and is never merged;
+  # a session redoes the bump from main (.github/CLAUDE.md). No checkout: the
+  # PR's commit list comes from the API. The log names logins, never e-mails.
+  authors:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+          COMMITS: repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits
+        run: |
+          gh api --paginate "$COMMITS" --jq '.[] | [.sha[0:7], (.author.login // "-"), (.commit.message | test("(^|\n)[ \t]*co-authored-by:"; "i") | tostring)] | @tsv' > commits.tsv
+          bad=0
+          while IFS=$'\t' read -r sha login coauthor; do
+            if [ "$login" != "$OWNER" ]; then
+              echo "::error::$sha is authored by ${login/#-/an e-mail no GitHub account has}, not $OWNER"
+              bad=1
+            fi
+            if [ "$coauthor" = true ]; then
+              echo "::error::$sha has a Co-authored-by line"
+              bad=1
+            fi
+          done < commits.tsv
+          exit "$bad"
+
   # The one required status check on main (branch protection names `check`):
   # green only when every job above is. `always()` so a failed or skipped
   # job makes it red rather than skipped — a skipped required check passes.
   check:
-    needs: [build, e2e, actionlint]
+    needs: [build, e2e, actionlint, authors]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - run: test "$BUILD" = success && test "$E2E" = success && test "$ACTIONLINT" = success
+      - run: test "$BUILD" = success && test "$E2E" = success && test "$ACTIONLINT" = success && test "$AUTHORS" = success
         env:
           BUILD: ${{ needs.build.result }}
           E2E: ${{ needs.e2e.result }}
           ACTIONLINT: ${{ needs.actionlint.result }}
+          AUTHORS: ${{ needs.authors.result }}

@@ -1,10 +1,10 @@
 # Dependabot: one monthly batch per ecosystem (on the 1st; owner's call
 # 2026-11-09, was weekly), so a normal month brings one to three PRs.
 # Security updates come as soon as an advisory appears, whatever the
-# schedule. Each runs the required `check` (ci.yml needs no secrets).
-# Merge by enabling squash auto-merge as the owner, so the merge push is the
-# owner's and deploy.yml gets the `production` environment's secrets
-# (docs/reference/ci.md).
+# schedule. A Dependabot PR is never merged: its squash would add
+# dependabot[bot] to the repository's contributors, so ci.yml's `authors`
+# keeps `check` red on it. A session redoes the bump from main as the
+# owner's commits, and Dependabot then closes its PR (docs/reference/ci.md).
 version: 2
 updates:
   - package-ecosystem: npm

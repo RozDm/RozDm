@@ -7,7 +7,7 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
 `docs/decisions.md`; the zone: `docs/cloudflare-security.md`.
 
 - `check` (`ci.yml`) is the one required status; green only when `build`,
-  `e2e` and `actionlint` all are. Never merge by hand while it is red or
+  `e2e`, `actionlint` and `authors` all are. Never merge by hand while it is red or
   pending. A workflow change that actionlint flags is fixed, not silenced.
 - shellcheck (`actionlint` job) covers every `run:` block and, by glob,
   every `scripts/*.sh` and `.claude/hooks/*.sh` — a new script there is
@@ -44,10 +44,16 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
 - `status-watchdog.yml` runs outside Cloudflare on `7,22,37,52 * * * *`; an
   external uptime monitor was declined: don't re-propose. GitHub disables
   schedules after 60 days idle: re-enable in the Actions tab.
-- Dependabot: every npm semver-major is ignored; merge a PR by enabling squash
-  auto-merge as the owner (never a GITHUB_TOKEN merge workflow); the wrangler
-  PR needs `npm run cf-typegen`, the Playwright PR the `ci.yml` digest. A
-  weekly unattended session for this was declined: don't re-propose.
+- Only the owner is in `main`'s history: a squash credits every other PR
+  commit author as a co-author, and the Contributors box counts co-authors.
+  `authors` (`ci.yml`) fails a PR with a commit not authored by the owner or
+  carrying a `Co-authored-by` line, so a Dependabot PR is never merged.
+  A session redoes the bump on its own branch from `main` (`npm install`,
+  never a cherry-pick, merge or rebase of Dependabot's commit; #39 did that)
+  and Dependabot closes its PR itself. The wrangler bump needs
+  `npm run cf-typegen`, the Playwright bump the `ci.yml` tag and digest.
+  Every npm semver-major is ignored. A weekly unattended session for this was
+  declined: don't re-propose.
 - Repo settings (auto-merge, delete head branches, no Wikis/Projects, CodeQL,
   push protection, About box) are owner-only; a session can't switch them.
 - A workflow, skill or hook change updates `docs/reference/ci.md` in the PR.
