@@ -2,10 +2,11 @@ import Link from 'next/link'
 import HashLink from '../layout/HashLink'
 import { DICT } from '@/data/dictionary'
 import { localePath, type Lang } from '@/lib/shared/i18n'
-import { SITE_COPY } from '@/lib/shared/site'
+import { AUTHOR, SITE_COPY } from '@/lib/shared/site'
 
 export default function Hero({ lang }: { lang: Lang }) {
   const t = DICT[lang].hero
+  const [firstName, ...rest] = AUTHOR.name.split(' ')
   return (
     // No fade-in here, unlike the sections below: this is the first screen, and
     // an opacity-0 start holds back its paint and so the LCP
@@ -31,9 +32,9 @@ export default function Hero({ lang }: { lang: Lang }) {
           </span>
         </p>
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-          Dmytro
+          {firstName}
           <br />
-          Rozsoshnykh
+          {rest.join(' ')}
         </h1>
       </div>
       <p className="text-gray-500 dark:text-gray-400 max-w-xl leading-relaxed text-lg">{t.intro}</p>
