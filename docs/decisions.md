@@ -6,6 +6,7 @@ skill reads it first). Where it says "don't re-propose", don't — not in an
 audit, a PR or a reply. A new decision goes here and gets a one-line pointer
 in the doc it concerns.
 
+- **`lib/shared/` may import `src/api-types.ts` as a type, nothing else from `src/`** — the shared files (timeseries fill, status, contact) take the `/api/*` shapes; the alternatives, duplicating the types or moving `api-types.ts` into `lib/shared/`, give two sources of truth or undo the #24 layout; don't re-propose either — 2026-11-16 (`docs/gotchas.md`, `eslint.config.mjs`)
 - **github.com/RozDm stays neutral; the repository is RozDm/rozsoshnykh.no** — as RozDm/RozDm it was the profile repository and the profile showed its README (root or `.github/`; a profile card, then `.github/` alone, were tried); renamed, GitHub redirects the old URLs; never create a repository named RozDm — 2026-11-16 (root `CLAUDE.md`)
 - **Cloudflare API in sessions: read-only, on demand** — a read-only token (no D1, R2, KV or Turnstile) as a network secret of the `rozsoshnykh.no` cloud environment (not Default, shared by other repositories), called through `scripts/mcp.mjs` like Webhuset; not a claude.ai connector, not GitHub secrets (a public repo's Actions logs are public); changes still go through PRs and workflows — 2026-11-16 (`docs/cloudflare-security.md`)
 - **Repository settings: Wikis and Projects off, head branches deleted on merge, auto-merge on** — 2026-11-16 (`.github/CLAUDE.md`)
