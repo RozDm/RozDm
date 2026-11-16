@@ -147,7 +147,11 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
   them): auto-merge allowed (the PR flow depends on it; found off once,
   2026-11-15), head branches deleted on merge, Wikis and Projects off.
   Checkable: `has_wiki`/`has_projects` in `gh api search/repositories`; a
-  merged `claude/*` branch still on the remote means auto-delete is off.
+  merged `claude/*` branch still on the remote at its PR's head commit means
+  auto-delete is off — one at a commit of `main` was pushed again after the
+  merge (a bare reset; root `CLAUDE.md`, Session branches). A session can't
+  delete it (the git proxy takes pushes to its own branch only): the owner
+  does, on GitHub's Branches page.
 - Repository security (owner-only settings, no CI or session token can
   switch them): CodeQL in default setup (GitHub-managed: no workflow file,
   no `security-events: write` here; its PR checks aren't required), private
