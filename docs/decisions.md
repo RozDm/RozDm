@@ -7,8 +7,9 @@ detail lives in the doc named after each entry; a new decision goes here and
 gets a one-line pointer there.
 
 - **2026-11-16 — Cloudflare API in sessions: read-only, on demand**: a
-  read-only token (no D1, R2, KV or Turnstile) as the cloud environment's
-  network secret, called through `scripts/mcp.mjs` like Webhuset — not a
+  read-only token (no D1, R2, KV or Turnstile) as a network secret of the
+  `RozDm` cloud environment (not Default, shared by the owner's other
+  repositories), called through `scripts/mcp.mjs` like Webhuset — not a
   claude.ai connector, not GitHub secrets (Actions logs of a public repo are
   public). Changes keep going through PRs and the workflows.
   (`docs/cloudflare-security.md`)

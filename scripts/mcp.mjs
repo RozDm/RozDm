@@ -109,6 +109,12 @@ function main([name, tool = 'list', arg]) {
 try {
   process.exitCode = main(process.argv.slice(2))
 } catch (err) {
+  // The agent proxy refuses the tunnel when the environment has no network
+  // secret (or allowlist entry) for the host.
+  const host = SERVERS[process.argv[2]]?.endpoint.split('/')[2]
+  if (host && /CONNECT tunnel failed, response 403/.test(err.message)) {
+    err.message = `${host} is blocked by the environment's network: add its network secret (cloud) or the key variable (locally)`
+  }
   console.error(`mcp: ${err.message}`)
   process.exitCode = 1
 }

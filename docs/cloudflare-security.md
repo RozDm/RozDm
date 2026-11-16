@@ -598,9 +598,16 @@ subdomain itself stays; nothing serves on it.
   D1, R2, KV or Turnstile, so visitor data, backups and the Turnstile secret
   stay out). Changes still go through `zone-rules.yml` and the deploy, never
   through this.
+  Example: `node scripts/mcp.mjs cloudflare execute '{"code":"async () =>
+  (await cloudflare.request({ method: \"GET\", path: \"/zones\" })).result"}'`;
+  `whoami` names the token's user.
 
 On demand, not attached MCP servers: Webhuset's put ~1.5k tokens into every
-session. Cloud sessions authenticate through the environment's network
-secrets for `mcp.webhuset.no` and `mcp.cloudflare.com` (the proxy injects
-them; the value never enters the container); locally `WEBHUSET_API_KEY` and
+session. Cloud sessions run in the owner's `RozDm` environment, which holds
+both keys as network secrets for `mcp.webhuset.no` and `mcp.cloudflare.com`
+(the proxy injects them; the value never enters the container) — not
+Default, which the owner's other repositories share. Its network is limited:
+package registries, GitHub, the site's hosts, `mcr.microsoft.com`,
+`challenges.cloudflare.com`; a missing host is proposed with
+`update_environment`. Locally: `WEBHUSET_API_KEY` and
 `CLOUDFLARE_READ_TOKEN`.
