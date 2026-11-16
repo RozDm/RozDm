@@ -1,8 +1,13 @@
-// Docs drift check: the agent docs (CLAUDE.md files, README, skills) must
-// name only paths that exist, and must mention every module, route, workflow,
-// script, skill and hook that does. Run by tests/docs.test.ts (so `npm test`,
-// CI and deploy enforce it) and by the Stop hook (.claude/hooks/stop-docs.mjs)
-// before a session ends. `node scripts/check-docs.mjs` prints the problems.
+// Docs drift check and module map: docs name real paths, source files state their purpose.
+// (1) The agent docs (CLAUDE.md files, README, skills) name
+// only paths that exist. (2) They mention every /api/* route, workflow, skill
+// and hook. (3) Every Worker module (src/), lib/ file, scripts/ file and
+// app/ page or route file opens with a one-line purpose comment, so the module
+// inventory lives in the code, not in prose. Run by tests/docs.test.ts (so
+// `npm test`, CI and deploy enforce it) and by the Stop hook
+// (.claude/hooks/stop-docs.mjs) before a session ends.
+//   node scripts/check-docs.mjs        prints the problems (exit 1 on any)
+//   node scripts/check-docs.mjs --map  prints the module map: path — purpose
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -17,6 +22,37 @@ const NOT_PATH_PREFIXES = ['next/', '@', 'node:', 'eslint-config-']
 // Build output and installs — named in docs, absent in a fresh checkout.
 const UNTRACKED_OK = ['out', '.next', 'node_modules', '.wrangler']
 const FILE_EXT = /\.(tsx?|mjs|js|jsonc?|md|sh|ya?ml|sql|css|svg|woff2|xml|txt|png|ico)$/
+
+// Source files that must open with a purpose line: the Worker, lib/, scripts/,
+// and each app/ route (its page.tsx or route.ts).
+const HEADER_SCOPE = [/^(src|lib|scripts)\/(?!.*\.md$).+/, /^app\/(.+\/)?(page\.tsx|route\.tsx?)$/]
+// `//` comments that are tool directives, not a purpose.
+const DIRECTIVE = /^(@ts-|eslint|prettier|istanbul|c8 |vitest)/
+
+// The one-line purpose a source file opens with: its first line after a
+// shebang, blank lines and 'use client' / 'use server'. null when it has none.
+export function purposeOf(source, file = '') {
+  const marker = /\.sh$/.test(file) ? '#' : '//'
+  const lines = source.split('\n')
+  let i = lines[0]?.startsWith('#!') ? 1 : 0
+  while (i < lines.length && /^\s*($|(['"])use (client|server)\2;?\s*$)/.test(lines[i])) i++
+  const line = (lines[i] ?? '').trimEnd()
+  if (!line.startsWith(marker) || line.startsWith(marker + marker.slice(-1))) return null
+  const text = line.slice(marker.length).trim()
+  return text.length >= 8 && !DIRECTIVE.test(text) ? text : null
+}
+
+function headerFiles(files) {
+  return files.filter((f) => HEADER_SCOPE.some((re) => re.test(f))).sort()
+}
+
+// The module map: every file in scope with its purpose line.
+export function moduleMap(root = ROOT) {
+  return headerFiles(listFiles(root)).map((file) => ({
+    file,
+    purpose: purposeOf(fs.readFileSync(path.join(root, file), 'utf8'), file),
+  }))
+}
 
 function listFiles(root) {
   const out = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
@@ -89,7 +125,8 @@ export function checkDocs(root = ROOT) {
     }
   }
 
-  // 2. Everything that exists is documented where a session will look for it.
+  // 2. The small, high-value set a session must find in the docs: API routes,
+  // workflows, skills, hooks.
   const ls = (dir, re) =>
     files
       .filter((f) => path.posix.dirname(f) === dir && re.test(path.posix.basename(f)))
@@ -97,9 +134,6 @@ export function checkDocs(root = ROOT) {
   const subdirs = (dir) => [...dirSet].filter((d) => path.posix.dirname(d) === dir).map((d) => path.posix.basename(d))
   const need = (cond, msg) => cond || problems.push(msg)
 
-  for (const f of ls('src', /\.ts$/)) {
-    need(text['src/CLAUDE.md'].includes(f), `src/CLAUDE.md: module src/${f} is not described`)
-  }
   // Every route serves /api/<file name>, but for the few outside /api/.
   const ROUTE_PATHS = { 'mta-sts': '/.well-known/mta-sts.txt' }
   for (const f of ls('src/routes', /\.ts$/)) {
@@ -107,26 +141,28 @@ export function checkDocs(root = ROOT) {
     const route = ROUTE_PATHS[stem] ?? `/api/${stem}`
     need(text['src/CLAUDE.md'].includes(route), `src/CLAUDE.md: route ${route} is not in the API surface`)
   }
-  for (const f of ls('lib', /\.tsx?$/)) {
-    need(anyDoc(f, ['app/CLAUDE.md', 'README.md']), `README.md: lib/${f} is not in the layout`)
-  }
-  for (const d of subdirs('app')) {
-    need(text['app/CLAUDE.md'].includes(d), `app/CLAUDE.md: app/${d} is not in the routes`)
-  }
-  for (const d of subdirs('app/en')) {
-    need(text['app/CLAUDE.md'].includes(`en/${d}`), `app/CLAUDE.md: app/en/${d} is not in the routes`)
-  }
   for (const f of ls('.github/workflows', /\.ya?ml$/)) {
     need(text['.github/CLAUDE.md'].includes(f), `.github/CLAUDE.md: workflow ${f} is not described`)
   }
-  for (const f of ls('scripts', /./)) need(anyDoc(f), `script scripts/${f} is not mentioned in any doc`)
   for (const d of subdirs('.claude/skills')) need(anyDoc(d), `skill ${d} is not mentioned in any doc`)
   for (const f of ls('.claude/hooks', /./)) need(anyDoc(f), `hook .claude/hooks/${f} is not mentioned in any doc`)
+
+  // 3. Every source file in scope opens with a one-line purpose comment.
+  for (const f of headerFiles(files)) {
+    need(
+      purposeOf(read(f), f),
+      `${f}: no purpose header (open the file with a one-line ${f.endsWith('.sh') ? '`# …`' : '`// …`'} comment saying what it is for)`,
+    )
+  }
 
   return problems
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv.includes('--map')) {
+    for (const { file, purpose } of moduleMap()) console.log(`${file} — ${purpose ?? '(no purpose header)'}`)
+    process.exit(0)
+  }
   const problems = checkDocs()
   for (const p of problems) console.error(p)
   process.exit(problems.length ? 1 : 0)

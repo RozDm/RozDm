@@ -1,3 +1,4 @@
+// Rehype plugin that resolves blog post images and fails the build on a broken one.
 // Images in blog posts — `![alt](/images/<slug>/file.webp)` in the markdown,
 // the file in public/. One rehype plugin for the post page (PostPage's
 // ReactMarkdown) and the RSS body (lib/markdown.ts); it runs at build and

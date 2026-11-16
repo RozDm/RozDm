@@ -1,3 +1,4 @@
+// POST /api/visit — the once-per-day Besøk beacon; records the visitor's country.
 // POST /api/visit — the single "Besøk" beacon. The client fires it once per
 // browser per day, on the first human input, never under automation
 // (lib/visit.ts), so a visit counts once no matter how many pages or tabs. The Worker reads

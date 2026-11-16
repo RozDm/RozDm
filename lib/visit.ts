@@ -1,3 +1,4 @@
+// Rules for when the Besøk beacon counts a visit and when a post view counts.
 // When the Besøk beacon (components/effects/VisitBeacon.tsx) may count a
 // visit — and, with onFirstHumanInput, when a post view counts
 // (components/blog/ViewCounter.tsx). Pure, so it is unit-tested (tests/visit-beacon.test.ts); the

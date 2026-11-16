@@ -1,3 +1,5 @@
+// Blog index (English, /en/blog/).
+
 import type { Metadata } from 'next'
 import BlogIndexPage, { blogIndexMetadata } from '@/components/blog/BlogIndexPage'
 

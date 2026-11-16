@@ -1,3 +1,4 @@
+// One shared /api/status request for the footer dot and the status dashboard.
 // One /api/status request shared by the footer's StatusDot and the front
 // page's StatusDashboard: each fetches as it nears the viewport, often in the
 // same moment (a tall screen, a reader scrolling past both) — two Worker

@@ -1,3 +1,5 @@
+// Validates and normalises a post's frontmatter so a slip fails the build.
+
 import { STANDARD_TAGS } from '@/data/tags'
 import { normalizeTag } from './tags'
 import type { Lang } from './i18n'

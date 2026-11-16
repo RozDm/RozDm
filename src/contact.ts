@@ -1,3 +1,4 @@
+// Pure logic for outbound mail: contact-form validation, MIME building, status-alert mail.
 // Pure logic for outbound mail: contact-form validation/MIME and status-alert
 // MIME. (DOM-compatible APIs only — tests import this under the app tsconfig.)
 

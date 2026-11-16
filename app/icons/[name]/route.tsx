@@ -1,3 +1,5 @@
+// PNG icons (192/512, apple-touch, favicon.ico) rendered from icon.svg at build time.
+
 import { ImageResponse } from 'next/og'
 
 // PNG renditions of app/icon.svg (the HAL eye) for the places that won't take

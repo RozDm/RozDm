@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Read-only MCP servers on demand: the Webhuset registrar and the Cloudflare API.
 // Read-only MCP servers on demand: the registrar (Webhuset) and the Cloudflare
 // API. Attached to every session (.mcp.json), Webhuset's instructions and 50
 // tool names cost ~1.5k tokens of context each time, for a few look-ups a

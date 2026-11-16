@@ -1,3 +1,5 @@
+// Loads Intel One Mono font files for the build-time social cards.
+
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 

@@ -1,3 +1,4 @@
+// POST /api/contact — validates, stores and mails a contact-form message.
 // POST /api/contact — validate, Turnstile, rate-limit, store in D1, mail via
 // Email Routing. Defence in depth: same-origin + bot-UA + honeypot + a burst
 // cap (WRITE_LIMITER) + Turnstile (when configured) + per-IP and per-email

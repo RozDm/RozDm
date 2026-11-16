@@ -1,3 +1,4 @@
+// Post-build pass over the static export in out/ (npm run build → postbuild).
 // Post-build pass over the static export (`npm run build` → postbuild). The
 // asset server serves the pages without the Worker (run_worker_first in
 // wrangler.jsonc: /api/* and the MTA-STS policy only), so what the Worker used

@@ -1,3 +1,4 @@
+// GET /api/geo and recordGeo() — visitor-country counters in D1.
 // Visitor-country counters in D1. recordGeo() upserts once per browser
 // session (called from the /api/visit beacon), GET /api/geo reads the aggregate.
 import { apiJson, cachedApiJson, putCachedApiJson } from '../http'

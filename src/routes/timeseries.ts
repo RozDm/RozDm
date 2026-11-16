@@ -1,3 +1,4 @@
+// GET /api/timeseries — a bucketed Analytics Engine series for the front-page Trends card.
 // GET /api/timeseries?metric=view|geo|mailfail&range=24h|7d|30d|all
 //
 // Queries the Cloudflare Analytics Engine SQL API and returns a bucketed

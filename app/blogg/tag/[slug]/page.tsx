@@ -1,3 +1,5 @@
+// Posts under one tag (Norwegian, /blogg/tag/<tag>/).
+
 import type { Metadata } from 'next'
 import TagPage, { tagMetadata, tagStaticParams } from '@/components/blog/TagPage'
 

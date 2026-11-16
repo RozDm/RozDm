@@ -26,11 +26,13 @@ Each loads only when a task touches its area:
   `pr-flow` (GitHub MCP recipes, after-PR routine, model/effort details —
   load when opening/watching a PR or checking a deploy).
 
-A PR that adds/moves/removes files in `src/`, `app/`, `components/`, `lib/` or
-changes the `/api/*` surface updates the matching doc in the same PR:
+A PR that changes the `/api/*` surface, a workflow, a skill or a hook updates
+the matching doc in the same PR. Every file in `src/`, `lib/`, `scripts/` and
+each `app/` page/route opens with a one-line purpose comment;
+`node scripts/check-docs.mjs --map` prints the module map from them.
 `scripts/check-docs.mjs` (via `tests/docs.test.ts`, so CI blocks; Stop hook
-`.claude/hooks/stop-docs.mjs` too) fails on a doc naming a missing path or on
-a module, route, workflow, script, skill or hook in no doc.
+`.claude/hooks/stop-docs.mjs` too) fails on a doc naming a missing path, on an
+API route, workflow, skill or hook in no doc, or on a file without that header.
 
 ## Working efficiently
 

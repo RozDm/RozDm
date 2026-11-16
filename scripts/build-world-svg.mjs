@@ -1,3 +1,4 @@
+// Generates public/world.svg (the visit map) from country shapes at build time.
 // Generates public/world.svg from world-map-country-shapes at build time so
 // the runtime doesn't have to ship 85 kB of JSON to draw the map. Re-run when
 // the package version bumps:  node scripts/build-world-svg.mjs

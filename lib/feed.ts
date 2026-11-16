@@ -1,3 +1,5 @@
+// Builds the RSS 2.0 feed Response for one language's blog.
+
 import { DICT } from '@/data/i18n'
 import { getPostBySlug, getPostSlugs } from './blog'
 import { blogPath, feedPath, postPath } from './blog-paths'

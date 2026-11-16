@@ -1,3 +1,5 @@
+// Blog index (Norwegian, /blogg/).
+
 import type { Metadata } from 'next'
 import BlogIndexPage, { blogIndexMetadata } from '@/components/blog/BlogIndexPage'
 

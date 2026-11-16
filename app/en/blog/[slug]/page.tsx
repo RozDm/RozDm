@@ -1,3 +1,5 @@
+// A blog post (English, /en/blog/<slug>/).
+
 import type { Metadata } from 'next'
 import PostPage, { postMetadata, postStaticParams } from '@/components/blog/PostPage'
 
