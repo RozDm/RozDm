@@ -1,25 +1,40 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import pkg from '../package.json'
 
 // Every action is pinned to a full commit SHA, with the release it is in a
 // comment: a tag can be moved to other code, a SHA can't, and the comment is
-// what Dependabot reads to propose (and re-pin) the next release.
+// what Dependabot reads to propose (and re-pin) the next release. The repo's
+// own composite actions (.github/actions/<name>/action.yml) are used by path,
+// and the same rule holds for every `uses:` inside them.
 const DIR = '.github/workflows'
+const ACTIONS = '.github/actions'
 const PINNED = /^[\w.-]+\/[\w.-]+@[0-9a-f]{40} # v\d+\.\d+\.\d+$/
+const LOCAL = /^\.\/\.github\/actions\/([\w-]+)$/
 
 describe('GitHub Actions', () => {
   it('pins every `uses:` to a commit SHA with its version comment', () => {
+    const files = [
+      ...readdirSync(DIR)
+        .filter((f) => f.endsWith('.yml'))
+        .map((f) => join(DIR, f)),
+      ...readdirSync(ACTIONS).map((d) => join(ACTIONS, d, 'action.yml')),
+    ]
     const uses: string[] = []
-    for (const file of readdirSync(DIR).filter((f) => f.endsWith('.yml'))) {
-      for (const line of readFileSync(join(DIR, file), 'utf8').split('\n')) {
+    for (const file of files) {
+      for (const line of readFileSync(file, 'utf8').split('\n')) {
         const m = line.match(/^\s*(?:-\s+)?uses:\s*(.+?)\s*$/)
         if (m) uses.push(`${file}: ${m[1]}`)
       }
     }
     expect(uses.length).toBeGreaterThan(0)
-    for (const u of uses) expect(u.split(': ')[1], u).toMatch(PINNED)
+    for (const u of uses) {
+      const ref = u.split(': ')[1]
+      const local = ref.match(LOCAL)
+      if (local) expect(existsSync(join(ACTIONS, local[1], 'action.yml')), u).toBe(true)
+      else expect(ref, u).toMatch(PINNED)
+    }
   })
 })
 
@@ -84,17 +99,26 @@ describe('workflow secrets', () => {
   // deploy.yml's rule, held for every workflow: in a job that reads a secret
   // no package install script runs (a compromised dependency would find the
   // token) and no npm cache is restored (a job running package code could
-  // have written it). The manual D1 workflows once did both.
+  // have written it). The manual D1 workflows once did both. Jobs install
+  // through .github/actions/setup, whose defaults are exactly that; only a
+  // job without secrets may switch them.
   it('installs without scripts or an npm cache in jobs that read secrets', () => {
+    const setup = readFileSync(join(ACTIONS, 'setup', 'action.yml'), 'utf8')
+    expect(setup).toMatch(/^ {2}cache:\n(?: {4}.*\n)*? {4}default: 'false'$/m)
+    expect(setup).toMatch(/^ {2}ignore-scripts:\n(?: {4}.*\n)*? {4}default: 'true'$/m)
+    expect(setup).toMatch(/run: npm ci \$\{\{ inputs\.ignore-scripts == 'true' && '--ignore-scripts' \|\| '' \}\}$/m)
     let installs = 0
     for (const file of FILES) {
       for (const [job, body] of children(block(read(file), 'jobs'))) {
         if (!/secrets\.(?!GITHUB_TOKEN\b)\w/.test(body)) continue
-        expect(body, `${file}: job ${job} restores an npm cache`).not.toMatch(/^\s*cache:\s*npm\b/m)
-        const lines = body.split('\n').filter((l) => !/^\s*#/.test(l) && /\bnpm (ci|install|i)\b/.test(l))
+        expect(body, `${file}: job ${job} restores an npm cache`).not.toMatch(/^\s*cache:\s*(npm\b|'?true\b)/m)
+        expect(body, `${file}: job ${job} runs install scripts`).not.toMatch(/^\s*ignore-scripts:\s*'?false\b/m)
+        const lines = body
+          .split('\n')
+          .filter((l) => !/^\s*#/.test(l) && /\bnpm (ci|install|i)\b|uses:\s*\.\/\.github\/actions\/setup\b/.test(l))
         for (const line of lines) {
           installs++
-          expect(line, `${file}: job ${job}`).toMatch(/\bnpm ci --ignore-scripts\b/)
+          if (!/actions\/setup/.test(line)) expect(line, `${file}: job ${job}`).toMatch(/\bnpm ci --ignore-scripts\b/)
         }
       }
     }
