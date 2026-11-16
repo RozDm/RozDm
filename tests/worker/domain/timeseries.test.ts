@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildSeriesSql, parseMetric, parseRange, parseSeriesResponse } from '@/worker/domain/timeseries'
-import { METRICS_EPOCH, normalizeBucketKey } from '@/lib/shared/timeseries-keys'
+import { buildSeriesSql, parseMetric, parseRange, parseSeriesResponse } from '../../../worker/domain/timeseries'
+import { METRICS_EPOCH, normalizeBucketKey } from '../../../lib/shared/timeseries-keys'
 
 describe('METRICS_EPOCH', () => {
   it('sits on a 6-hour UTC boundary in the fixed-width bucket-key form', () => {

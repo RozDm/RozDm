@@ -1,7 +1,7 @@
 // Bucket-key rules the Trends chart and the Worker share: METRICS_EPOCH and normalizeBucketKey.
 // Pure, no DOM and no Workers APIs.
 
-// MUST sit on a 6-hour UTC boundary (00/06/12/18; tests/timeseries.test.ts):
+// MUST sit on a 6-hour UTC boundary (00/06/12/18; tests/worker/domain/timeseries.test.ts):
 // the filter compares bucket-START keys, so a mid-bucket epoch drops a
 // straddling 6h bucket's real visits and the chart undercounts the map (why:
 // docs/history.md). Bump it after every `reset-metrics` run, rounding UP to

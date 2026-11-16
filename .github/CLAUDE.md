@@ -16,7 +16,7 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
   (public repo: any branch could read one). A job reading a secret runs in
   `production`, installs with `npm ci --ignore-scripts` and no npm cache; no
   `pull_request_target`, no `workflow_run`, no write scope
-  (`tests/workflows.test.ts` enforces). "Required reviewers" stays off
+  (`tests/repo/workflows.test.ts` enforces). "Required reviewers" stays off
   (owner's call): don't re-propose.
 - Every action is pinned to a full commit SHA plus a release comment (test).
 - Jobs install through `.github/actions/setup` (after checkout): setup-node

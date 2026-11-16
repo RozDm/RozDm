@@ -31,7 +31,7 @@ updates:
       wrangler:
         patterns: [wrangler]
       # ci.yml runs in the Playwright image of the same version: the PR stays
-      # red (tests/workflows.test.ts) until that image tag and digest are
+      # red (tests/repo/workflows.test.ts) until that image tag and digest are
       # bumped on it too. Kept apart for the same reason as wrangler.
       playwright:
         patterns: ['@playwright/test', playwright-core]

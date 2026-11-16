@@ -52,7 +52,7 @@ Dashboard:
 - **Early Hints off** (declined 2026-11-16): edge-cached pages answer before
   the async 103 lookup (no 103 then) and the font is already a
   `<link rel=preload>`; it would cost a zone setting, a `Link` per page path in
-  `public/_headers` (`tests/static-assets.test.ts`) and 103s before the WAF.
+  `public/_headers` (`tests/repo/static-assets.test.ts`) and 103s before the WAF.
 - **SPF stays `~all`** (declined `-all` 2026-11-16): DMARC `p=reject`
   already drops unaligned mail; nobody can show the Worker's `send_email` IPs
   are in `_spf.mx.cloudflare.net`, and a receiver hard-failing SPF first
@@ -164,7 +164,7 @@ list](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/).
 
 The what is `.github/waf/scanner-block.expr` (~3.7k chars, 60 wildcards);
 applied by `zone-rules.yml`, proven by `scripts/check-waf.mjs`. Slug-safe
-because slugs and tags are `[a-z0-9-]` (`tests/blog-pairs.test.ts`), RSC
+because slugs and tags are `[a-z0-9-]` (`tests/lib/server/blog-pairs.test.ts`), RSC
 names use `$d$slug`, and the word part skips `/blogg/`, `/en/blog/`,
 `/api/views/`, `/_next/static/`. **Only under those prefixes**: a new
 slug-carrying section (`/prosjekter/<slug>/`) or `/api/*/<slug>` route must

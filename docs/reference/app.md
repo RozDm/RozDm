@@ -15,7 +15,7 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
   manifest, OG images, `/icons/*.png` + `favicon.ico` (build-time, from
   `app/icon.svg` via `app/icons/[name]/route.tsx`; the build copies the ico
   to `/favicon.ico`), `/.well-known/security.txt` (static, RFC 9116: bump
-  `Expires` yearly — `tests/static-assets.test.ts` fails 30 days ahead),
+  `Expires` yearly — `tests/repo/static-assets.test.ts` fails 30 days ahead),
   `/status` → `/#status` (`public/_redirects`; www → apex and HTTP → HTTPS
   are the edge's, `zone-rules.yml`).
   `https://mta-sts.rozsoshnykh.no/.well-known/mta-sts.txt` is the mail
@@ -30,7 +30,7 @@ before editing `app/`, `lib/` or `data/` are in `app/CLAUDE.md`. Blog rules:
 ## Languages
 
 - ALL UI copy lives in `data/dictionary.ts` (`nb` defines the shape,
-  `en` is typed against it, `tests/i18n.test.ts` checks parity) — never in a
+  `en` is typed against it, `tests/lib/shared/i18n.test.ts` checks parity) — never in a
   component. Exceptions: `app/error.tsx` reads `ERROR_COPY`
   (`data/dictionary-error.ts`, spread into both): importing `DICT` there put a
   second dictionary copy on every page; and the privacy notices' text stays

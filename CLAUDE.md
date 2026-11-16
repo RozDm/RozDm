@@ -33,7 +33,7 @@ A PR that changes the `/api/*` surface, a workflow, a skill or a hook updates
 the matching doc in the same PR. Every file in `worker/`, `lib/`, `scripts/` and
 each `app/` page/route opens with a one-line purpose comment;
 `node scripts/check-docs.mjs --map` prints the module map from them.
-`scripts/check-docs.mjs` (via `tests/docs.test.ts`, so CI blocks; Stop hook
+`scripts/check-docs.mjs` (via `tests/repo/docs.test.ts`, so CI blocks; Stop hook
 `.claude/hooks/stop-docs.mjs` too) fails on a doc naming a missing path, on an
 API route, workflow, skill or hook in no doc, or on a file without that header.
 

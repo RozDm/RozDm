@@ -9,7 +9,7 @@ effort: high
 
 The blog is bilingual: a Norwegian post in `content/blog/nb/<slug>.md` and its English twin in `content/blog/en/<en-slug>.md`, which names the Norwegian slug in `translationOf`. The owner may write the draft in any language (often Russian) — you produce both versions, and they read both before publishing. A post that only makes sense in one language (e.g. a Norway-specific topic) may skip the twin; ask if unsure.
 
-The rules below are enforced, so a slip fails `npm run dev`, `npm test` and the build instead of going live: the frontmatter by `lib/server/post-frontmatter.ts` (on every read), the text by `tests/blog-content.test.ts`, the twins by `tests/blog-pairs.test.ts`, images by `lib/server/post-images.ts` at build.
+The rules below are enforced, so a slip fails `npm run dev`, `npm test` and the build instead of going live: the frontmatter by `lib/server/post-frontmatter.ts` (on every read), the text by `tests/lib/server/blog-content.test.ts`, the twins by `tests/lib/server/blog-pairs.test.ts`, images by `lib/server/post-images.ts` at build.
 
 ## Inputs
 
@@ -24,7 +24,7 @@ If the user did not state them, ask once (combined `AskUserQuestion`) for:
 
 1. Read `data/tags.ts` for `STANDARD_TAGS` (and `TAG_LABELS_EN`).
 2. Today's date in ISO-8601 (UTC): `YYYY-MM-DD`, quoted.
-3. Slugs: Norwegian from the Norwegian title, English from the English title — lowercase, ASCII-fold `æ→ae ø→o å→a`, non-alphanumeric → `-`, trimmed. Neither file may already exist (append `-2`…); the English slug must also not equal any existing Norwegian slug of a *different* post (`tests/blog-pairs.test.ts` checks).
+3. Slugs: Norwegian from the Norwegian title, English from the English title — lowercase, ASCII-fold `æ→ae ø→o å→a`, non-alphanumeric → `-`, trimmed. Neither file may already exist (append `-2`…); the English slug must also not equal any existing Norwegian slug of a *different* post (`tests/lib/server/blog-pairs.test.ts` checks).
 4. Write `content/blog/nb/<slug>.md` — these fields only, any other is refused:
 
 ```markdown
@@ -57,7 +57,7 @@ draft: true
 6. Body: tight and technical, a short hook then sections. The page shows the title as the h1, so headings start at `##` and go down one level at a time (`##` → `###`, never `##` → `####`). Fenced code blocks with a language tag (`bash`, `ts`, `yaml`, …) — highlighted at build; comments inside code stay English in both versions. The two bodies say the same thing; translate meaning, not word order, and keep commands/config identical.
    Links to other posts: `/blogg/<slug>/` from the Norwegian text, `/en/blog/<en-slug>/` from the English one, and only to published posts (a draft is a 404 in production).
    Images (only if the post needs them): put the file in `public/images/<slug>/` (WebP, PNG, JPEG, GIF or SVG; keep it small) and reference it from both versions as `![<alt in that language>](/images/<slug>/<file>)`. Never link an external image — the CSP blocks it and the build fails on purpose; alt text is required (the build fails without it). A diagram: an SVG with live `<text>` in `content/diagrams/<slug>/` (one per language when it has words), drawn for the light theme on a white card, then `npm run diagrams` builds the copy in `public/images/<slug>/` (CLAUDE.md, blog conventions).
-7. Run `npx vitest run tests/blog-content.test.ts tests/blog-pairs.test.ts` and fix what they name.
+7. Run `npx vitest run tests/lib/server/blog-content.test.ts tests/lib/server/blog-pairs.test.ts` and fix what they name.
 8. Both start as `draft: true`: invisible in production everywhere, while `npm run dev` shows them with an «Utkast» badge. A build drops drafts, so to show the owner a draft from a cloud session, screenshot `http://localhost:3000/blogg/<slug>/` from `npm run dev` (the Playwright launch in the `browser-check` skill) and send it. Tell the user in one line: "Read both; say when to publish."
 
 ## Publishing a draft

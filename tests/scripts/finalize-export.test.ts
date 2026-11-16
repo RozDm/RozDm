@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fontPreloads, withFontPreload } from '../scripts/finalize-export.mjs'
+import { fontPreloads, withFontPreload } from '../../scripts/finalize-export.mjs'
 
 const FONT = '<link rel="preload" href="/_next/static/media/abc.p.woff2" as="font" crossorigin="" type="font/woff2"/>'
 const VIEWPORT = '<meta name="viewport" content="width=device-width, initial-scale=1"/>'

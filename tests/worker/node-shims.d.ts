@@ -11,6 +11,16 @@ declare module 'node:sqlite' {
     }
   }
 }
+declare module 'node:fs' {
+  export function readFileSync(path: string, encoding: 'utf8'): string
+}
+// Node's Buffer, as far as the domain tests decode base64 mail bodies.
+declare class Buffer extends Uint8Array {
+  static from(data: string, encoding: 'base64'): Buffer
+  static alloc(size: number): Buffer
+  static concat(list: readonly Uint8Array[]): Buffer
+  toString(encoding?: 'utf8'): string
+}
 // Vite's ?raw import: the file's text (e.g. wrangler.jsonc).
 declare module '*?raw' {
   const text: string

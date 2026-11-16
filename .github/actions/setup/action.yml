@@ -3,7 +3,7 @@
 # job reading a secret needs, so a new workflow is safe without inputs: no
 # npm cache (a job running package code could have written it) and no
 # install scripts (no package code next to a token). Only jobs without
-# secrets opt out (tests/workflows.test.ts).
+# secrets opt out (tests/repo/workflows.test.ts).
 name: Setup
 description: setup-node from .nvmrc, then npm ci (no cache, no install scripts unless asked)
 inputs:

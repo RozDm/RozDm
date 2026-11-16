@@ -52,7 +52,7 @@ const COMMON_DIRECTIVES = [
 export const ENFORCED_CSP = [`script-src 'self' ${SCRIPT_TAIL}`, ...COMMON_DIRECTIVES].join('; ')
 
 // Header policy for everything the asset server serves (public/_headers `/*`
-// — tests/static-assets.test.ts holds the two equal) and the Worker's asset
+// — tests/repo/static-assets.test.ts holds the two equal) and the Worker's asset
 // fallback. It stacks with each page's <meta> policy, so it must hold NO fetch
 // directive (default-src, script-src…): that would block the hashed inline
 // scripts. frame-ancestors lives here because <meta> ignores it.
@@ -116,7 +116,7 @@ export async function cspProblems(html: string): Promise<string[]> {
 
 // The Worker sets these on its responses; public/_headers sets the same on
 // the asset server's (X-Frame-Options on the HTML paths, the rest on `/*`) —
-// tests/static-assets.test.ts compares them.
+// tests/repo/static-assets.test.ts compares them.
 export const BASE_SECURITY_HEADERS: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',

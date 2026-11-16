@@ -33,7 +33,7 @@ Read before touching a root config file (`package.json`, `next.config.mjs`,
   a second block for the same files. Patterns match the specifier as written:
   an alias, a relative path and a sibling import inside lib/ each need to match.
   `lib/shared/` takes `worker/api-types.ts` as a type on purpose (`docs/decisions.md`).
-  `tests/eslint-layout.test.ts` holds one case per rule. Not covered: dynamic
+  `tests/repo/eslint-layout.test.ts` holds one case per rule. Not covered: dynamic
   `import()` and `require`; the client rule reads the file's own
   `'use client'` directive, so a server component importing `lib/server/`
   is fine and its client child is checked in the child's file.

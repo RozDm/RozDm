@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { MTA_STS_PATH, MTA_STS_UPSTREAM, handleMtaSts } from '../../worker/routes/mta-sts'
+import { MTA_STS_PATH, MTA_STS_UPSTREAM, handleMtaSts } from '../../../worker/routes/mta-sts'
 
 const POLICY = 'version: STSv1\nmode: enforce\nmx: *.mx.cloudflare.net\nmax_age: 86400\n'
 const url = new URL(`https://mta-sts.rozsoshnykh.no${MTA_STS_PATH}`)

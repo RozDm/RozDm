@@ -3,7 +3,7 @@
 // only paths that exist. (2) They mention every /api/* route, workflow, skill
 // and hook. (3) Every Worker module (worker/), lib/ file, scripts/ file and
 // app/ page or route file opens with a one-line purpose comment, so the module
-// inventory lives in the code, not in prose. Run by tests/docs.test.ts (so
+// inventory lives in the code, not in prose. Run by tests/repo/docs.test.ts (so
 // `npm test`, CI and deploy enforce it) and by the Stop hook
 // (.claude/hooks/stop-docs.mjs) before a session ends.
 //   node scripts/check-docs.mjs        prints the problems (exit 1 on any)

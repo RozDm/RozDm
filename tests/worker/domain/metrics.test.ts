@@ -5,7 +5,7 @@ import {
   isDatacenterAsn,
   isValidSlug,
   looksLikeBot,
-} from '@/worker/domain/metrics'
+} from '../../../worker/domain/metrics'
 
 describe('isValidSlug', () => {
   it('accepts normal slugs', () => {

@@ -19,7 +19,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
-    // One worker per file is ~1s of spawn; tests/blog.test.ts resets its own module cache.
+    // One worker per file is ~1s of spawn; tests/lib/server/blog.test.ts resets its own module cache.
     isolate: false,
     // node:sqlite (tests/worker) prints an ExperimentalWarning per worker; no signal.
     execArgv: ['--disable-warning=ExperimentalWarning'],
