@@ -6,10 +6,13 @@
 // under the cron interval, easily under the dashboard's OK refresh, and the
 // KV read cost drops to roughly one per minute per colo instead of one per
 // page view.
+import type { EmptyStatus } from '../api-types'
 import { apiJson, cachedApiJson, putCachedApiJson } from '../http'
 import { STATUS_KEY } from '../status'
 
 const STATUS_CACHE_TTL_S = 60
+// The answer when KV has no snapshot; a stored one is the cron's StatusData.
+const EMPTY_STATUS = JSON.stringify({ results: [], history: [] } satisfies EmptyStatus)
 
 export async function handleStatus(url: URL, env: Env, ctx: ExecutionContext): Promise<Response | null> {
   if (url.pathname !== '/api/status') return null
@@ -18,7 +21,7 @@ export async function handleStatus(url: URL, env: Env, ctx: ExecutionContext): P
   const cache = await cachedApiJson(`${url.origin}${url.pathname}`)
   if (cache.hit) return cache.hit
 
-  let body = '{"results":[],"history":[]}'
+  let body = EMPTY_STATUS
   try {
     body = (await env.STATUS.get(STATUS_KEY)) || body
   } catch (err) {
@@ -27,7 +30,7 @@ export async function handleStatus(url: URL, env: Env, ctx: ExecutionContext): P
   }
   // Only cache positive snapshots; an empty body comes from a KV error and
   // shouldn't pin the bad state at the edge for a minute.
-  if (body !== '{"results":[],"history":[]}') {
+  if (body !== EMPTY_STATUS) {
     return putCachedApiJson(ctx, cache.key, body, STATUS_CACHE_TTL_S)
   }
   return apiJson(body)

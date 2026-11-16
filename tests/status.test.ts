@@ -10,7 +10,8 @@ import {
   monitors,
   parseHistory,
 } from '@/src/status'
-import type { HistoryEntry, MonitorResult } from '@/src/status'
+import type { HistoryEntry } from '@/src/api-types'
+import type { MonitorResult } from '@/src/status'
 
 const result = (name: string, ok: boolean): MonitorResult => ({
   name,

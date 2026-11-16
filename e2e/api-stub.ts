@@ -3,7 +3,17 @@
 // the status and JSON shape of the real route handler's (src/routes/), and
 // tests/worker/api-stub.test.ts holds them to it: a handler change that
 // alters an answer fails there until the stub follows. No Playwright import —
-// Vitest loads this file too.
+// Vitest loads this file too. Bodies `satisfies` the contract (src/api-types.ts).
+import type {
+  ApiError,
+  ApiOk,
+  GeoResponse,
+  SeriesRangeKey,
+  StatusResponse,
+  TimeseriesError,
+  TimeseriesResponse,
+  ViewsResponse,
+} from '../src/api-types'
 
 export interface StubAnswer {
   status: number
@@ -23,7 +33,7 @@ export const hourKey = (ms: number) => {
 export const STUB_COUNTRIES: Record<string, number> = { NO: 120, US: 9, UA: 4 }
 export const STUB_MONITORS = ['NetBox', 'Grafana']
 
-const RANGES = ['24h', '7d', '30d', 'all']
+const RANGES: string[] = ['24h', '7d', '30d', 'all'] satisfies SeriesRangeKey[]
 
 export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer {
   const path = url.pathname
@@ -35,21 +45,22 @@ export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer 
       updatedAt: new Date(now - 60_000).toISOString(),
       results: STUB_MONITORS.map((name, i) => ({ name, ok: true, status: 200, ms: 120 + 20 * i })),
       history: [2, 1, 0].map((i) => ({ at: new Date(now - i * 300_000).toISOString(), up })),
-    })
+    } satisfies StatusResponse)
   }
-  if (path === '/api/geo') return json({ countries: STUB_COUNTRIES })
+  if (path === '/api/geo') return json({ countries: STUB_COUNTRIES } satisfies GeoResponse)
   if (path === '/api/timeseries') {
     const metric = url.searchParams.get('metric')
-    if (metric !== 'geo' && metric !== 'view' && metric !== 'mailfail') return json({ error: 'bad metric' }, 400)
+    if (metric !== 'geo' && metric !== 'view' && metric !== 'mailfail')
+      return json({ error: 'bad metric' } satisfies TimeseriesError, 400)
     const asked = url.searchParams.get('range') ?? ''
-    const range = RANGES.includes(asked) ? asked : '7d'
+    const range = (RANGES.includes(asked) ? asked : '7d') as SeriesRangeKey
     // No mail has failed in the stub's world.
     const points =
       metric === 'mailfail' ? [] : [30, 5, 2].map((h, i) => ({ ts: hourKey(now - h * 3_600_000), value: i + 1 }))
-    return json({ metric, range, points })
+    return json({ metric, range, points } satisfies TimeseriesResponse)
   }
-  if (/^\/api\/views\/[^/]+$/.test(path)) return json({ views: method === 'POST' ? 4 : 3 })
-  if (path === '/api/visit' && method === 'POST') return json({ ok: true })
-  if (path === '/api/contact' && method === 'POST') return json({ ok: true })
-  return json({ error: 'not found' }, 404)
+  if (/^\/api\/views\/[^/]+$/.test(path)) return json({ views: method === 'POST' ? 4 : 3 } satisfies ViewsResponse)
+  if (path === '/api/visit' && method === 'POST') return json({ ok: true } satisfies ApiOk)
+  if (path === '/api/contact' && method === 'POST') return json({ ok: true } satisfies ApiOk)
+  return json({ error: 'not found' } satisfies ApiError, 404)
 }

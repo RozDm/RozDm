@@ -34,7 +34,8 @@ file purposes: `node scripts/check-docs.mjs --map`; incidents: `docs/history.md`
   `deploy.yml`); `OWNER_INBOX` never enters the repo. Traces stay off.
 - `src/` checks under `tsconfig.worker.json`: `npm run cf-typegen` after a
   `wrangler.jsonc` change or wrangler bump, commit it. `csp`, `contact`,
-  `status`, `metrics`, `timeseries`, `ip` also check under the app tsconfig:
-  DOM-compatible APIs only.
+  `status`, `metrics`, `timeseries`, `ip`, `api-types` also check under the
+  app tsconfig: DOM-compatible APIs only. A changed answer shape changes
+  `api-types.ts` (the `/api/*` contract) first.
 - A new endpoint gets a worker test AND a `scripts/smoke.sh` check; a changed
   answer updates `e2e/api-stub.ts`. No `@cloudflare/vitest-pool-workers`.

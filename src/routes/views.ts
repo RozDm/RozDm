@@ -2,6 +2,7 @@
 // /api/views/<slug> — GET reads the counter, POST counts one view. Only the
 // page's own same-origin fetch() counts, so crawlers and external spam can't
 // inflate it.
+import type { ViewsError, ViewsResponse } from '../api-types'
 import { allowWrite, apiJson } from '../http'
 import { isDatacenterAsn, isValidSlug, isWriteAllowed } from '../metrics'
 
@@ -27,7 +28,7 @@ export async function handleViews(url: URL, request: Request, env: Env): Promise
   if (!match) return null
 
   const slug = match[1]
-  if (!isValidSlug(slug)) return apiJson('{"error":"bad slug"}', 400)
+  if (!isValidSlug(slug)) return apiJson(JSON.stringify({ error: 'bad slug' } satisfies ViewsError), 400)
 
   if (
     request.method === 'POST' &&
@@ -56,7 +57,7 @@ export async function handleViews(url: URL, request: Request, env: Env): Promise
       try {
         env.METRICS_AE.writeDataPoint({ indexes: [slug], blobs: ['view', slug], doubles: [1] })
       } catch {}
-      return apiJson(JSON.stringify({ views: row.count }))
+      return apiJson(JSON.stringify({ views: row.count } satisfies ViewsResponse))
     }
   }
 
@@ -64,5 +65,5 @@ export async function handleViews(url: URL, request: Request, env: Env): Promise
     .bind(slug)
     .first<{ count: number }>()
     .catch(() => null)
-  return apiJson(JSON.stringify({ views: row?.count ?? 0 }))
+  return apiJson(JSON.stringify({ views: row?.count ?? 0 } satisfies ViewsResponse))
 }

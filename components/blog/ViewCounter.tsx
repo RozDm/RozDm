@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { DICT } from '@/data/i18n'
+import type { ViewsResponse } from '@/src/api-types'
 import { useLang } from '@/lib/use-lang'
 import { onFirstHumanInput } from '@/lib/visit'
 
@@ -24,7 +25,7 @@ export default function ViewCounter({ slug }: { slug: string }) {
     const load = (method: 'GET' | 'POST') =>
       fetch(`/api/views/${slug}`, { method, signal: controller.signal, cache: 'no-store' })
         .then((r) => r.json())
-        .then((d: { views?: number }) => {
+        .then((d: Partial<ViewsResponse>) => {
           if (typeof d.views === 'number') setViews(d.views)
         })
         .catch(() => {})
