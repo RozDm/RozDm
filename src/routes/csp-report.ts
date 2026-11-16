@@ -12,6 +12,7 @@
 // Always answers 204 to a POST, even for junk: a browser's report delivery
 // must never see an error it would retry, and an attacker learns nothing.
 // GET gets a 405 so the smoke test can confirm the route is wired.
+import type { ApiError } from '../api-types'
 import { allowWrite, apiJson, readCapped } from '../http'
 import { CSP_REPORT_PATH, applyBaseHeaders, parseCspReports } from '../csp'
 
@@ -27,7 +28,7 @@ function noContent(): Response {
 
 export async function handleCspReport(url: URL, request: Request, env: Env): Promise<Response | null> {
   if (url.pathname !== CSP_REPORT_PATH) return null
-  if (request.method !== 'POST') return apiJson('{"error":"method not allowed"}', 405)
+  if (request.method !== 'POST') return apiJson(JSON.stringify({ error: 'method not allowed' } satisfies ApiError), 405)
 
   if (Number(request.headers.get('content-length') ?? '0') > MAX_BODY_BYTES) return noContent()
   // Anyone can POST here; past the per-IP budget, drop reports silently.

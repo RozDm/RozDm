@@ -103,6 +103,8 @@ The module inventory is the purpose header of each file
 
 ## API surface
 
+The contract (each route's request/response JSON) is `src/api-types.ts`, types only: routes build bodies with `satisfies`, clients and `e2e/api-stub.ts` import it.
+
 - `/api/status` — GET, edge-cached 60 s. Public, so `buildStatusData`
   strips monitor URLs (`PublicMonitorResult`) — keep it so: one monitor is an
   admin login. Alert mails take the URL from the cron's own probes.

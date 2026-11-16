@@ -12,12 +12,8 @@
 // drift (ISO 'T', trailing 'Z', fractional seconds) can't silently miss every
 // key and blank the chart — the merge, not just the endpoint, is defended.
 
+import type { SeriesPoint } from '@/src/api-types'
 import { METRICS_EPOCH, normalizeBucketKey } from '@/src/timeseries'
-
-export interface SeriesPoint {
-  ts: string
-  value: number
-}
 
 // step = bucket size, count = how many buckets to draw. count is window/step
 // + 1 so the oldest partial bucket AE might return is still covered.

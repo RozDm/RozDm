@@ -1,4 +1,5 @@
 // Client-side helpers for the visitor-country data (/api/geo).
+import type { GeoResponse } from '@/src/api-types'
 
 // Colour intensity for a country on the world map (1/2/3, null = no visits),
 // relative to the busiest country on a log scale. The CSS owns the actual
@@ -39,7 +40,7 @@ export function fetchGeoCountries(): Promise<Record<string, number>> {
   if (cached && now - cached.at < TTL_MS) return cached.promise
   const promise = fetch('/api/geo', { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))))
-    .then((d: { countries?: Record<string, number> }) => d.countries ?? {})
+    .then((d: Partial<GeoResponse>) => d.countries ?? {})
   promise.catch(() => {
     if (cached?.promise === promise) cached = null
   })

@@ -10,6 +10,7 @@
 // GET is a harmless self-diagnostic (shows the caller's own country and
 // whether it would count; stores nothing) — handy when the map looks empty,
 // e.g. to tell "ad-blocker swallowed the POST" from "edge sees no country".
+import type { VisitError, VisitProbe, VisitResponse } from '../api-types'
 import { allowWrite, apiJson } from '../http'
 import { isWriteAllowed, isCountableCountry } from '../metrics'
 import { recordGeo } from './geo'
@@ -29,22 +30,22 @@ export async function handleVisit(
         country: typeof c === 'string' ? c : null,
         countable: typeof c === 'string' && isCountableCountry(c),
         note: 'A real visit is recorded by the POST beacon from the page, not this GET.',
-      }),
+      } satisfies VisitProbe),
     )
   }
 
   if (request.method !== 'POST') return null
 
   if (!isWriteAllowed(request.headers, url.origin)) {
-    return apiJson('{"error":"forbidden"}', 403)
+    return apiJson(JSON.stringify({ error: 'forbidden' } satisfies VisitError), 403)
   }
   if (!(await allowWrite(env, request, 'visit'))) {
-    return apiJson('{"error":"rate limited"}', 429)
+    return apiJson(JSON.stringify({ error: 'rate limited' } satisfies VisitError), 429)
   }
 
   recordGeo(env, ctx, request.cf?.country, {
     asn: request.cf?.asn,
     org: request.cf?.asOrganization,
   })
-  return apiJson('{"ok":true}')
+  return apiJson(JSON.stringify({ ok: true } satisfies VisitResponse))
 }

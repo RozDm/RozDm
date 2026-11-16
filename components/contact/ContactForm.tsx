@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Turnstile, { type TurnstileHandle } from './Turnstile'
 import { DICT } from '@/data/i18n'
 import { useLang } from '@/lib/use-lang'
+import type { ApiError, ContactErrorCode } from '@/src/api-types'
 import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/src/contact'
 
 type FormState = 'idle' | 'sending' | 'sent' | 'error' | 'invalid' | 'ratelimited' | 'challenge' | 'blocked' | 'widget'
@@ -19,11 +20,11 @@ const inputClass =
 type Field = HTMLInputElement | HTMLTextAreaElement
 
 // What a refused submission means, from the status and the Worker's
-// `{"error": …}` (src/routes/contact.ts). Only a Turnstile refusal asks the
+// `{"error": …}` (ContactErrorCode, src/api-types.ts). Only a Turnstile refusal asks the
 // visitor to solve the challenge; the Sec-Fetch/UA filter ("forbidden") and
 // anything that isn't the Worker's own answer (an edge 429 when the daily
 // request quota is spent) send them to e-mail instead.
-function refusedState(status: number, error: unknown): FormState {
+function refusedState(status: number, error: ContactErrorCode | null | undefined): FormState {
   if (status === 429) return error === 'rate limited' ? 'ratelimited' : 'error'
   if (status === 422) return 'invalid'
   if (status === 403) {
@@ -98,7 +99,7 @@ export default function ContactForm() {
         // it rate-limited or failed to mail, so a retry needs a fresh one.
         turnstileRef.current?.reset()
         const error = await res.json().then(
-          (d: { error?: unknown } | null) => d?.error,
+          (d: Partial<ApiError<ContactErrorCode>> | null) => d?.error,
           () => null,
         )
         setState(refusedState(res.status, error))

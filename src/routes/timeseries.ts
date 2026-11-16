@@ -7,6 +7,7 @@
 // series (flagged `degraded`) so the UI degrades gracefully instead of erroring. AE-side failures
 // (non-2xx, parse, fetch) log to Worker observability via console.error so an
 // unexpectedly empty chart is diagnosable from the dashboard.
+import type { SeriesPoint, TimeseriesError, TimeseriesResponse } from '../api-types'
 import { apiJson, cachedApiJson, putCachedApiJson } from '../http'
 
 // Must stay below the 30 s between the watchdog's three tries
@@ -21,7 +22,7 @@ export async function handleTimeseries(url: URL, env: Env, ctx: ExecutionContext
   if (url.pathname !== '/api/timeseries') return null
 
   const metric = parseMetric(url.searchParams.get('metric'))
-  if (!metric) return apiJson('{"error":"bad metric"}', 400)
+  if (!metric) return apiJson(JSON.stringify({ error: 'bad metric' } satisfies TimeseriesError), 400)
   const { key: rangeKey, range } = parseRange(url.searchParams.get('range'))
 
   // Canonical key from the validated metric+range only — the raw URL would
@@ -29,7 +30,7 @@ export async function handleTimeseries(url: URL, env: Env, ctx: ExecutionContext
   const cache = await cachedApiJson(`${url.origin}${url.pathname}?metric=${metric}&range=${rangeKey}`)
   if (cache.hit) return cache.hit
 
-  let points: { ts: string; value: number }[] = []
+  let points: SeriesPoint[] = []
   // Tracks whether the empty/filled series is a real answer from AE. Only
   // real answers get edge-cached: caching a transient AE failure used to pin
   // an empty chart at the colo for the whole TTL (up to 10 min on 30d), which
@@ -72,7 +73,12 @@ export async function handleTimeseries(url: URL, env: Env, ctx: ExecutionContext
   }
 
   if (aeAnswered) {
-    return putCachedApiJson(ctx, cache.key, JSON.stringify({ metric, range: rangeKey, points }), range.ttlSeconds)
+    return putCachedApiJson(
+      ctx,
+      cache.key,
+      JSON.stringify({ metric, range: rangeKey, points } satisfies TimeseriesResponse),
+      range.ttlSeconds,
+    )
   }
   // Degraded answer (missing secrets or AE failure): cached for only
   // DEGRADED_TTL_S — bounds AE API calls while AE/the token is down without
@@ -82,7 +88,7 @@ export async function handleTimeseries(url: URL, env: Env, ctx: ExecutionContext
   return putCachedApiJson(
     ctx,
     cache.key,
-    JSON.stringify({ metric, range: rangeKey, points, degraded: true }),
+    JSON.stringify({ metric, range: rangeKey, points, degraded: true } satisfies TimeseriesResponse),
     DEGRADED_TTL_S,
   )
 }

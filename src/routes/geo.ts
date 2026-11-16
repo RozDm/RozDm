@@ -1,6 +1,7 @@
 // GET /api/geo and recordGeo() — visitor-country counters in D1.
 // Visitor-country counters in D1. recordGeo() upserts once per browser
 // session (called from the /api/visit beacon), GET /api/geo reads the aggregate.
+import type { GeoError, GeoResponse } from '../api-types'
 import { apiJson, cachedApiJson, putCachedApiJson } from '../http'
 import { countriesFromRows, isCountableCountry, isDatacenterAsn } from '../metrics'
 
@@ -66,7 +67,7 @@ export async function handleGeo(url: URL, env: Env, ctx: ExecutionContext): Prom
   // A failed read is a 503 (never cached), not an empty map: an empty 200
   // read as "no visitors yet" on the site and as health to smoke.sh and the
   // watchdog, which probe D1 through this endpoint (docs/history.md).
-  if (!rows) return apiJson(JSON.stringify({ error: 'unavailable' }), 503)
-  const body = JSON.stringify({ countries: countriesFromRows(rows.results ?? []) })
+  if (!rows) return apiJson(JSON.stringify({ error: 'unavailable' } satisfies GeoError), 503)
+  const body = JSON.stringify({ countries: countriesFromRows(rows.results ?? []) } satisfies GeoResponse)
   return putCachedApiJson(ctx, cache.key, body, GEO_CACHE_TTL_S)
 }

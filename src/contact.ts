@@ -1,6 +1,7 @@
 // Pure logic for outbound mail: contact-form validation, MIME building, status-alert mail.
 // Pure logic for outbound mail: contact-form validation/MIME and status-alert
 // MIME. (DOM-compatible APIs only — tests import this under the app tsconfig.)
+import type { ContactRequest } from './api-types'
 
 // The site's public address (the form's fallback, the footer, the privacy
 // notice; public/.well-known/security.txt is held to it by a test) — also the
@@ -37,17 +38,14 @@ export const CONTACT_PRUNE_CRON = '0 3 * * *'
 // two can't drift. Not `website`/`url`/`company`/`phone`-like: autofill and
 // password managers fill those, and a filled honeypot silently drops a real
 // visitor's message.
-export const HONEYPOT_FIELD = 'topic'
+export const HONEYPOT_FIELD = 'topic' satisfies keyof ContactRequest
 
 export function isoCutoff(nowMs: number, windowMs: number): string {
   return new Date(nowMs - windowMs).toISOString()
 }
 
-export interface ContactPayload {
-  name: string
-  email: string
-  message: string
-}
+// The validated message (the wire body is ContactRequest, src/api-types.ts).
+export type ContactPayload = Pick<ContactRequest, 'name' | 'email' | 'message'>
 
 export interface ContactInput extends ContactPayload {
   turnstileToken: string | null

@@ -1,14 +1,14 @@
 // Pure helpers for the Analytics Engine time-series endpoint.
 // Pure helpers for the AE-backed time-series endpoint. DOM-compatible APIs
 // only — tests import this under the app tsconfig.
+import type { SeriesMetric, SeriesPoint, SeriesRangeKey } from './api-types'
 
 // Supported metrics: keep the surface small and explicit so a typo in the
 // query string can't fan out into an arbitrary SQL clause.
 // `mailfail` is not charted: one point per mail the Worker failed to send
 // (contact form or status alert), read by status-watchdog.yml — the mail path
 // can't report its own death by mail.
-export type SeriesMetric = 'view' | 'geo' | 'mailfail'
-
+// (SeriesMetric, SeriesRangeKey, SeriesPoint: src/api-types.ts.)
 export function parseMetric(value: string | null): SeriesMetric | null {
   return value === 'view' || value === 'geo' || value === 'mailfail' ? value : null
 }
@@ -29,7 +29,7 @@ export interface SeriesRange {
   ttlSeconds: number
 }
 
-const RANGES: Record<string, SeriesRange> = {
+const RANGES: Record<SeriesRangeKey, SeriesRange> = {
   '24h': { intervalSql: "INTERVAL '24' HOUR", bucketSql: 'toStartOfHour(timestamp)', ttlSeconds: 60 },
   '7d': { intervalSql: "INTERVAL '7' DAY", bucketSql: 'toStartOfHour(timestamp)', ttlSeconds: 300 },
   '30d': {
@@ -44,8 +44,8 @@ const RANGES: Record<string, SeriesRange> = {
   },
 }
 
-export function parseRange(value: string | null): { key: string; range: SeriesRange } {
-  const key = value && Object.hasOwn(RANGES, value) ? value : '7d'
+export function parseRange(value: string | null): { key: SeriesRangeKey; range: SeriesRange } {
+  const key = value && Object.hasOwn(RANGES, value) ? (value as SeriesRangeKey) : '7d'
   return { key, range: RANGES[key] }
 }
 
@@ -78,11 +78,6 @@ export function buildSeriesSql(dataset: string, metric: SeriesMetric, range: Ser
     'ORDER BY ts ASC',
     'FORMAT JSON',
   ].join(' ')
-}
-
-export interface SeriesPoint {
-  ts: string
-  value: number
 }
 
 // Canonicalise a bucket key to the fixed-width UTC form "YYYY-MM-DD HH:MM:SS"

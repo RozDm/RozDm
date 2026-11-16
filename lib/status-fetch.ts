@@ -6,16 +6,12 @@
 // Calls within SHARE_MS get the same promise; the dashboard's polls (30 s
 // apart at the least) always ask afresh. A failed request is forgotten so the
 // next caller retries. Same idea as fetchGeoCountries (lib/geo.ts).
-import type { HistoryEntry, PublicMonitorResult } from '@/src/status'
+import type { StatusResponse } from '@/src/api-types'
 import { noteServerDate } from './server-clock'
 
 // What /api/status answers: the cron's snapshot, or `{results:[],history:[]}`
 // (no updatedAt) when KV has none.
-export interface StatusSnapshot {
-  updatedAt?: string
-  results?: PublicMonitorResult[]
-  history?: HistoryEntry[]
-}
+export type StatusSnapshot = StatusResponse
 
 const SHARE_MS = 10_000
 let shared: { at: number; promise: Promise<StatusSnapshot> } | null = null

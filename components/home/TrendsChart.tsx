@@ -8,19 +8,10 @@ import { noteServerDate, serverNow } from '@/lib/server-clock'
 import { DICT } from '@/data/i18n'
 import { INTL_LOCALE, type Lang } from '@/lib/i18n'
 import { useLang } from '@/lib/use-lang'
+import type { SeriesRangeKey, TimeseriesResponse } from '@/src/api-types'
 
-interface Point {
-  ts: string
-  value: number
-}
-
-interface Series {
-  metric: string
-  range: string
-  points: Point[]
-}
-
-type Range = '24h' | '7d' | '30d' | 'all'
+type Series = TimeseriesResponse
+type Range = SeriesRangeKey
 
 // Tab order; labels come from the dictionary (24t/Alt vs 24h/All).
 const RANGES: Range[] = ['24h', '7d', '30d', 'all']

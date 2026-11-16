@@ -1,4 +1,5 @@
 // Uptime monitoring: monitor list and the (pure) KV snapshot logic.
+import type { HistoryEntry, PublicMonitorResult, StatusData } from './api-types'
 
 export interface Monitor {
   name: string
@@ -30,20 +31,14 @@ export const HISTORY_LIMIT = 149
 // fetch throws and the probe is recorded as down (ok = false, ms ≈ this value).
 export const MONITOR_TIMEOUT_MS = 10_000
 
-export interface MonitorResult {
-  name: string
+// The cron's own probe result: the public one (src/api-types.ts) plus the URL,
+// kept for the alert mails.
+export interface MonitorResult extends PublicMonitorResult {
   url: string
-  ok: boolean
-  status: number
-  ms: number
 }
 
-// One cron tick: per-monitor up/down keyed by monitor name, so the dashboard
-// can draw an uptime bar per service instead of one aggregated bar.
-export interface HistoryEntry {
-  at: string
-  up: Record<string, boolean>
-}
+// HistoryEntry (src/api-types.ts) is one cron tick: per-monitor up/down keyed
+// by monitor name, so the dashboard draws an uptime bar per service.
 
 // When a monitor's current outage began, as far as the history shows: the
 // time of the first check in its unbroken run of failures up to now, or null
@@ -60,13 +55,7 @@ export function failingSince(history: HistoryEntry[], name: string): { at: strin
 // monitor: no URL. The monitored hosts include an admin panel (NetBox), and
 // publishing its address on the front page only hands it to password
 // sprayers. The URL stays in the cron's own results for the alert mails.
-export type PublicMonitorResult = Omit<MonitorResult, 'url'>
-
-export interface StatusData {
-  updatedAt: string
-  results: PublicMonitorResult[]
-  history: HistoryEntry[]
-}
+// PublicMonitorResult and StatusData: src/api-types.ts.
 
 function isHistoryEntry(value: unknown): value is HistoryEntry {
   if (typeof value !== 'object' || value === null) return false
