@@ -132,7 +132,7 @@ function wildcardRe(pat, strict = false) {
       const n = pat[++j]
       if (n !== '*' && n !== '\\') throw new Error(`invalid escape in wildcard "${pat}"`)
       re += `\\${n}`
-    } else re += c.replace(/[.+?^${}()|[\]]/g, '\\$&') // one char; `g` for CodeQL js/incomplete-sanitization
+    } else re += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // the full escape set, for CodeQL; `*` and `\` never get here
   }
   return new RegExp(`^${re}$`, strict ? '' : 'i')
 }
