@@ -60,8 +60,8 @@ a module, route, workflow, script, skill or hook in no doc.
 
 ## Commands
 
-- `npm run check` (format + lint + typecheck + tests) must pass before a PR;
-  `npm run format` fixes formatting.
+- `npm run check` (format + lint + typecheck + tests; quiet when green, `-s`
+  drops npm's banner) must pass before a PR; `npm run format` fixes formatting.
 - `npm run build` (exports to `out/`, finalizes it) only when the change
   touches pages, metadata, the export or `scripts/`; CI/deploy then run
   `check:waf`, `check:csp`, `check:dict`, `wrangler deploy --dry-run`.
