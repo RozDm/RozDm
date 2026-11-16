@@ -155,7 +155,7 @@ jobs:
                 f"p99 {ms(q['cpuTimeP99']):.1f} ms, p99.9 {ms(q['cpuTimeP999']):.1f} ms, max {ms(r['max']['cpuTime']):.1f} ms (Free's limit: 10 ms)")
           fail = False
           if ms(q['cpuTimeP999']) > float(os.environ['P999_MAX_MS']):
-              print(f"::error::Worker CPU p99.9 is {ms(q['cpuTimeP999']):.1f} ms (> {os.environ['P999_MAX_MS']} ms of Free's 10) — the heaviest events: Workers Observability, filter cpuTimeMs > 6 (src/CLAUDE.md)")
+              print(f"::error::Worker CPU p99.9 is {ms(q['cpuTimeP999']):.1f} ms (> {os.environ['P999_MAX_MS']} ms of Free's 10) — the heaviest events: Workers Observability, filter cpuTimeMs > 6 (docs/reference/worker.md)")
               fail = True
           if r['sum']['errors'] > 0:
               print(f"::error::{r['sum']['errors']} Worker invocation(s) failed in 24 h — 1102 = CPU limit exceeded (Workers Logs)")

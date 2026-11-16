@@ -37,7 +37,7 @@ describe('ci.yml', () => {
 })
 
 // Every secret lives in the `production` environment, deployable from `main`
-// only (.github/CLAUDE.md, "Secrets"), so only main's code ever gets one. The
+// only (docs/reference/ci.md, "Conventions, Dependabot, repository settings, secrets"), so only main's code ever gets one. The
 // workflow side of that: a job reading a secret names the environment, its
 // workflow starts only from a push to main, a manual run or the schedule, no
 // workflow runs base-repo code on PR input (`pull_request_target`,

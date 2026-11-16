@@ -1,5 +1,5 @@
 // Docs drift check and module map: docs name real paths, source files state their purpose.
-// (1) The agent docs (CLAUDE.md files, README, skills) name
+// (1) The agent docs (CLAUDE.md files, docs/reference/, README, skills) name
 // only paths that exist. (2) They mention every /api/* route, workflow, skill
 // and hook. (3) Every Worker module (src/), lib/ file, scripts/ file and
 // app/ page or route file opens with a one-line purpose comment, so the module
@@ -105,6 +105,7 @@ export function checkDocs(root = ROOT) {
     'README.md',
     'docs/gotchas.md',
     'docs/decisions.md',
+    ...files.filter((f) => /^docs\/reference\/[^/]+\.md$/.test(f)),
     ...skills,
   ]
   const text = Object.fromEntries(docs.map((d) => [d, read(d)]))
@@ -139,10 +140,16 @@ export function checkDocs(root = ROOT) {
   for (const f of ls('src/routes', /\.ts$/)) {
     const stem = f.replace(/\.ts$/, '')
     const route = ROUTE_PATHS[stem] ?? `/api/${stem}`
-    need(text['src/CLAUDE.md'].includes(route), `src/CLAUDE.md: route ${route} is not in the API surface`)
+    need(
+      anyDoc(route, ['src/CLAUDE.md', 'docs/reference/worker.md']),
+      `docs/reference/worker.md: route ${route} is not in the API surface`,
+    )
   }
   for (const f of ls('.github/workflows', /\.ya?ml$/)) {
-    need(text['.github/CLAUDE.md'].includes(f), `.github/CLAUDE.md: workflow ${f} is not described`)
+    need(
+      anyDoc(f, ['.github/CLAUDE.md', 'docs/reference/ci.md']),
+      `docs/reference/ci.md: workflow ${f} is not described`,
+    )
   }
   for (const d of subdirs('.claude/skills')) need(anyDoc(d), `skill ${d} is not mentioned in any doc`)
   for (const f of ls('.claude/hooks', /./)) need(anyDoc(f), `hook .claude/hooks/${f} is not mentioned in any doc`)

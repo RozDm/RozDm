@@ -13,6 +13,8 @@ Each loads only when a task touches its area:
 - `src/CLAUDE.md` — the Worker, `/api/*`, CSP, worker tests;
 - `.github/CLAUDE.md` — CI/deploy, ops workflows;
 - `content/CLAUDE.md` — the blog (also before changing blog code);
+- `docs/reference/{worker,frontend,ci,app}.md` — the detail behind the four
+  lists above (surface, bindings, workflows, widgets); when a list isn't enough;
 - `docs/gotchas.md` — before touching a root config file (`package.json`,
   `next.config.mjs`, ESLint/TS, `wrangler.jsonc`, tsconfigs) or R2/backups;
 - `docs/decisions.md` — owner's standing decisions: before proposing anything;
