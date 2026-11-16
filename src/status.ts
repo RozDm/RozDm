@@ -89,12 +89,17 @@ export function parseHistory(raw: string | null): HistoryEntry[] {
 
 // Merge fresh results into the stored snapshot. Entries in the old format
 // (aggregated `up: boolean`) are dropped, as is anything unparsable.
-export function buildStatusData(raw: string | null, results: MonitorResult[], updatedAt: string): StatusData {
-  let history = parseHistory(raw)
-  history.push({
-    at: updatedAt,
-    up: Object.fromEntries(results.map((r) => [r.name, r.ok])),
-  })
+// `previous` is the stored snapshot, or its history already parsed — the cron
+// parses it once for both this and detectTransitions.
+export function buildStatusData(
+  previous: string | null | HistoryEntry[],
+  results: MonitorResult[],
+  updatedAt: string,
+): StatusData {
+  let history = [
+    ...(Array.isArray(previous) ? previous : parseHistory(previous)),
+    { at: updatedAt, up: Object.fromEntries(results.map((r) => [r.name, r.ok])) },
+  ]
   if (history.length > HISTORY_LIMIT) history = history.slice(-HISTORY_LIMIT)
   return {
     updatedAt,

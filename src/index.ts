@@ -81,6 +81,9 @@ async function runHealthChecks(env: Env): Promise<void> {
         })
         status = res.status
         ok = res.status === 200
+        // Only the status matters: drop the page instead of leaving its
+        // stream open until the isolate collects it.
+        res.body?.cancel().catch(() => {})
       } catch {
         ok = false
       }
@@ -91,7 +94,7 @@ async function runHealthChecks(env: Env): Promise<void> {
   const previousHistory = parseHistory(raw)
   const transitions = detectTransitions(previousHistory, results)
   const updatedAt = new Date().toISOString()
-  const data = buildStatusData(raw, results, updatedAt)
+  const data = buildStatusData(previousHistory, results, updatedAt)
   // The alert mails below wait for this write: "already mailed" lives in the
   // snapshot, so a mail without it would repeat on every tick until KV takes
   // a write again. Held, the mail goes out on the first tick that is stored;

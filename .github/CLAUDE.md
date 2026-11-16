@@ -64,6 +64,13 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
   Mode, which challenges GitHub runners — off for that reason); a `429` is
   the zone's rate limit (60/10 s per IP). GitHub disables schedules after
   60 days without repo activity: re-enable from the Actions tab.
+  Its `cpu` job (`environment: production`, `CLOUDFLARE_ACCOUNT_ID` +
+  `AE_API_TOKEN`; GraphQL `workersInvocationsAdaptive` needs only Account
+  Analytics: Read) runs on its own slots `44 1,7,13,19 * * *` and manual
+  runs, not every watchdog run (each production job records a deployment):
+  it fails on Worker CPU p99.9 > 8 ms over 24 h (Free's limit is 10) or any
+  Worker error (1102 = CPU exceeded). A 24 h window: one spike stays red
+  for up to four runs.
 - `analytics-report.yml` — manual, `days` 1–90, read-only: AE breakdowns
   (Besøk by ASN/operator and country, browser CSP violations, mails the
   Worker failed to send, honeypot drops) in the run summary, also teed to the job log for `get_job_logs`.
@@ -150,8 +157,8 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
   the Worker's `CF_ACCOUNT_ID`), `TURNSTILE_SECRET`, `AE_API_TOKEN`
   (Account Analytics: Read), `NETBOX_URL`, `OWNER_INBOX` (the owner's inbox
   for contact/status mail; kept out of the public repo). `TURNSTILE_SITE_KEY` is a
-  repository variable (public). `ci.yml` and `status-watchdog.yml` use no
-  secrets. `tests/workflows.test.ts` holds the workflows to this: a job
+  repository variable (public). `ci.yml` uses no secrets, nor does
+  `status-watchdog.yml` but for its `cpu` job. `tests/workflows.test.ts` holds the workflows to this: a job
   reading a secret runs in `production`, whose workflows start only from a
   push to `main`, a manual run or the schedule, and it installs with `npm ci
   --ignore-scripts` and no npm cache (no package code next to a token — the
