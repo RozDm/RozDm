@@ -68,7 +68,7 @@ function main([name, tool = 'list', arg]) {
   const server = SERVERS[name]
   if (!server) {
     console.error(`usage: node scripts/mcp.mjs <${Object.keys(SERVERS).join('|')}> list [filter] | <tool> ['<json>']`)
-    return 2
+    return 1
   }
   const { session } = send(server, {
     id: 0,

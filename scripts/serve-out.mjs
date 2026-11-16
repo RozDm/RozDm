@@ -15,6 +15,9 @@ import { createServer as createTlsServer } from 'node:https'
 import { existsSync, mkdtempSync, readFileSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { extname, join, resolve, sep } from 'node:path'
+import { flags } from './cli.mjs'
+
+flags([], '[PORT=n] [TLS=1] node scripts/serve-out.mjs')
 
 const ROOT = resolve('out')
 const PORT = Number(process.env.PORT ?? 4173)

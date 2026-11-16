@@ -12,8 +12,8 @@ secret model. The traps to know before editing `.github/` are in
   public always-pass TEST Turnstile site key `1x00000000000000000000AA`, so
   the widget renders as in production; `e2e/fixtures.ts` fakes its script),
   `npx wrangler deploy --dry-run` (bundle + `wrangler.jsonc`, no
-  credentials), `check:dict` (the UI dictionary in exactly one chunk —
-  `docs/gotchas.md`), `check:waf` (`scripts/check-waf.mjs`: the WAF
+  credentials), `check:dict` (`scripts/check-dict.mjs`: the UI dictionary in
+  exactly one chunk — `docs/gotchas.md`), `check:waf` (`scripts/check-waf.mjs`: the WAF
   expression blocks no URL in `out/` and still blocks its scanner list),
   `check:csp` (`scripts/check-csp.mjs`); `out/` goes on as a 1-day
   artifact. `e2e`: `npm run test:e2e` on that `out/` (traces: a 3-day

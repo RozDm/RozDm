@@ -19,6 +19,7 @@ import { appendFileSync, copyFileSync, readFileSync, readdirSync, writeFileSync 
 import { join, relative, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { withMetaCsp } from '../src/csp.ts'
+import { flags } from './cli.mjs'
 
 const OUT = 'out'
 
@@ -98,6 +99,7 @@ async function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  flags([], 'node scripts/finalize-export.mjs')
   main().catch((err) => {
     console.error(`finalize-export: ${err.message}`)
     process.exit(1)

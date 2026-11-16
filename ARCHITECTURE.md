@@ -41,6 +41,9 @@ an HTTP call from `src/routes/contact.ts`, not a binding. There is no R2.
 | `docs/` | Decisions, incident history, gotchas, edge security |
 
 `node scripts/check-docs.mjs --map` prints every module with its purpose line.
+Scripts share `scripts/cli.mjs` (`usage:` on bad arguments, a one-line reason
+and exit 1 on failure) and name no host of their own: the origin is
+`lib/site.ts`, which `scripts/smoke.sh` reads through `scripts/site-env.mjs`.
 
 ## Two languages
 

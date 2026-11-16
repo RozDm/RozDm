@@ -167,7 +167,12 @@ export function checkDocs(root = ROOT) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (process.argv.includes('--map')) {
+  const args = process.argv.slice(2)
+  if (args.some((a) => a !== '--map')) {
+    console.error('usage: node scripts/check-docs.mjs [--map]')
+    process.exit(1)
+  }
+  if (args.includes('--map')) {
     for (const { file, purpose } of moduleMap()) console.log(`${file} — ${purpose ?? '(no purpose header)'}`)
     process.exit(0)
   }

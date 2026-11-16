@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "cf-typegen": "wrangler types",
     "cf-typecheck": "WRANGLER_LOG=error wrangler types --check",
-    "check:dict": "n=$(grep -l 'Hopp til hovedinnhold' out/_next/static/chunks/*.js | wc -l); [ \"$n\" -eq 1 ] || { echo \"UI dictionary in $n chunks, want 1 (docs/gotchas.md: turbopackChunking)\"; exit 1; }",
+    "check:dict": "node scripts/check-dict.mjs",
     "predeploy": "npm run check",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier --write .",

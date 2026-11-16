@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 # Post-deploy smoke test of the live site; fails the pipeline if the basics are broken.
-# Post-deploy smoke test: hits the live site and fails the pipeline if the
-# basics are broken. Retries tolerate cert/route propagation right after
-# a deploy.
+# Retries tolerate cert/route propagation right after a deploy. Run from the
+# repo root (deploy.yml): the origin comes from lib/site.ts, the sample posts
+# from out/ when there is a build.
 set -u
 
-BASE="https://rozsoshnykh.no"
-UA="smoke-test/1.0 (+https://rozsoshnykh.no)"
+[ $# -eq 0 ] || { echo "usage: bash scripts/smoke.sh"; exit 1; }
+# SITE_URL and SITE_HOST, from the one place they live.
+SITE_ENV=$(node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/site-env.mjs) \
+  || { echo "Smoke test FAILED: no site constants from scripts/site-env.mjs"; exit 1; }
+eval "$SITE_ENV"
+BASE=$SITE_URL
+# The Worker's workers.dev address (wrangler.jsonc "name" on the account's
+# subdomain) — not a site constant: it must NOT serve the site.
+WORKERS_DEV="d.rozsoshnykh.workers.dev"
+MTA_STS="https://mta-sts.$SITE_HOST/.well-known/mta-sts.txt"
+UA="smoke-test/1.0 (+$BASE)"
 TMP=$(mktemp)
 HDR=$(mktemp)
 FAIL=0
@@ -231,9 +240,10 @@ if [ "$code" = 413 ]; then echo "OK   contact 413 (oversized body)"; else echo "
 # before Turnstile) — so the body is checked, not the code alone. Retried on
 # 429/5xx only: with Turnstile off each try is a mail to the owner, and that
 # one mail is the alarm.
-TS_BODY='{"name":"deploy-check","email":"deploy-check@rozsoshnykh.no","message":"Smoke check: this request carries no Turnstile token. If it reached you, TURNSTILE_SECRET is not set."}'
+TS_BODY=$(printf '{"name":"deploy-check","email":"deploy-check@%s","message":"%s"}' "$SITE_HOST" \
+  "Smoke check: this request carries no Turnstile token. If it reached you, TURNSTILE_SECRET is not set.")
 for try in 1 2 3; do
-  code=$(curl -sS -o "$TMP" -w '%{http_code}' --max-time 20 -A 'deploy-gate/1.0 (+https://rozsoshnykh.no)' \
+  code=$(curl -sS -o "$TMP" -w '%{http_code}' --max-time 20 -A "deploy-gate/1.0 (+$BASE)" \
     -X POST -H 'Content-Type: application/json' -H 'Sec-Fetch-Site: same-origin' \
     --data "$TS_BODY" "$BASE/api/contact" 2>/dev/null)
   case "$code" in 429 | 5??) [ "$try" = 3 ] || sleep 10 ;; *) break ;; esac
@@ -258,8 +268,8 @@ need "post og-image" "$NB_POST" && check_header "post og-image png" "$BASE${NB_P
 echo "== Canonical host and redirects =="
 # www and plain HTTP: the edge (zone-rules.yml). Slash-less pages and
 # /status: out/_redirects, so their Location is a path.
-check_redirect "www"         "https://www.rozsoshnykh.no/"        "$BASE/"
-check_redirect "http"        "http://rozsoshnykh.no/"             "$BASE/"
+check_redirect "www"         "https://www.$SITE_HOST/"            "$BASE/"
+check_redirect "http"        "http://$SITE_HOST/"                 "$BASE/"
 check_redirect "no-slash"    "$BASE/blogg"                         "/blogg/"
 check_redirect "status"      "$BASE/status"                        "/#status"
 # workers.dev is off (wrangler.jsonc): its address must not serve the site,
@@ -267,7 +277,7 @@ check_redirect "status"      "$BASE/status"                        "/#status"
 # answering for a while after the deploy.
 off=
 for i in 1 2 3 4 5 6; do
-  fetch "https://d.rozsoshnykh.workers.dev/blogg/" > /dev/null
+  fetch "https://$WORKERS_DEV/blogg/" > /dev/null
   grep -q 'rel="canonical"' "$TMP" || { off=1; break; }
   echo "  retry $i: workers.dev still serves the site"
   sleep 15
@@ -278,12 +288,12 @@ if [ -n "$off" ]; then echo "OK   workers.dev off"; else echo "FAIL workers.dev 
 # A custom domain's certificate can take minutes on its first deploy: wait up
 # to 5 min for the host to answer before check()'s own retries.
 for i in $(seq 1 20); do
-  curl -sSf -o /dev/null --max-time 10 "https://mta-sts.rozsoshnykh.no/.well-known/mta-sts.txt" 2>/dev/null && break
-  echo "  waiting for mta-sts.rozsoshnykh.no ($i/20)"
+  curl -sSf -o /dev/null --max-time 10 "$MTA_STS" 2>/dev/null && break
+  echo "  waiting for mta-sts.$SITE_HOST ($i/20)"
   sleep 15
 done
-check "mta-sts policy" "https://mta-sts.rozsoshnykh.no/.well-known/mta-sts.txt" 200 '^version: STSv1' '^mx: '
-check_header "mta-sts type" "https://mta-sts.rozsoshnykh.no/.well-known/mta-sts.txt" "^content-type: text/plain"
+check "mta-sts policy" "$MTA_STS" 200 '^version: STSv1' '^mx: '
+check_header "mta-sts type" "$MTA_STS" "^content-type: text/plain"
 
 echo "== Security headers =="
 check_header "HSTS"       "$BASE/" "^strict-transport-security:"
