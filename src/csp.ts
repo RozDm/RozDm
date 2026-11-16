@@ -183,7 +183,10 @@ function blockedKey(raw: string): string {
     if (u.protocol === 'data:' || u.protocol === 'blob:') return u.protocol.slice(0, -1)
     return u.origin.slice(0, 96)
   } catch {
-    return raw.slice(0, 64)
+    // Neither a keyword nor a URL: anyone's junk. Only URL-ish characters
+    // survive — no whitespace, `|` or markup — since the value ends up in
+    // the analytics-report run summary and its public log.
+    return raw.replace(/[^\w.:/-]/g, '').slice(0, 64) || 'unknown'
   }
 }
 
@@ -227,8 +230,11 @@ export function parseCspReports(payload: unknown, origin: string, max = 10): Csp
     if (doc.origin !== origin) continue
     const blockedRaw = typeof r.blocked === 'string' ? r.blocked : ''
     if (EXTENSION_RE.test(blockedRaw)) continue
+    // Directive names are letters and hyphens; anything else is dropped.
     const directive =
-      typeof r.directive === 'string' ? (r.directive.split(/\s+/)[0] || 'unknown').slice(0, 48) : 'unknown'
+      typeof r.directive === 'string'
+        ? (r.directive.split(/\s+/)[0] ?? '').replace(/[^a-z-]/gi, '').slice(0, 48) || 'unknown'
+        : 'unknown'
     out.push({ directive, blocked: blockedKey(blockedRaw), page: doc.pathname.slice(0, 128) })
   }
   return out

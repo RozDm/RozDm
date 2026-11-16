@@ -74,6 +74,9 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
 - `analytics-report.yml` — manual, `days` 1–90, read-only: AE breakdowns
   (Besøk by ASN/operator and country, browser CSP violations, mails the
   Worker failed to send, honeypot drops) in the run summary, also teed to the job log for `get_job_logs`.
+  AE strings can come from any client's POST, so each cell is flattened to
+  one line (a newline could start a `::workflow command::`) with `|`
+  escaped.
 - `reset-metrics.yml` — manual, type `RESET`: wipes the D1 `views` + `geo`
   counters (before/after counts). AE is append-only: bump `METRICS_EPOCH`
   in `src/timeseries.ts` after every run (6-hour UTC boundary, rounded
@@ -81,7 +84,12 @@ incident background: `docs/history.md`; the zone: `docs/cloudflare-security.md`.
 - `d1-repair.yml` — manual kit from the D1 incident: `info` (read-only),
   `restore` (Time Travel), `create` (no existence check — for a
   ghost-locked name), `recreate` (type RECREATE; the new database_id goes
-  into `wrangler.jsonc` + `npm run cf-typegen`), `sql` (one statement).
+  into `wrangler.jsonc` + `npm run cf-typegen`), `sql` (one statement on
+  `views`/`geo`). `sql` refuses any statement naming `contact`
+  (`tests/workflows.test.ts`): the statement shows in the step's env block
+  and its rows in the output, and a public repository's run logs are
+  public. Contact rows (reading one, an erasure request) are the
+  dashboard's D1 console, never a workflow.
 - `d1-bootstrap.yml` — one-shot: creates the metrics D1 (skipped when
   listed) and applies the schema.
 - `zone-rules.yml` — manual, idempotent, token `CLOUDFLARE_ZONE_TOKEN`

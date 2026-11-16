@@ -124,3 +124,16 @@ describe('workflow secrets', () => {
     }
   })
 })
+
+// The contact table is visitors' personal data, and a public repository's run
+// logs are public: d1-repair's one-off SQL refuses it before wrangler runs
+// (.github/CLAUDE.md).
+describe('d1-repair.yml', () => {
+  it('refuses one-off SQL that names the contact table', () => {
+    const yml = readFileSync(join(DIR, 'd1-repair.yml'), 'utf8')
+    const step = yml.slice(yml.indexOf('- name: Run one-off SQL'), yml.indexOf('- name: Create fresh database'))
+    const guard = step.indexOf(`grep -qi 'contact' <<<"$SQL_CMD"`)
+    expect(guard, 'the contact guard').toBeGreaterThan(-1)
+    expect(guard).toBeLessThan(step.indexOf('wrangler d1 execute'))
+  })
+})

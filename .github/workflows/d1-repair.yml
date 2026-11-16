@@ -20,6 +20,7 @@ name: Repair D1 (one-shot)
 #   sql      — run the single statement from `sql` against the database.
 #              For surgical one-off fixes (e.g. decrementing a counter a
 #              diagnostic probe inflated) where reset-metrics is too blunt.
+#              Refuses any statement naming `contact`: the run log is public.
 #              Dispatch requires write access, same as every mode here.
 on:
   workflow_dispatch:
@@ -41,7 +42,7 @@ on:
         required: false
         default: 'rozsoshnykh-metrics-v2'
       sql:
-        description: 'sql mode: single SQL statement to execute'
+        description: 'sql mode: one statement on views/geo. Never the contact table: personal data, and this log is public'
         required: false
         default: ''
 
@@ -110,6 +111,14 @@ jobs:
         run: |
           if [ -z "$SQL_CMD" ]; then
             echo "::error::sql mode needs the sql input"
+            exit 1
+          fi
+          # The contact table is visitors' names, addresses and messages, and
+          # a public repository's run logs are public: the statement (in the
+          # env block above) and its result rows would be too. Read or erase
+          # those rows in the dashboard's D1 console instead.
+          if grep -qi 'contact' <<<"$SQL_CMD"; then
+            echo "::error::sql mode refuses the contact table (personal data, public log): use the dashboard's D1 console"
             exit 1
           fi
           npx wrangler d1 execute "$DB" --remote --command "$SQL_CMD"

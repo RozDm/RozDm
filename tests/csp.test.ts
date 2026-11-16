@@ -265,4 +265,26 @@ describe('parseCspReports', () => {
     expect(parseCspReports('nope', ORIGIN)).toEqual([])
     expect(parseCspReports({ 'csp-report': { 'document-uri': 'not a url' } }, ORIGIN)).toEqual([])
   })
+
+  it('keeps only URL-safe characters of a junk blocked value and directive', () => {
+    // Anyone can POST a report; its strings reach the analytics-report run
+    // summary, where a newline could start a workflow command (`::error::`)
+    // and a `|` would break the table.
+    const out = parseCspReports(
+      {
+        'csp-report': {
+          'document-uri': `${ORIGIN}/`,
+          'blocked-uri': '<b>\n::error::x |',
+          'violated-directive': '|<i>',
+        },
+      },
+      ORIGIN,
+    )
+    expect(out).toEqual([{ directive: 'i', blocked: 'b::error::x', page: '/' }])
+    const empty = parseCspReports(
+      { 'csp-report': { 'document-uri': `${ORIGIN}/`, 'blocked-uri': '| |', 'violated-directive': '||' } },
+      ORIGIN,
+    )
+    expect(empty).toEqual([{ directive: 'unknown', blocked: 'unknown', page: '/' }])
+  })
 })

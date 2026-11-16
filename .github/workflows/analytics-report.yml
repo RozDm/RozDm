@@ -55,6 +55,9 @@ jobs:
           import json, os, sys
           d = json.load(sys.stdin)
           rows, cols = d.get("data", []), [m["name"] for m in d.get("meta", [])]
+          # AE strings come from any client POST: one line per cell (a newline
+          # could start a workflow command), `|` escaped (it splits the table).
+          cell = lambda v: " ".join(str(v).split()).replace("|", "\\|")
           title = os.environ["TITLE"]
           print(f"### {title}\n")
           if not rows:
@@ -63,7 +66,7 @@ jobs:
           print("| " + " | ".join(cols) + " |")
           print("|" + "---|" * len(cols))
           for r in rows:
-              print("| " + " | ".join(str(r.get(c, "")) for c in cols) + " |")
+              print("| " + " | ".join(cell(r.get(c, "")) for c in cols) + " |")
           print()
           ' | tee -a "$GITHUB_STEP_SUMMARY"
           }
