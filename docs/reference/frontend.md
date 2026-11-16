@@ -18,6 +18,13 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   Skill chips highlight under the pointer like the blog's tag chips, though
   they are labels, not links: the owner likes it (2026-11-10) — keep it
   (`docs/decisions.md`).
+- Inner pages (blog index, tag, post, contact, privacy): `layout/PageShell.tsx`
+  (Header, `main#main` — the skip-link's target — and Footer; `alternate` is
+  Header's, `footer` is Footer's own props passed whole, e.g. `{ invite: false }`
+  on the contact page), `layout/BackLink.tsx` and `layout/PageTitle.tsx`
+  (eyebrow + h1, `mb-3` under the h1 everywhere; a post keeps its own h1 in its
+  header). New inner page: use them, don't copy the classes. Privacy text stays
+  in its own pages.
 - Accent TEXT: red-600 light / red-400 dark; red-500 only for decoration
   (dots, borders, selection, chart dots) — as text on light it fails WCAG
   AA. In-text links are underlined.
