@@ -7,7 +7,9 @@ secret model. The traps to know before editing `.github/` are in
 
 ## Workflows
 
-- `ci.yml` — on PRs, three jobs. `build` (bare runner): format check, lint, typecheck
+- `ci.yml` — on PRs, four jobs. `actionlint`: `go run` of actionlint at a
+  pinned version over every workflow and the setup action (shellcheck and
+  pyflakes off; bump the version by hand — Dependabot can't). `build` (bare runner): format check, lint, typecheck
   (starting with `wrangler types --check`), test, build (with Cloudflare's
   public always-pass TEST Turnstile site key `1x00000000000000000000AA`, so
   the widget renders as in production; `e2e/fixtures.ts` fakes its script),
@@ -22,7 +24,7 @@ secret model. The traps to know before editing `.github/` are in
   which brings Chromium, WebKit and their packages (installing them took
   3–37 min). Its tag equals `@playwright/test`'s version
   (`tests/workflows.test.ts`): bump tag and digest with the package. `check`
-  is green only when both are (`if: always()` — a skipped required check
+  is green only when all three are (`if: always()` — a skipped required check
   would pass); it is the one required status check on `main`, so it decides
   the auto-merge. `deploy.yml` doesn't repeat the browser tests. Protection
   binds non-admins only (`enforce_admins` off) and a session acts as the
