@@ -7,10 +7,10 @@ detail: `docs/reference/app.md`; blog: `content/CLAUDE.md`; root configs:
 - `lib/` is split by where code runs: `lib/server/` (build/export time:
   `node:fs`, `content/`, OG cards, fonts, Markdown, feed), `lib/client/`
   (browser APIs, hooks, `/api/*` fetchers) and `lib/shared/` (pure, no
-  environment). A client component imports only `client/` and `shared/`; a
-  new file goes where it runs. No `server-only` marker: the package isn't a
-  dependency and tests/scripts import these files outside Next; an ESLint
-  boundary is the planned guard.
+  environment; the Worker imports it too). A new file goes where it runs;
+  who may import whom is enforced by ESLint (`eslint.config.mjs`). No
+  `server-only` marker: the package isn't a dependency and tests/scripts
+  import these files outside Next.
 - ALL UI copy lives in `data/i18n.ts` (`nb` defines the shape, `en` is typed
   against it, `tests/i18n.test.ts` checks parity), never in a component.
   Exceptions: `app/error.tsx` reads `ERROR_COPY` (`data/i18n-error.ts`;
@@ -25,7 +25,7 @@ detail: `docs/reference/app.md`; blog: `content/CLAUDE.md`; root configs:
   setting part of `openGraph`/`alternates` drops the rest. The root layout has
   no canonical/og:url (the 404 inherits it); canonicals keep the trailing slash.
 - Name, roles, titles and `THEME_BG` live in `lib/shared/site.ts`, the contact
-  address in `src/domain/contact.ts`: never hard-code them.
+  address in `lib/shared/contact.ts`: never hard-code them.
 - `app/template.tsx` cross-fades route changes with OPACITY ONLY (a transform
   traps the fixed intro overlays and sticky header); both front pages opt out.
 - `/.well-known/security.txt`: bump `Expires` yearly (a test fails 30 days

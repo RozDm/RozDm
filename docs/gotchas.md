@@ -25,6 +25,17 @@ Read before touching a root config file (`package.json`, `next.config.mjs`,
   stays on 6: 7.0.2 (tried 2026-10-29) builds, but has no JS API, so
   typescript-eslint refuses it (tracked for 7.1+, typescript-eslint#10940),
   for ~3 s saved — not worth the npm-alias setup. Revisit when it supports 7.
+- Import layout is ESLint (`eslint.config.mjs`, `@typescript-eslint/no-restricted-imports`
+  plus `no-restricted-syntax` for `'use client'` and route bindings; no new
+  plugin). ESLint keeps only the LAST matching block's options per rule, so
+  the layout blocks are disjoint: add a pattern to the block of its area, not
+  a second block for the same files. Patterns match the specifier as written:
+  an alias, a relative path and a sibling import inside lib/ each need to match.
+  `lib/shared/` takes `src/api-types.ts` as a type on purpose (`docs/decisions.md`).
+  `tests/eslint-layout.test.ts` holds one case per rule. Not covered: dynamic
+  `import()` and `require`; the client rule reads the file's own
+  `'use client'` directive, so a server component importing `lib/server/`
+  is fine and its client child is checked in the child's file.
 - Prettier (`.prettierrc.json`, `.prettierignore`; `.editorconfig` matches) is
   part of `npm run check` and CI: `npm run format` fixes. No Tailwind plugin.
 - `package.json` `overrides` (postcss-selector-parser under

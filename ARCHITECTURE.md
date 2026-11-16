@@ -30,12 +30,14 @@ an HTTP call from `src/domain/contact.ts`, not a binding. There is no R2.
 |---|---|
 | `app/` | Next App Router pages and routes (Norwegian at the root, `app/en/`), metadata, feeds, OG cards |
 | `components/`, `context/` | React widgets (status, map, trends, contact form), theme |
-| `lib/`, `data/` | Helpers split by where they run (`lib/server/` build/export only, `lib/client/` browser, `lib/shared/` pure); copy, skills, tag canon |
+| `lib/`, `data/` | Helpers split by where they run (`lib/server/` build/export only, `lib/client/` browser, `lib/shared/` pure, also imported by the Worker); copy, skills, tag canon |
 | `content/` | Blog posts (Markdown; English twins in `content/blog/en/`), diagram sources |
 | `src/` | The Worker: `index.ts` dispatches to `src/routes/*` (HTTP only), which call `src/domain/*` (rules; `*-store.ts` hold the bindings); CSP, the `/api/*` contract |
 | `schema/` | D1 schema (`metrics.sql`) |
 | `scripts/` | Build finalisation, CSP/WAF/docs checks, smoke test, read-only API tools |
 | `tests/`, `e2e/` | Vitest (Worker handlers on real SQLite) and Playwright browser tests |
+
+Who may import whom between these (the app never reaches into `src/` but for the `api-types.ts` types; `src/` takes only `lib/shared/`; browser code never takes `lib/server/`) is enforced by ESLint (`eslint.config.mjs`), not by this page.
 | `.github/` | CI, deploy, monitoring and one-shot ops workflows, zone rules |
 | `.claude/` | Agent config: skills, hooks, permissions |
 | `docs/` | Decisions, incident history, gotchas, edge security |

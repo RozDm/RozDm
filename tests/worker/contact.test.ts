@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { handleContact } from '../../src/routes/contact'
-import { HONEYPOT_FIELD } from '../../src/domain/contact'
+import { HONEYPOT_FIELD } from '../../lib/shared/contact'
 import { BROWSER_HEADERS, errorBody, makeEnv } from './fakes'
 import wranglerConfig from '../../wrangler.jsonc?raw'
 

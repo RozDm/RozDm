@@ -1,15 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import {
-  HISTORY_LIMIT,
-  STALE_AFTER_MS,
-  buildStatusData,
-  detectTransitions,
-  failingSince,
-  isStale,
-  monitors,
-  parseHistory,
-} from '@/src/domain/status'
+import { HISTORY_LIMIT, buildStatusData, detectTransitions, monitors, parseHistory } from '@/src/domain/status'
+import { STALE_AFTER_MS, failingSince, isStale } from '@/lib/shared/status'
 import type { HistoryEntry } from '@/src/api-types'
 import type { MonitorResult } from '@/src/domain/status'
 

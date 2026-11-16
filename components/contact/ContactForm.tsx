@@ -5,7 +5,7 @@ import Turnstile, { type TurnstileHandle } from './Turnstile'
 import { DICT } from '@/data/i18n'
 import { useLang } from '@/lib/client/use-lang'
 import type { ApiError, ContactErrorCode } from '@/src/api-types'
-import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/src/domain/contact'
+import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/lib/shared/contact'
 
 type FormState = 'idle' | 'sending' | 'sent' | 'error' | 'invalid' | 'ratelimited' | 'challenge' | 'blocked' | 'widget'
 

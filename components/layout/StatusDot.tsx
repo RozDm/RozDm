@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { isStale } from '@/src/domain/status'
+import { isStale } from '@/lib/shared/status'
 import { serverNow } from '@/lib/client/server-clock'
 import { fetchStatus } from '@/lib/client/status-fetch'
 import { DICT } from '@/data/i18n'

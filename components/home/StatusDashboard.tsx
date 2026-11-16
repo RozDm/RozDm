@@ -5,7 +5,7 @@ import { DICT } from '@/data/i18n'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import { useLang } from '@/lib/client/use-lang'
 import type { HistoryEntry } from '@/src/api-types'
-import { failingSince, isStale } from '@/src/domain/status'
+import { failingSince, isStale } from '@/lib/shared/status'
 import { serverNow } from '@/lib/client/server-clock'
 import { fetchStatus, type StatusSnapshot } from '@/lib/client/status-fetch'
 

@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer'
 import Eyebrow from '@/components/layout/Eyebrow'
 import { DICT } from '@/data/i18n'
 import { pageMetadata } from '@/lib/shared/metadata'
-import { CONTACT_ADDRESS } from '@/src/domain/contact'
+import { CONTACT_ADDRESS } from '@/lib/shared/contact'
 
 // English translation of /personvern/. The Norwegian notice stays the
 // authoritative one — keep the two in step when either changes.

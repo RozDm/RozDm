@@ -2,7 +2,8 @@
 // Worker-only (D1, Email Routing, AE). The rules it applies — limits, windows,
 // MIME — are contact.ts; the HTTP steps around it are routes/contact.ts.
 import { EmailMessage } from 'cloudflare:email'
-import { CONTACT_ADDRESS, CONTACT_WINDOWS_MS, type ContactPayload, buildContactMime, isoCutoff } from './contact'
+import { CONTACT_ADDRESS } from '../../lib/shared/contact'
+import { CONTACT_WINDOWS_MS, type ContactPayload, buildContactMime, isoCutoff } from './contact'
 
 const CONTACT_FROM = CONTACT_ADDRESS
 // Max submissions per IP per 10 minutes (casual single-network abuse).

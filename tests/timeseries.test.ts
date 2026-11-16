@@ -1,19 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import {
-  METRICS_EPOCH,
-  buildSeriesSql,
-  normalizeBucketKey,
-  parseMetric,
-  parseRange,
-  parseSeriesResponse,
-} from '@/src/domain/timeseries'
+import { buildSeriesSql, parseMetric, parseRange, parseSeriesResponse } from '@/src/domain/timeseries'
+import { METRICS_EPOCH, normalizeBucketKey } from '@/lib/shared/timeseries-keys'
 
 describe('METRICS_EPOCH', () => {
   it('sits on a 6-hour UTC boundary in the fixed-width bucket-key form', () => {
     if (!METRICS_EPOCH) return // empty string disables the epoch floor
     // The epoch is compared against bucket-START keys and the 30d/all views
     // bucket by 6h — a mid-bucket epoch silently drops a straddling bucket's
-    // real post-epoch visits (see src/domain/timeseries.ts). Guard the invariant the
+    // real post-epoch visits (see lib/shared/timeseries-keys.ts). Guard the invariant the
     // comments there can only describe.
     expect(METRICS_EPOCH).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)
     expect(Date.parse(METRICS_EPOCH.replace(' ', 'T') + 'Z') % 21_600_000).toBe(0)

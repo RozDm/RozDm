@@ -6,7 +6,7 @@ import CopyrightYear from './CopyrightYear'
 import Eyebrow from './Eyebrow'
 import { DICT } from '@/data/i18n'
 import { localePath, type Lang } from '@/lib/shared/i18n'
-import { CONTACT_ADDRESS } from '@/src/domain/contact'
+import { CONTACT_ADDRESS } from '@/lib/shared/contact'
 
 // py/-my: a 44px-tall tap target on a 20px line, without moving anything. The
 // footer is a phone's last stop, and its links were 20px (the privacy one
