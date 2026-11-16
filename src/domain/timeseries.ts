@@ -1,7 +1,8 @@
-// Time-series rules (pure): metric/range parsing, the AE SQL builder and parser, METRICS_EPOCH.
-// DOM-compatible APIs only — tests and lib/shared/timeseries-fill.ts import this
-// under the app tsconfig. The AE query itself: timeseries-store.ts.
+// Time-series rules (pure): metric/range parsing, the AE SQL builder and parser.
+// METRICS_EPOCH and bucket-key normalising (the chart's too): lib/shared/timeseries-keys.ts.
+// The AE query itself: timeseries-store.ts.
 import type { SeriesMetric, SeriesPoint, SeriesRangeKey } from '../api-types'
+import { METRICS_EPOCH, normalizeBucketKey } from '../../lib/shared/timeseries-keys'
 import { oneOf } from '../validate'
 
 // Supported metrics: keep the surface small and explicit so a typo in the
@@ -59,14 +60,6 @@ export function parseRange(value: string | null): { key: SeriesRangeKey; range: 
 // floor. Filtering here, not in the AE SQL itself, sidesteps any
 // SQL-dialect surprise (AE rejected toDateTime/CAST patterns we tried).
 //
-// MUST sit on a 6-hour UTC boundary (00/06/12/18; tests/timeseries.test.ts):
-// the filter compares bucket-START keys, so a mid-bucket epoch drops a
-// straddling 6h bucket's real visits and the chart undercounts the map (why:
-// docs/history.md). Bump it after every `reset-metrics` run, rounding UP to
-// the next boundary so no pre-reset noise slips in. Now: the reset of
-// 2026-10-22 21:30 UTC, rounded up.
-export const METRICS_EPOCH = '2026-10-23 00:00:00'
-
 // Build the AE SQL query. Identifiers are fixed strings (dataset, blob index,
 // bucket function from RANGES) — no user input is interpolated. The epoch
 // floor is intentionally NOT in the WHERE clause; it's applied by
@@ -80,20 +73,6 @@ export function buildSeriesSql(dataset: string, metric: SeriesMetric, range: Ser
     'ORDER BY ts ASC',
     'FORMAT JSON',
   ].join(' ')
-}
-
-// Canonicalise a bucket key to the fixed-width UTC form "YYYY-MM-DD HH:MM:SS"
-// that both the epoch compare (below) and the client-side merge
-// (lib/shared/timeseries-fill.ts `utcBucketKey`) assume. AE currently emits exactly
-// that, so today this is a no-op — but the whole pipeline hangs on a raw
-// string equality, and an AE-side format drift (ISO 'T' separator, a trailing
-// 'Z'/offset, fractional seconds) would silently zero-fill the whole chart
-// while the D1-backed map kept working. Normalising here (and again at the
-// merge) makes such a drift harmless instead of an invisible outage. A string
-// that doesn't look like a datetime (defensive) is returned untouched.
-export function normalizeBucketKey(ts: string): string {
-  const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/.exec(ts)
-  return m ? `${m[1]} ${m[2]}` : ts
 }
 
 // Normalise an AE SQL API JSON response into [{ts, value}]. AE returns a

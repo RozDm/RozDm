@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { BASE_SECURITY_HEADERS, CSP_REPORT_GROUP, CSP_REPORT_PATH, HEADER_CSP, HSTS } from '@/src/csp'
 import { SITE_URL } from '@/lib/shared/site'
-import { CONTACT_ADDRESS } from '@/src/domain/contact'
+import { CONTACT_ADDRESS } from '@/lib/shared/contact'
 
 // Pages and files are served by the asset server, not the Worker
 // (run_worker_first: /api/* and the MTA-STS policy), and take every header

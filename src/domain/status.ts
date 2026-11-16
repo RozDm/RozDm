@@ -1,5 +1,5 @@
 // Uptime rules (pure): the monitor list, the KV snapshot, staleness and alert flap damping.
-// DOM-compatible APIs only (the dashboard imports isStale/failingSince). KV,
+// Staleness and failingSince (the dashboard's too): lib/shared/status.ts. KV,
 // the probes and the alert mails: status-store.ts.
 import type { HistoryEntry, PublicMonitorResult, StatusData } from '../api-types'
 
@@ -41,17 +41,6 @@ export interface MonitorResult extends PublicMonitorResult {
 
 // HistoryEntry (src/api-types.ts) is one cron tick: per-monitor up/down keyed
 // by monitor name, so the dashboard draws an uptime bar per service.
-
-// When a monitor's current outage began, as far as the history shows: the
-// time of the first check in its unbroken run of failures up to now, or null
-// when its latest check passed (or there is none). `whole`: every check the
-// history holds failed, so the outage is older than the window.
-export function failingSince(history: HistoryEntry[], name: string): { at: string; whole: boolean } | null {
-  let first = history.length
-  while (first > 0 && history[first - 1].up?.[name] === false) first--
-  if (first === history.length) return null
-  return { at: history[first].at, whole: first === 0 }
-}
 
 // What the public snapshot (KV → /api/status → dashboard) carries per
 // monitor: no URL. The monitored hosts include an admin panel (NetBox), and
@@ -97,19 +86,6 @@ export function buildStatusData(
     results: results.map(({ name, ok, status, ms }) => ({ name, ok, status, ms })),
     history,
   }
-}
-
-// A snapshot older than this means the checker itself has stopped (cron
-// ticks missed in a row, or KV writes failing). The dashboard must then say
-// so instead of repeating a frozen "Alle systemer operative" — nothing else
-// watches the watcher. An unparseable timestamp counts as stale.
-// 20 min, not 15: the cron fires minutes late at times, and 15 cried
-// «utdatert» while it was alive (measurement: docs/history.md).
-export const STALE_AFTER_MS = 20 * 60_000
-
-export function isStale(updatedAt: string, now: number): boolean {
-  const t = Date.parse(updatedAt)
-  return !Number.isFinite(t) || now - t > STALE_AFTER_MS
 }
 
 // Flap damping for the down edge: a monitor is alerted as down only once this

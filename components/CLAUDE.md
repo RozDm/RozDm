@@ -33,7 +33,7 @@ Traps only. Conventions, widgets, counters, contact form, e2e:
 - Contact form: Turnstile tokens are single-use, so reset the widget after
   every non-OK response and keep the typed text. A secret without a site key
   403s every POST. The honeypot is `HONEYPOT_FIELD` (`topic`); limits come from
-  `src/domain/contact.ts`. No-JS can't send: a `<noscript>` note, `method="post"`.
+  `lib/shared/contact.ts`. No-JS can't send: a `<noscript>` note, `method="post"`.
 - Blog tables/code: keep the `.post-body` wrap and hyphenation rules.
 - e2e: a UI change that breaks a selector updates the test in the same PR;
   blog tests take their post from the build's feeds, never by name; local

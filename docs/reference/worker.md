@@ -37,13 +37,17 @@ The module inventory is the purpose header of each file
   response), and the cron dispatch (5-min health checks, daily contact
   prune: both in `domain/*-store.ts`).
 - One structure for every `/api/*` route:
-  - `routes/<name>.ts` is HTTP only: the path/method check (`null` when the
-    path isn't its own, chained with `??` in `index.ts`), parse and validate
-    the input (`validate.ts`), call the domain, build the answer with the
-    `http.ts` helpers. No binding (D1, KV, AE, mail, ASSETS) is touched here,
-    except `allowWrite`'s rate limiter, which is an HTTP gate.
-  - `domain/<name>.ts` is the pure rules, DOM-compatible (the app and tests
-    import them under the app tsconfig): `contact.ts` (limits, validation,
+  - `routes/<name>.ts` is the path/method check (`null` when the path isn't
+    its own, chained with `??` in `index.ts`), parse and validate the input
+    (`validate.ts`), call the domain, build the answer with the `http.ts`
+    helpers. Bindings (D1, KV, AE, mail) stay out of it — ESLint fails
+    `env.<binding>` here (`eslint.config.mjs`); `allowWrite`'s rate limiter
+    is an HTTP gate.
+  - `domain/<name>.ts` is the pure rules, DOM-compatible (tests import them
+    under the app tsconfig; what the app needs too sits in `lib/shared/`:
+    `contact.ts` limits, address, honeypot and email pattern, `status.ts`
+    `isStale`/`failingSince`, `timeseries-keys.ts` `METRICS_EPOCH`):
+    `contact.ts` (validation,
     Turnstile verify, MIME with the `Date` RFC 5322 requires and a
     `Message-ID`, the windows `CONTACT_WINDOWS_MS`/`isoCutoff`, the prune's
     `CONTACT_PRUNE_CRON`, held equal to `wrangler.jsonc` by a test — the
@@ -184,9 +188,9 @@ status on every route (`API_ERRORS` in `src/http.ts`): `bad_slug`,
   generated `worker-configuration.d.ts`: `npm run cf-typegen` after any
   `wrangler.jsonc` change or wrangler bump — commit it — enforced by
   `wrangler types --check`; `docs/gotchas.md`). `csp.ts`, `ip.ts`,
-  `validate.ts`, `api-types.ts` and the pure `domain/*.ts` (not `*-store.ts`)
-  are also checked under the app tsconfig (tests and the app import them):
-  DOM-compatible APIs only there.
+  `validate.ts`, `api-types.ts`, the pure `domain/*.ts` (not `*-store.ts`) and
+  the `lib/shared/` files they import are also checked under the app tsconfig
+  (tests and the app import them): DOM-compatible APIs only there.
 - A Worker can't fetch its own public URL: the site goes through ASSETS (the
   `/api/views` slug check). Don't monitor the site
   itself — it serves the dashboard.

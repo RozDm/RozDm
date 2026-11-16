@@ -1,21 +1,9 @@
-// Contact rules (pure): form limits and validation, Turnstile verify, MIME for contact and status-alert mail.
-// DOM-compatible APIs only — the app (the form, the privacy pages) and tests
-// import this under the app tsconfig. D1 and the mail binding: contact-store.ts.
+// Contact rules (pure): validation, Turnstile verify, MIME for contact and status-alert mail.
+// The limits, address, honeypot field and email pattern the form shares:
+// lib/shared/contact.ts. D1 and the mail binding: contact-store.ts.
 import type { ContactRequest } from '../api-types'
+import { CONTACT_LIMITS, EMAIL_PATTERN } from '../../lib/shared/contact'
 import { object, text } from '../validate'
-
-// The site's public address (the form's fallback, the footer, the privacy
-// notice; public/.well-known/security.txt is held to it by a test) — also the
-// contact mail's sender. The app imports it from here, so the Worker and the
-// pages can't drift apart.
-export const CONTACT_ADDRESS = 'contact@rozsoshnykh.no'
-
-export const CONTACT_LIMITS = {
-  name: 100,
-  email: 200,
-  message: 5000,
-  messageMin: 10,
-} as const
 
 // Time windows over the contact table, applied as ISO cutoffs bound into SQL
 // (isoCutoff) against the ISO `at` column — never SQLite's datetime('now', …),
@@ -35,12 +23,6 @@ export const CONTACT_WINDOWS_MS = {
 // the two equal (else 03:00 runs a health check and nothing is ever pruned).
 export const CONTACT_PRUNE_CRON = '0 3 * * *'
 
-// The contact form's honeypot field, shared by the form and the Worker so the
-// two can't drift. Not `website`/`url`/`company`/`phone`-like: autofill and
-// password managers fill those, and a filled honeypot silently drops a real
-// visitor's message.
-export const HONEYPOT_FIELD = 'topic' satisfies keyof ContactRequest
-
 export function isoCutoff(nowMs: number, windowMs: number): string {
   return new Date(nowMs - windowMs).toISOString()
 }
@@ -52,15 +34,6 @@ export interface ContactInput extends ContactPayload {
   turnstileToken: string | null
 }
 
-// Loose but practical: something@something.tld. No whitespace and none of
-// <>,;"()[]\: — the address lands in `Reply-To: <…>`, and a `>, <…` inside
-// it would add a second recipient (CR/LF were already refused).
-// Every class character escaped, so the same source also compiles under the
-// `v` flag that browsers use for an HTML pattern attribute.
-const EMAIL_CHAR = '[^\\s@<>,;"\\(\\)\\[\\]\\\\:]'
-// The contact form's `pattern` (the browser anchors it itself): the same rule
-// as the Worker's, so the browser refuses what the Worker would 422.
-export const EMAIL_PATTERN = `${EMAIL_CHAR}+@${EMAIL_CHAR}+\\.${EMAIL_CHAR}{2,}`
 const EMAIL_RE = new RegExp(`^${EMAIL_PATTERN}$`)
 
 const contactFields = object({

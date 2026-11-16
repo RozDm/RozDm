@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  EMAIL_PATTERN,
   buildContactMime,
   buildStatusAlertMime,
   encodeMimeHeader,
   validateContact,
   verifyTurnstile,
 } from '@/src/domain/contact'
+import { EMAIL_PATTERN } from '@/lib/shared/contact'
 
 const valid = { name: 'Ola Nordmann', email: 'ola@example.no', message: 'Hei! Dette er en testmelding.' }
 

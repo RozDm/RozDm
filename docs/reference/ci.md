@@ -82,7 +82,7 @@ secret model. The traps to know before editing `.github/` are in
   escaped.
 - `reset-metrics.yml` — manual, type `RESET`: wipes the D1 `views` + `geo`
   counters (before/after counts). AE is append-only: bump `METRICS_EPOCH`
-  in `src/domain/timeseries.ts` after every run (6-hour UTC boundary, rounded
+  in `lib/shared/timeseries-keys.ts` after every run (6-hour UTC boundary, rounded
   up).
 - `d1-repair.yml` — manual kit from the D1 incident: `info` (read-only),
   `restore` (Time Travel), `create` (no existence check — for a
