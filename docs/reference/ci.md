@@ -92,14 +92,19 @@ secret model. The traps to know before editing `.github/` are in
 - `d1-repair.yml` — manual kit from the D1 incident: `info` (read-only),
   `restore` (Time Travel), `create` (no existence check — for a
   ghost-locked name), `recreate` (type RECREATE; the new database_id goes
-  into `wrangler.jsonc` + `npm run cf-typegen`), `sql` (one statement on
+  into `wrangler.jsonc` + `npm run cf-typegen`); both run `d1 create
+  --binding METRICS` (patches the runner's `wrangler.jsonc` so the
+  `migrations apply METRICS` that follows reaches the new id), `sql` (one statement on
   `views`/`geo`). `sql` refuses any statement naming `contact`
   (`tests/workflows.test.ts`): the statement shows in the step's env block
   and its rows in the output, and a public repository's run logs are
   public. Contact rows (reading one, an erasure request) are the
   dashboard's D1 console, never a workflow.
-- `d1-bootstrap.yml` — one-shot: creates the metrics D1 (skipped when
-  listed) and applies the schema.
+- `d1-bootstrap.yml` — creates the metrics D1 (skipped when listed) and
+  runs `wrangler d1 migrations apply METRICS --remote`: the pending files in
+  `migrations/`, recorded in `d1_migrations`, so a re-run is a no-op. Run
+  it by hand after a new migration merges; non-interactive in CI (wrangler's
+  confirmation falls back to yes). `deploy.yml` does not apply migrations.
 - `zone-rules.yml` — manual, idempotent, token `CLOUDFLARE_ZONE_TOKEN`
   (user-owned: Zone Read + Transform Rules, Bot Management, Zone Settings,
   Zone WAF and Single Redirect Edit). It applies:

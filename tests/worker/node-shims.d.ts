@@ -11,8 +11,12 @@ declare module 'node:sqlite' {
     }
   }
 }
-// Vite's ?raw import: the file's text (used to load schema/metrics.sql).
+// Vite's ?raw import: the file's text (e.g. wrangler.jsonc).
 declare module '*?raw' {
   const text: string
   export default text
+}
+// Vite's import.meta.glob (fakes.ts loads migrations/*.sql with it).
+interface ImportMeta {
+  glob<T>(pattern: string, options: { query: '?raw'; import: 'default'; eager: true }): Record<string, T>
 }

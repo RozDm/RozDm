@@ -6,7 +6,8 @@ Read before touching a root config file (`package.json`, `next.config.mjs`,
 
 - `wrangler.jsonc`: `workers_dev: false` and `preview_urls: false` stay
   explicit (owner's call; left out, wrangler turns workers.dev back on). The
-  D1 database is `rozsoshnykh-metrics-v2`; never reclaim the old name.
+  D1 database is `rozsoshnykh-metrics-v2`; never reclaim the old name. Its
+  binding's `migrations_dir: "migrations"` is what `d1 migrations apply` reads.
 - TypeScript: app `tsconfig.json` (lib.dom); Worker `tsconfig.worker.json` +
   generated `worker-configuration.d.ts`. After any `wrangler.jsonc` change or
   wrangler bump run `npm run cf-typegen` and commit it — `npm run typecheck`

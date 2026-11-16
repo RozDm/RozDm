@@ -30,6 +30,9 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
   before anything is pushed. A red smoke runs `wrangler rollback` (code and
   pages, not D1/KV); a zone-caused failure fails the old version too: fix,
   re-run Deploy.
+- D1 schema goes only through `wrangler d1 migrations apply METRICS --remote`
+  (by binding: after `d1 create --binding METRICS` it reaches the new id),
+  never `d1 execute --file`, which records nothing in `d1_migrations`.
 - `d1-repair.yml` `sql` refuses any statement naming `contact` (public logs):
   contact rows are the dashboard's D1 console, never a workflow.
 - `reset-metrics.yml` is followed by a `METRICS_EPOCH` bump (`worker/CLAUDE.md`).

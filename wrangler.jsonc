@@ -32,7 +32,10 @@
       // v2: the original database's storage object died on Cloudflare's side
       // (2026-07-03, internal error 7500 on every operation incl. Time Travel)
       // and its deleted entry still ghost-locks the old name.
-      "database_id": "4f40b727-fe8f-4dbb-87ab-d6438dfda711"
+      "database_id": "4f40b727-fe8f-4dbb-87ab-d6438dfda711",
+      // Schema as numbered migrations (`wrangler d1 migrations apply`), applied
+      // by d1-bootstrap.yml / d1-repair.yml; the d1_migrations table records them.
+      "migrations_dir": "migrations"
     }
   ],
   // Time-series sink for view/geo events. Sampled, append-only, 100k data

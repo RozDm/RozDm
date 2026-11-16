@@ -161,3 +161,25 @@ describe('d1-repair.yml', () => {
     expect(guard).toBeLessThan(step.indexOf('wrangler d1 execute'))
   })
 })
+
+// The D1 schema lives in migrations/ and reaches a database only through
+// `wrangler d1 migrations apply` (by binding, so a `d1 create --binding`
+// earlier in the job retargets it): `d1 execute --file` records nothing in
+// d1_migrations, and the next apply would re-run what it applied.
+describe('D1 schema', () => {
+  it('is applied by `d1 migrations apply`, never `d1 execute --file`', () => {
+    const ymls = readdirSync(DIR).filter((f) => f.endsWith('.yml'))
+    for (const f of ymls) {
+      expect(readFileSync(join(DIR, f), 'utf8'), f).not.toMatch(/d1 execute[^\n]*--file/)
+    }
+    for (const f of ['d1-bootstrap.yml', 'd1-repair.yml']) {
+      expect(readFileSync(join(DIR, f), 'utf8'), f).toContain('npx wrangler d1 migrations apply METRICS --remote')
+    }
+  })
+
+  it('names migration files NNNN_<what>.sql', () => {
+    const files = readdirSync('migrations')
+    expect(files.length).toBeGreaterThan(0)
+    for (const f of files) expect(f).toMatch(/^\d{4}_[a-z0-9_]+\.sql$/)
+  })
+})
