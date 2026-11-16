@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { DICT } from '@/data/i18n'
-import { HREFLANG, langFromPath, switchPath } from '@/lib/i18n'
+import { HREFLANG, langFromPath, switchPath } from '@/lib/shared/i18n'
 
 // NO ⇄ EN: the same page in the other language, or that language's front page
 // when the page exists in one language only. Blog pages pass `href` (their

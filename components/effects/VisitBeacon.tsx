@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
-import { VISIT_DAY_KEY, localDay, onFirstHumanInput, shouldCountVisit } from '@/lib/visit'
+import { VISIT_DAY_KEY, localDay, onFirstHumanInput, shouldCountVisit } from '@/lib/client/visit'
 
 // One "Besøk" per browser per day, sent on the first human input — the rules
-// and why are in lib/visit.ts. The POST lets the Worker read
+// and why are in lib/client/visit.ts. The POST lets the Worker read
 // request.cf.country for the geo map + the Besøk time-series. No cookie,
 // nothing sent but the request itself; the browser keeps only today's date.
 // Renders nothing.

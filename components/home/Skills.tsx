@@ -1,7 +1,7 @@
 import SectionHeading from './SectionHeading'
 import { DICT } from '@/data/i18n'
 import { skillGroups } from '@/data/skills'
-import { pick, type Lang } from '@/lib/i18n'
+import { pick, type Lang } from '@/lib/shared/i18n'
 
 export default function Skills({ lang }: { lang: Lang }) {
   const t = DICT[lang].skills

@@ -32,7 +32,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   gives `pre` a white block in light mode for the palette in
   `app/globals.css`; every `pre` is focusable (a long line scrolls it).
   Inline code is a chip (`.post-body`), each word a nowrap span from
-  `lib/inline-code.ts`, so a phone breaks lines between words only. Table
+  `lib/server/inline-code.ts`, so a phone breaks lines between words only. Table
   cells take `overflow-wrap: anywhere`: WebKit keeps hyphenated words whole,
   and a table once outgrew the iPhone screen. Ahead of it they hyphenate
   (`hyphens: auto`, by the page's lang; never inside code) — a word broken
@@ -84,10 +84,10 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   `SectionHeading`, a server component too) — `smoke.sh` greps them.
 - Every `/api/*` call is a Worker request (client fetches use
   `cache: 'no-store'`; `src/CLAUDE.md`). Shared fetches:
-  `fetchGeoCountries` (`lib/geo.ts`: map + the Trends «Alt» total) and
-  `fetchStatus` (`lib/status-fetch.ts`: dashboard + footer dot). The status
+  `fetchGeoCountries` (`lib/client/geo.ts`: map + the Trends «Alt» total) and
+  `fetchStatus` (`lib/client/status-fetch.ts`: dashboard + footer dot). The status
   dashboard, map, Trends chart and footer status dot mount and fetch only as
-  they near the viewport (`useNearViewport`, `lib/use-near-viewport.ts`;
+  they near the viewport (`useNearViewport`, `lib/client/use-near-viewport.ts`;
   each `Lazy*.tsx` placeholder keeps the final height). `StatusDashboard`
   polls only while `#status` is on screen; its live region is the state
   text alone. An uptime bar is colour and mouse-only titles, so it is
@@ -96,7 +96,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   read as an alarm on a service that was up, and the «1:4:9» aside went
   with it (`HISTORY_LIMIT` stays 149). The count stays for screen readers
   (`sr-only`: it is the hidden bar's text), and while a service is down the
-  caption adds since when (`failingSince`, `src/status.ts`). "Now" is the server's (`lib/server-clock.ts`):
+  caption adds since when (`failingSince`, `src/status.ts`). "Now" is the server's (`lib/client/server-clock.ts`):
   `fetchStatus` and the Trends fetch note each answer's `Date` header
   (stamped by the edge on cached answers too), and the stale check and the
   chart's bucket grid use `serverNow()` — on a visitor's clock that is days
@@ -110,7 +110,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   `viewed:<slug>`) stays as is — owner's call, `docs/decisions.md`.
 - `effects/VisitBeacon.tsx` (mounted by `app/layout.tsx`): one
   `POST /api/visit` per browser per local day (localStorage `visit-day`),
-  sent on the first trusted human input (`lib/visit.ts`: pointer move/press,
+  sent on the first trusted human input (`lib/client/visit.ts`: pointer move/press,
   touch, key, wheel — never on load, never `scroll`, which a script can
   cause), never under `navigator.webdriver`. It writes the D1 `geo` row and
   an AE point: the map and Trends are two views of one dataset. `ViewCounter`
@@ -120,10 +120,10 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   a second tab). `e2e/site.e2e.ts` holds both to this.
 - Below thresholds numbers hide: `ViewCounter` under 50 (`MIN_SHOWN`); map
   and Trends hide every absolute visit number until the all-time D1 total
-  reaches `MIN_PUBLIC_VISITS` (`lib/geo.ts`) — shades and the chart's shape
+  reaches `MIN_PUBLIC_VISITS` (`lib/client/geo.ts`) — shades and the chart's shape
   stay, and Trends says why («Samler data…»).
 - Trends (`home/TrendsChart.tsx`): one Besøk metric, tabs 24t/7d/30d/**Alt**,
-  dots over a zero-filled bucket grid (`lib/timeseries-fill.ts`). D1 is the
+  dots over a zero-filled bucket grid (`lib/shared/timeseries-fill.ts`). D1 is the
   truth for totals, AE for "when": windowed tabs show their sampled AE
   count; **Alt** shows the exact D1 total from `/api/geo`, the map's number.
   Alt's wave is 6h-bucketed from `METRICS_EPOCH`, capped at ~90 days

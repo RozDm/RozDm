@@ -1,7 +1,7 @@
 'use client'
 
 import { DICT } from '@/data/i18n'
-import { useLang } from '@/lib/use-lang'
+import { useLang } from '@/lib/client/use-lang'
 import { lazyNearViewport } from '@/components/lazy-near-viewport'
 
 // The same box and line GeoMap shows while the SVG loads — same aspect ratio,

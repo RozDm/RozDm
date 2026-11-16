@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getPostBySlug, getPostSlugs } from '@/lib/blog'
+import { getPostBySlug, getPostSlugs } from '@/lib/server/blog'
 import { isValidSlug } from '@/src/metrics'
 
 // Runs against the real content/blog/ (no fs mock): the two language versions

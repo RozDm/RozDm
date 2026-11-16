@@ -6,11 +6,11 @@ import Footer from '@/components/layout/Footer'
 import Eyebrow from '@/components/layout/Eyebrow'
 import PostCard from './PostCard'
 import { DICT } from '@/data/i18n'
-import { getAllTags, getPostsByTag, isTagIndexed } from '@/lib/blog'
-import { blogPath, tagPath } from '@/lib/blog-paths'
-import type { Lang } from '@/lib/i18n'
-import { pageMetadata } from '@/lib/metadata'
-import { tagLabel, tagToSlug } from '@/lib/tags'
+import { getAllTags, getPostsByTag, isTagIndexed } from '@/lib/server/blog'
+import { blogPath, tagPath } from '@/lib/shared/blog-paths'
+import type { Lang } from '@/lib/shared/i18n'
+import { pageMetadata } from '@/lib/shared/metadata'
+import { tagLabel, tagToSlug } from '@/lib/shared/tags'
 
 // A topic page, shared by /blogg/tag/<slug>/ and /en/blog/tag/<slug>/. Tags
 // are canonical across languages; the URL slug comes from the label shown in

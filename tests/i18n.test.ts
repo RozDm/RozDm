@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { DICT } from '@/data/i18n'
 import { ERROR_COPY } from '@/data/i18n-error'
-import { languageAlternates, langFromPath, localePath, pick, switchPath } from '@/lib/i18n'
+import { languageAlternates, langFromPath, localePath, pick, switchPath } from '@/lib/shared/i18n'
 
 describe('langFromPath', () => {
   it('reads English only under /en', () => {

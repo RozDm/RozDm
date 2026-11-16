@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/trends-axis'
-import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/timeseries-fill'
-import { MIN_PUBLIC_VISITS, fetchGeoCountries, showVisitCounts } from '@/lib/geo'
-import { noteServerDate, serverNow } from '@/lib/server-clock'
+import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/shared/trends-axis'
+import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/shared/timeseries-fill'
+import { MIN_PUBLIC_VISITS, fetchGeoCountries, showVisitCounts } from '@/lib/client/geo'
+import { noteServerDate, serverNow } from '@/lib/client/server-clock'
 import { DICT } from '@/data/i18n'
-import { INTL_LOCALE, type Lang } from '@/lib/i18n'
-import { useLang } from '@/lib/use-lang'
+import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
+import { useLang } from '@/lib/client/use-lang'
 import type { SeriesRangeKey, TimeseriesResponse } from '@/src/api-types'
 
 type Series = TimeseriesResponse
@@ -151,7 +151,7 @@ export default function TrendsChart() {
 
   useEffect(() => {
     let cancelled = false
-    // Same request as the map's (lib/geo.ts shares it).
+    // Same request as the map's (lib/client/geo.ts shares it).
     fetchGeoCountries()
       .then((countries) => {
         if (!cancelled) setGeoTotal(Object.values(countries).reduce((a, b) => a + b, 0))
@@ -168,7 +168,7 @@ export default function TrendsChart() {
     // Zero-fill so the x-axis spans the whole window and quiet stretches read
     // as real gaps. We plot a point per bucket that actually had visits; empty
     // buckets contribute no dot (just a gap).
-    // By the server's clock (lib/server-clock.ts): on a visitor's wrong one
+    // By the server's clock (lib/client/server-clock.ts): on a visitor's wrong one
     // the grid ended at another hour and the buckets' dots fell off it.
     const now = serverNow()
     const filled = fillBuckets(series?.points ?? [], range, now)

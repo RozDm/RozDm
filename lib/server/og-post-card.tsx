@@ -3,9 +3,9 @@
 import { ImageResponse } from 'next/og'
 import { DICT } from '@/data/i18n'
 import { getPostBySlug } from './blog'
-import type { Lang } from './i18n'
+import type { Lang } from '@/lib/shared/i18n'
 import { OG_FONT_FAMILY, ogFonts } from './og-fonts'
-import { AUTHOR } from './site'
+import { AUTHOR } from '@/lib/shared/site'
 
 // Social card for one blog post (HAL eye, BLOGG/BLOG label, title), rendered
 // at build time by app/blogg/[slug]/opengraph-image.tsx and its /en/ twin.

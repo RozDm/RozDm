@@ -1,7 +1,7 @@
 // React hook returning the language of the page being shown (client components).
 
 import { usePathname } from 'next/navigation'
-import { langFromPath, type Lang } from './i18n'
+import { langFromPath, type Lang } from '@/lib/shared/i18n'
 
 // The language of the page being shown, for client components (server
 // components get `lang` as a prop from their page instead). Works during the

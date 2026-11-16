@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { BASE_SECURITY_HEADERS, CSP_REPORT_GROUP, CSP_REPORT_PATH, HEADER_CSP, HSTS } from '@/src/csp'
-import { SITE_URL } from '@/lib/site'
+import { SITE_URL } from '@/lib/shared/site'
 import { CONTACT_ADDRESS } from '@/src/contact'
 
 // Pages and files are served by the asset server, not the Worker

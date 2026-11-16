@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
-import { getPostBySlug, getPostSlugs } from '@/lib/blog'
-import { SITE_URL } from '@/lib/site'
-import type { Lang } from '@/lib/i18n'
+import { getPostBySlug, getPostSlugs } from '@/lib/server/blog'
+import { SITE_URL } from '@/lib/shared/site'
+import type { Lang } from '@/lib/shared/i18n'
 
 // Runs against the real content/blog/, drafts included (vitest isn't a
 // production build). Reading a post checks its frontmatter
-// (lib/post-frontmatter.ts); this adds what the page around the text needs.
+// (lib/server/post-frontmatter.ts); this adds what the page around the text needs.
 
 type Node = { type: string; depth?: number; url?: string; value?: string; children?: Node[] }
 

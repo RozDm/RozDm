@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/trends-axis'
+import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/shared/trends-axis'
 
 // Tiny shape that mirrors what Trends.tsx feeds in (a coord + a timestamp).
 interface P {

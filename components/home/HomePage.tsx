@@ -8,7 +8,7 @@ import Certifications from './Certifications'
 import Status from './Status'
 import Visitors from './Visitors'
 import Trends from './Trends'
-import type { Lang } from '@/lib/i18n'
+import type { Lang } from '@/lib/shared/i18n'
 
 // The front page, shared by / (Norwegian) and /en/ (English).
 export default function HomePage({ lang }: { lang: Lang }) {

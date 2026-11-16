@@ -23,7 +23,7 @@ export interface SamplePost {
   title: string
 }
 
-// Newest first, as lib/feed.ts writes it.
+// Newest first, as lib/server/feed.ts writes it.
 const feed = [
   ...read('feed.xml').matchAll(/<item>\s*<title>([^<]*)<\/title>\s*<link>https?:\/\/[^/<]+(\/[^<]*)<\/link>/g),
 ].map(([, title, p]): SamplePost => ({ path: p, slug: p.split('/').filter(Boolean).pop()!, title: unescapeXml(title) }))

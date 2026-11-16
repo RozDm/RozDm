@@ -1,5 +1,5 @@
-import { getPostSlugs } from '@/lib/blog'
-import { POST_CARD_SIZE, postCardAlt, postCardImage } from '@/lib/og-post-card'
+import { getPostSlugs } from '@/lib/server/blog'
+import { POST_CARD_SIZE, postCardAlt, postCardImage } from '@/lib/server/og-post-card'
 
 export const dynamic = 'force-static'
 export const alt = postCardAlt('nb')

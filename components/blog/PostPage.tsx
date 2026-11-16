@@ -4,20 +4,20 @@ import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
-import { HIGHLIGHT_OPTIONS } from '@/lib/markdown'
-import { rehypeInlineCode } from '@/lib/inline-code'
-import { rehypePostImages } from '@/lib/post-images'
+import { HIGHLIGHT_OPTIONS } from '@/lib/server/markdown'
+import { rehypeInlineCode } from '@/lib/server/inline-code'
+import { rehypePostImages } from '@/lib/server/post-images'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import ShareRow from './ShareRow'
 import ViewCounter from './ViewCounter'
 import { DICT } from '@/data/i18n'
-import { formatDate, getAdjacentPosts, getPostBySlug, getPostSlugs, getTranslation, viewKey } from '@/lib/blog'
-import { blogPath, postPath, tagPath } from '@/lib/blog-paths'
-import { INTL_LOCALE, localePath, type Lang } from '@/lib/i18n'
-import { pageMetadata, serializeJsonLd } from '@/lib/metadata'
-import { AUTHOR, SITE_URL } from '@/lib/site'
-import { tagLabel } from '@/lib/tags'
+import { formatDate, getAdjacentPosts, getPostBySlug, getPostSlugs, getTranslation, viewKey } from '@/lib/server/blog'
+import { blogPath, postPath, tagPath } from '@/lib/shared/blog-paths'
+import { INTL_LOCALE, localePath, type Lang } from '@/lib/shared/i18n'
+import { pageMetadata, serializeJsonLd } from '@/lib/shared/metadata'
+import { AUTHOR, SITE_URL } from '@/lib/shared/site'
+import { tagLabel } from '@/lib/shared/tags'
 import type { Post } from '@/types'
 
 // A blog post, shared by /blogg/<slug>/ and /en/blog/<slug>/.
@@ -32,7 +32,7 @@ function load(lang: Lang, slug: string): Post | null {
   try {
     return getPostBySlug(slug, lang)
   } catch (e) {
-    // No such file is a 404; a frontmatter mistake (lib/post-frontmatter.ts)
+    // No such file is a 404; a frontmatter mistake (lib/server/post-frontmatter.ts)
     // must reach the author, not become one.
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') return null
     throw e
@@ -184,7 +184,7 @@ export default function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
               highlight palette in globals.css is drawn for a light block — so
               light mode sets a white block with dark text (e2e checks both
               themes with axe). Inline code: .post-body chips in globals.css,
-              broken only between words (lib/inline-code.ts). */}
+              broken only between words (lib/server/inline-code.ts). */}
           <div className="post-body prose dark:prose-invert max-w-none prose-a:text-red-600 dark:prose-a:text-red-400 prose-a:underline prose-a:underline-offset-2 hover:prose-a:decoration-2 prose-headings:font-bold prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800 prose-pre:bg-white prose-pre:text-slate-800 dark:prose-pre:bg-black/50 dark:prose-pre:text-gray-300 prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}

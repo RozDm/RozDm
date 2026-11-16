@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { markdownToHtml } from '@/lib/markdown'
+import { markdownToHtml } from '@/lib/server/markdown'
 
 // The RSS render and PostPage share HIGHLIGHT_OPTIONS, so this one speaks for
 // both.

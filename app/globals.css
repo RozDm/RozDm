@@ -14,7 +14,7 @@
   font-display: swap;
 }
 
-/* Intel One Mono's four subsets (lib/fonts.ts), then the system monospace. */
+/* Intel One Mono's four subsets (lib/server/fonts.ts), then the system monospace. */
 @theme {
   --animate-fade-in: fade-in 0.8s ease-out both;
   --font-sans:
@@ -373,7 +373,7 @@ html.intro-active::before {
 
 /* Inline code in posts (.post-body, PostPage): a quiet chip instead of
    Typography's bold text between backticks, and no line break inside a word
-   of a command: lib/inline-code.ts wraps each word in a .code-word span. */
+   of a command: lib/server/inline-code.ts wraps each word in a .code-word span. */
 .post-body :not(pre) > code {
   font-weight: 400;
   padding: 0.1em 0.35em;

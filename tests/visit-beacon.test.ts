@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { HUMAN_EVENTS, localDay, shouldCountVisit } from '@/lib/visit'
+import { HUMAN_EVENTS, localDay, shouldCountVisit } from '@/lib/client/visit'
 
-describe('Besøk beacon rules (lib/visit.ts)', () => {
+describe('Besøk beacon rules (lib/client/visit.ts)', () => {
   it('names the day by the visitor’s own calendar, zero-padded', () => {
     expect(localDay(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05')
     expect(localDay(new Date(2026, 9, 23, 0, 1))).toBe('2026-10-23')

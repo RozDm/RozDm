@@ -28,7 +28,7 @@ export const hourKey = (ms: number) => {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:00:00`
 }
 
-// Above MIN_PUBLIC_VISITS (lib/geo.ts), so the counts show; a test for the
+// Above MIN_PUBLIC_VISITS (lib/client/geo.ts), so the counts show; a test for the
 // quiet state overrides /api/geo with fewer.
 export const STUB_COUNTRIES: Record<string, number> = { NO: 120, US: 9, UA: 4 }
 export const STUB_MONITORS = ['NetBox', 'Grafana']

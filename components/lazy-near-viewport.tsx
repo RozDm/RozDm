@@ -4,11 +4,11 @@
 
 import dynamic from 'next/dynamic'
 import { useRef, type ComponentType, type ReactNode } from 'react'
-import { useNearViewport } from '@/lib/use-near-viewport'
+import { useNearViewport } from '@/lib/client/use-near-viewport'
 
 // Code-splits a widget out of the initial bundle (ssr:false — it fetches its
 // data on the client, nothing to render at build time) and mounts it only as
-// its slot nears the viewport (lib/use-near-viewport.ts). `load` is the
+// its slot nears the viewport (lib/client/use-near-viewport.ts). `load` is the
 // `() => import('./X')` thunk; the literal import() stays at the call site, so
 // the bundler still sees one chunk per widget. `Placeholder` reserves the
 // widget's final box (no layout shift) and is shown both while waiting for the

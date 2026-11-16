@@ -4,6 +4,13 @@ Traps only; read before `lib/` or `data/` too. Routes, i18n, SEO and font
 detail: `docs/reference/app.md`; blog: `content/CLAUDE.md`; root configs:
 `docs/gotchas.md`.
 
+- `lib/` is split by where code runs: `lib/server/` (build/export time:
+  `node:fs`, `content/`, OG cards, fonts, Markdown, feed), `lib/client/`
+  (browser APIs, hooks, `/api/*` fetchers) and `lib/shared/` (pure, no
+  environment). A client component imports only `client/` and `shared/`; a
+  new file goes where it runs. No `server-only` marker: the package isn't a
+  dependency and tests/scripts import these files outside Next; an ESLint
+  boundary is the planned guard.
 - ALL UI copy lives in `data/i18n.ts` (`nb` defines the shape, `en` is typed
   against it, `tests/i18n.test.ts` checks parity), never in a component.
   Exceptions: `app/error.tsx` reads `ERROR_COPY` (`data/i18n-error.ts`;
@@ -17,7 +24,7 @@ detail: `docs/reference/app.md`; blog: `content/CLAUDE.md`; root configs:
 - Every page uses `pageMetadata()`. Next merges metadata SHALLOWLY: a page
   setting part of `openGraph`/`alternates` drops the rest. The root layout has
   no canonical/og:url (the 404 inherits it); canonicals keep the trailing slash.
-- Name, roles, titles and `THEME_BG` live in `lib/site.ts`, the contact
+- Name, roles, titles and `THEME_BG` live in `lib/shared/site.ts`, the contact
   address in `src/contact.ts`: never hard-code them.
 - `app/template.tsx` cross-fades route changes with OPACITY ONLY (a transform
   traps the fixed intro overlays and sticky header); both front pages opt out.

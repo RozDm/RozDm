@@ -9,7 +9,7 @@ effort: high
 
 The blog is bilingual: a Norwegian post in `content/blog/<slug>.md` and its English twin in `content/blog/en/<en-slug>.md`, which names the Norwegian slug in `translationOf`. The owner may write the draft in any language (often Russian) — you produce both versions, and they read both before publishing. A post that only makes sense in one language (e.g. a Norway-specific topic) may skip the twin; ask if unsure.
 
-The rules below are enforced, so a slip fails `npm run dev`, `npm test` and the build instead of going live: the frontmatter by `lib/post-frontmatter.ts` (on every read), the text by `tests/blog-content.test.ts`, the twins by `tests/blog-pairs.test.ts`, images by `lib/post-images.ts` at build.
+The rules below are enforced, so a slip fails `npm run dev`, `npm test` and the build instead of going live: the frontmatter by `lib/server/post-frontmatter.ts` (on every read), the text by `tests/blog-content.test.ts`, the twins by `tests/blog-pairs.test.ts`, images by `lib/server/post-images.ts` at build.
 
 ## Inputs
 

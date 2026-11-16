@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { copyText } from '@/lib/clipboard'
+import { copyText } from '@/lib/client/clipboard'
 import { DICT } from '@/data/i18n'
-import { useLang } from '@/lib/use-lang'
+import { useLang } from '@/lib/client/use-lang'
 
 // On a desktop a click copies the address (mailto handlers are unreliable
 // there without a default mail app; right-click still offers the mailto). On

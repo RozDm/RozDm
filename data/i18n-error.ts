@@ -1,4 +1,4 @@
-import type { Lang } from '@/lib/i18n'
+import type { Lang } from '@/lib/shared/i18n'
 
 // The error boundary's copy, both languages. app/error.tsx loads on every page
 // in its own chunk, so it imports this instead of DICT: importing DICT there

@@ -1,7 +1,7 @@
 // Language codes, locale tags and path-to-language helpers for nb (root) and en (/en/).
 // Two languages: Norwegian at the root (the canonical site, every existing URL
 // unchanged) and English under /en/. Blog posts may exist in one language or
-// both (lib/blog.ts pairs them). Strings live in data/i18n.ts (the error
+// both (lib/server/blog.ts pairs them). Strings live in data/i18n.ts (the error
 // boundary's in data/i18n-error.ts).
 
 export type Lang = 'nb' | 'en'
@@ -22,7 +22,7 @@ export function langFromPath(pathname: string | null | undefined): Lang {
 
 // Pages that exist in both languages, as [Norwegian path, English path].
 // English paths get English slugs. Blog posts and tag pages pair dynamically —
-// their pages pass the twin explicitly (lib/blog.ts getTranslation).
+// their pages pass the twin explicitly (lib/server/blog.ts getTranslation).
 const PAIRS: readonly (readonly [string, string])[] = [
   ['/', '/en/'],
   ['/kontakt/', '/en/contact/'],

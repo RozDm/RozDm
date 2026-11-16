@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 // Intel One Mono, the site's face, for the build-time social cards
-// (lib/og-site-card.tsx, lib/og-post-card.tsx); without it next/og drew its
+// (lib/server/og-site-card.tsx, lib/server/og-post-card.tsx); without it next/og drew its
 // default sans and no bold. Its renderer reads TTF/OTF/WOFF, not the WOFF2
 // next/font serves, so the cards take Fontsource's WOFF files
 // (@fontsource/intel-one-mono, a devDependency: only the build reads them).

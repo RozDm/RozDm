@@ -1,5 +1,5 @@
-// Prints lib/site.ts's origin constants as shell assignments, so scripts/smoke.sh names no host of its own.
-import { SITE_HOST, SITE_URL } from '../lib/site.ts'
+// Prints lib/shared/site.ts's origin constants as shell assignments, so scripts/smoke.sh names no host of its own.
+import { SITE_HOST, SITE_URL } from '../lib/shared/site.ts'
 import { flags } from './cli.mjs'
 
 flags([], 'node scripts/site-env.mjs')

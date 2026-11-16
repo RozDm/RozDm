@@ -1,4 +1,4 @@
-import type { Star } from '@/lib/stars'
+import type { Star } from '@/lib/shared/stars'
 
 // Twinkling star field. `lit` fades the stars in; `zoom` scales the whole
 // field out for the intro's warp-out. The `twinkle` keyframes live in

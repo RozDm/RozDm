@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { isStale } from '@/src/status'
-import { serverNow } from '@/lib/server-clock'
-import { fetchStatus } from '@/lib/status-fetch'
+import { serverNow } from '@/lib/client/server-clock'
+import { fetchStatus } from '@/lib/client/status-fetch'
 import { DICT } from '@/data/i18n'
-import { useLang } from '@/lib/use-lang'
-import { useNearViewport } from '@/lib/use-near-viewport'
+import { useLang } from '@/lib/client/use-lang'
+import { useNearViewport } from '@/lib/client/use-near-viewport'
 
 type DotState = 'unknown' | 'up' | 'down'
 
 // One fetch, no polling: the footer is on every page and only needs an honest
 // hint, not a live dashboard — and only once the footer nears the viewport
-// (lib/use-near-viewport.ts), so a reader who never scrolls down costs no
+// (lib/client/use-near-viewport.ts), so a reader who never scrolls down costs no
 // Worker request for it. Unknown/error/stale degrades to gray.
 // Same visual language as the dashboard: steady green when all is well, a
 // pulsing red only when something is down (movement means "look at me").
@@ -25,7 +25,7 @@ export default function StatusDot() {
   useEffect(() => {
     if (!near) return
     let cancelled = false
-    // Shared with the front page's dashboard: one request (lib/status-fetch.ts).
+    // Shared with the front page's dashboard: one request (lib/client/status-fetch.ts).
     fetchStatus()
       .then((d) => {
         const results = d.results || []

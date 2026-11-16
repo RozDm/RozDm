@@ -12,7 +12,7 @@ import { isDatacenterAsn, isValidSlug, isWriteAllowed } from '../metrics'
 // forever. The static export is the source of truth: the post page exists
 // iff the slug is live (drafts never reach the export). Checked via the
 // ASSETS binding — a Worker can't fetch its own public URL. The slug is the
-// post's view key (lib/blog.ts viewKey): the Norwegian slug for a post that
+// post's view key (lib/server/blog.ts viewKey): the Norwegian slug for a post that
 // has one, else an English-only post's own slug under /en/blog/.
 async function isPublishedPost(url: URL, env: Env, slug: string): Promise<boolean> {
   for (const base of ['/blogg/', '/en/blog/']) {

@@ -1,11 +1,11 @@
 // Renders the build-time site-wide social card (OG image).
 
 import { ImageResponse } from 'next/og'
-import type { Lang } from './i18n'
+import type { Lang } from '@/lib/shared/i18n'
 import { OG_FONT_FAMILY, ogFonts } from './og-fonts'
-import { AUTHOR, SITE_CARD_SIZE, SITE_COPY } from './site'
+import { AUTHOR, SITE_CARD_SIZE, SITE_COPY } from '@/lib/shared/site'
 
-export { SITE_CARD_SIZE, siteCardAlt } from './site'
+export { SITE_CARD_SIZE, siteCardAlt } from '@/lib/shared/site'
 
 // The site-wide social card (HAL eye, roles, name, focus line) — rendered at
 // build time by app/opengraph-image.tsx (Norwegian) and

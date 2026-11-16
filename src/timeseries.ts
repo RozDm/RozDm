@@ -82,7 +82,7 @@ export function buildSeriesSql(dataset: string, metric: SeriesMetric, range: Ser
 
 // Canonicalise a bucket key to the fixed-width UTC form "YYYY-MM-DD HH:MM:SS"
 // that both the epoch compare (below) and the client-side merge
-// (lib/timeseries-fill.ts `utcBucketKey`) assume. AE currently emits exactly
+// (lib/shared/timeseries-fill.ts `utcBucketKey`) assume. AE currently emits exactly
 // that, so today this is a no-op — but the whole pipeline hangs on a raw
 // string equality, and an AE-side format drift (ISO 'T' separator, a trailing
 // 'Z'/offset, fractional seconds) would silently zero-fill the whole chart

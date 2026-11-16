@@ -1,7 +1,7 @@
 # content/ — the blog
 
 Loads with any file under `content/`. Read it too before changing the blog
-code (`lib/blog.ts`, `lib/markdown.ts`, `lib/post-images.ts`, `lib/tags.ts`,
+code (`lib/server/blog.ts`, `lib/server/markdown.ts`, `lib/server/post-images.ts`, `lib/shared/tags.ts`,
 `data/tags.ts`, `scripts/build-diagrams.mjs`). Site-wide rules: the root
 `CLAUDE.md`. A new post or a publish: the `/new-post` skill. Posts stay in this
 public repository (owner's call, `docs/decisions.md`).
@@ -10,28 +10,28 @@ public repository (owner's call, `docs/decisions.md`).
   `content/blog/en/<slug>.md` with `translationOf: <norwegian slug>`; one
   language only is fine. Frontmatter `title`, `description`, `date` (ISO),
   `tags`, optional `updated`, `draft: true`.
-- Checks: reading a post checks it (`lib/post-frontmatter.ts`: no unknown
+- Checks: reading a post checks it (`lib/server/post-frontmatter.ts`: no unknown
   field, `draft` a real boolean, real days, tags from `STANDARD_TAGS`,
   description 50–160 chars), so a slip stops dev, tests and the build instead
   of going live; `tests/blog-content.test.ts` adds the text: headings from
   `##`, one level at a time, links to other posts only to published ones.
 - Twins share date, `updated`, tags and draft (`tests/blog-pairs.test.ts`);
   `/new-post` writes both drafts and publishes them (date = the publish day).
-- Code: `lib/blog.ts` takes `lang` everywhere, URLs come from
-  `lib/blog-paths.ts`, one view counter per post (`viewKey`: the Norwegian
+- Code: `lib/server/blog.ts` takes `lang` everywhere, URLs come from
+  `lib/shared/blog-paths.ts`, one view counter per post (`viewKey`: the Norwegian
   slug).
-- Tags are canonical across languages (`lib/tags.ts`; canon + aliases in
+- Tags are canonical across languages (`lib/shared/tags.ts`; canon + aliases in
   `data/tags.ts`; `TAG_LABELS_EN` gives English labels and URLs; tag URLs
   fold æ/ø/å like post slugs).
 - Code blocks: highlighted at build by `rehype-highlight` with lowlight's
-  common languages plus PowerShell (`HIGHLIGHT_OPTIONS` in `lib/markdown.ts`,
+  common languages plus PowerShell (`HIGHLIGHT_OPTIONS` in `lib/server/markdown.ts`,
   shared by the page and RSS; a language left out renders plain), palette in
   `app/globals.css` (e2e checks both themes).
-- Inline code: a chip that breaks only between words (`lib/inline-code.ts`,
+- Inline code: a chip that breaks only between words (`lib/server/inline-code.ts`,
   `.post-body` in `app/globals.css`), so `curl -v` never splits at its
   hyphen.
 - Images: `![alt](/images/<slug>/file.webp)`, file in
-  `public/images/<slug>/`; `rehypePostImages` (`lib/post-images.ts`) stamps
+  `public/images/<slug>/`; `rehypePostImages` (`lib/server/post-images.ts`) stamps
   size + lazy loading and fails the build on an external image (the CSP's
   `img-src 'self' data:` would block it), a missing file, no alt text or an
   unreadable format. `<slug>` is the Norwegian one for both twins.

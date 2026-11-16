@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Eyebrow from '@/components/layout/Eyebrow'
 import { DICT } from '@/data/i18n'
-import { pageMetadata } from '@/lib/metadata'
+import { pageMetadata } from '@/lib/shared/metadata'
 import { CONTACT_ADDRESS } from '@/src/contact'
 
 // The notice is a document, not UI copy: its text lives here, not in

@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { formatDate } from '@/lib/blog'
-import { postPath, tagPath } from '@/lib/blog-paths'
-import { tagLabel } from '@/lib/tags'
+import { formatDate } from '@/lib/server/blog'
+import { postPath, tagPath } from '@/lib/shared/blog-paths'
+import { tagLabel } from '@/lib/shared/tags'
 import { DICT } from '@/data/i18n'
 import type { PostMeta } from '@/types'
 

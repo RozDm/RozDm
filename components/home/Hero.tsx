@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import HashLink from '../layout/HashLink'
 import { DICT } from '@/data/i18n'
-import { localePath, type Lang } from '@/lib/i18n'
-import { SITE_COPY } from '@/lib/site'
+import { localePath, type Lang } from '@/lib/shared/i18n'
+import { SITE_COPY } from '@/lib/shared/site'
 
 export default function Hero({ lang }: { lang: Lang }) {
   const t = DICT[lang].hero

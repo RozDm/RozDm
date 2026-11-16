@@ -31,7 +31,7 @@ test('front page renders every section and the live widgets', async ({ page }) =
 })
 
 // Each /api/* call is a Worker request against the free plan's daily quota:
-// the widgets below the fold (lib/use-near-viewport.ts) ask nothing until a
+// the widgets below the fold (lib/client/use-near-viewport.ts) ask nothing until a
 // reader nears them, and the footer dot shares the dashboard's answer.
 test('below-the-fold widgets wait for the reader; the status is fetched once', async ({ page }) => {
   const asked: string[] = []
@@ -118,7 +118,7 @@ test('the uptime caption is quiet, and says since when a service is down', async
 
 // A visitor's clock can be days off. The stale banner and the Trends grid
 // both hang on "now", so they take it from the answer's Date header
-// (lib/server-clock.ts): on the local clock a fresh snapshot read as dead and
+// (lib/client/server-clock.ts): on the local clock a fresh snapshot read as dead and
 // the chart's dots fell off its grid.
 test("a wrong clock on the visitor's machine greys out nothing", async ({ page }) => {
   const now = Date.now()
@@ -307,7 +307,7 @@ test('a post fits the screen, and inline code breaks between words only', async 
     return tables.map((t) => Math.round(t.getBoundingClientRect().width)).filter((w) => w > column + 1)
   })
   expect(wideTables).toEqual([])
-  // lib/inline-code.ts: each word is one .code-word span, so none spans two lines.
+  // lib/server/inline-code.ts: each word is one .code-word span, so none spans two lines.
   const split = await page
     .locator('.post-body .code-word')
     .evaluateAll((els) => els.filter((el) => el.getClientRects().length > 1).map((el) => el.textContent))
@@ -454,7 +454,7 @@ test.describe('contact form', () => {
   })
 })
 
-test.describe('visit beacon (lib/visit.ts)', () => {
+test.describe('visit beacon (lib/client/visit.ts)', () => {
   const visits = (page: import('@playwright/test').Page) => {
     const sent: string[] = []
     page.on('request', (r) => {
@@ -517,7 +517,7 @@ test.describe('contact form without JavaScript', () => {
 })
 
 // The post ViewCounter counts like the beacon: on human input, once per
-// session per post, never under automation (lib/visit.ts onFirstHumanInput).
+// session per post, never under automation (lib/client/visit.ts onFirstHumanInput).
 test.describe('post view counter', () => {
   const calls = (page: import('@playwright/test').Page) => {
     const methods: string[] = []
@@ -574,7 +574,7 @@ test('404 page: HAL, a 404 status and the body font', async ({ page }) => {
   // without it, display: 'optional' renders the page in the system monospace.
   await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(1)
   await page.evaluate(() => document.fonts.ready)
-  // Its family is named after lib/fonts.ts's const (intelOneMono), hashed or not.
+  // Its family is named after lib/server/fonts.ts's const (intelOneMono), hashed or not.
   expect(
     await page.evaluate(() => [...document.fonts].some((f) => /intel/i.test(f.family) && f.status === 'loaded')),
   ).toBe(true)
@@ -650,7 +650,7 @@ for (const scheme of ['light', 'dark'] as const) {
 }
 
 // What visitors see while the site is young: below MIN_PUBLIC_VISITS
-// (lib/geo.ts) the map and the chart keep their shape but show no number,
+// (lib/client/geo.ts) the map and the chart keep their shape but show no number,
 // and the chart says why.
 test('below the public threshold no visit number shows', async ({ page }) => {
   await page.route('**/api/geo', (r) =>
