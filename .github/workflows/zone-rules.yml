@@ -40,14 +40,14 @@ name: Zone rules
 on:
   workflow_dispatch:
 
-concurrency:
-  group: zone-rules
-  cancel-in-progress: false
-
 # Read-only GITHUB_TOKEN: nothing here writes to the repo; Cloudflare access
 # comes from the CLOUDFLARE_ZONE_TOKEN secret.
 permissions:
   contents: read
+
+concurrency:
+  group: zone-rules
+  cancel-in-progress: false
 
 jobs:
   apply:

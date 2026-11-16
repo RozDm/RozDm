@@ -16,6 +16,8 @@ on:
         required: true
         default: '7'
 
+# Read-only GITHUB_TOKEN: nothing here writes to the repo; Cloudflare access
+# comes from the AE_API_TOKEN secret.
 permissions:
   contents: read
 

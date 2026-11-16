@@ -15,6 +15,10 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
   (`tests/workflows.test.ts` enforces). "Required reviewers" stays off
   (owner's call): don't re-propose.
 - Every action is pinned to a full commit SHA plus a release comment (test).
+- Jobs install through `.github/actions/setup` (after checkout): setup-node
+  from `.nvmrc` + `npm ci`. Its defaults (no cache, `--ignore-scripts`) are
+  the secret-job rule; only a job without secrets passes `cache: 'true'` /
+  `ignore-scripts: 'false'` (test). A new workflow uses it too.
 - The Playwright image tag in `ci.yml` equals `@playwright/test`'s version
   (test): bump tag and digest with the package.
 - `deploy.yml`: the `build` job has no secrets; an empty `TURNSTILE_SITE_KEY`

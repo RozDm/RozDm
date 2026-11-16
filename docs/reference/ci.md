@@ -128,6 +128,15 @@ secret model. The traps to know before editing `.github/` are in
 - Every action is pinned to a full commit SHA with its release in a comment
   (`actions/checkout@<sha> # v7.0.1`); `tests/workflows.test.ts` fails on a
   bare tag; Dependabot bumps SHA and comment together.
+- `.github/actions/setup/action.yml` — the one composite action: setup-node
+  (`.nvmrc`) + `npm ci`, called after the checkout step by every job that
+  installs (`ci.yml` ×2, `deploy.yml` ×2, `d1-bootstrap`, `d1-repair`,
+  `reset-metrics`); new workflows use it. Defaults are the secret-job rule
+  (no npm cache, `--ignore-scripts`); `ci.yml` opts into cache + scripts,
+  `deploy.yml`'s `build` into the cache only. Dependabot's Actions entry
+  also scans `/.github/actions/*`, where setup-node is now pinned. Workflow
+  shape: name → `on` → `permissions` → `concurrency` (group = file name) →
+  `jobs`.
 - The repository was RozDm/RozDm until 2026-11-16 (renamed: `docs/decisions.md`); GitHub redirects the old URLs. The About box (description, website, topics) is a repository setting: owner-only.
 - `pull_request_template.md` — What / Why and a three-box checklist (check,
   docs, build + e2e); PRs from sessions follow it too.
