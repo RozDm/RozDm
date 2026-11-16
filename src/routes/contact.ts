@@ -93,54 +93,72 @@ export async function handleContact(url: URL, request: Request, env: Env): Promi
     if (!ok) return apiJson('{"error":"challenge failed"}', 403)
   }
 
-  // The D1 checks below fail open — a D1 hiccup must not close the form, and
-  // the burst cap and Turnstile above still stand — but never silently: an
-  // unlogged failure would switch the windows off with nothing to show for it.
-  const failOpen = (check: string) => (err: unknown) => {
-    console.error(`contact: D1 ${check} read failed, check skipped`, err)
-    return null
-  }
-
+  // The windows, the dedup and the insert are ONE statement: each D1 call
+  // costs ~2 ms of CPU in the binding (a cache-missed /api/geo, one D1 read,
+  // runs at p50 3 ms vs /api/status's KV read at 1 ms), and four of them took
+  // this route to 9–10 ms of Free's 10 (measured 2026-11-16, docs/history.md).
+  // One statement is also atomic: parallel bursts no longer all read the
+  // same count before any row lands.
+  //
   // Cutoffs are ISO strings like `at` itself — see CONTACT_WINDOWS_MS for
   // why comparing against SQLite's datetime('now', …) was wrong.
-  const now = Date.now()
-  const [recentByIp, recentByEmail] = await Promise.all([
-    env.METRICS.prepare('SELECT COUNT(*) AS n FROM contact WHERE ip = ?1 AND at > ?2')
-      .bind(sender, isoCutoff(now, CONTACT_WINDOWS_MS.perIp))
-      .first<{ n: number }>()
-      .catch(failOpen('per-sender window')),
-    env.METRICS.prepare('SELECT COUNT(*) AS n FROM contact WHERE email = ?1 AND at > ?2')
-      .bind(emailKey, isoCutoff(now, CONTACT_WINDOWS_MS.perEmail))
-      .first<{ n: number }>()
-      .catch(failOpen('per-address window')),
-  ])
-  if ((recentByIp?.n ?? 0) >= CONTACT_IP_LIMIT) return apiJson('{"error":"rate limited"}', 429)
-  if ((recentByEmail?.n ?? 0) >= CONTACT_EMAIL_LIMIT) return apiJson('{"error":"rate limited"}', 429)
-
+  //
   // Idempotency: a double-submit (double-click, lost response + retry, browser
-  // resend) would otherwise store a second row and send a second e-mail. Treat
-  // an identical message from the same address within a short window as the
-  // same submission and ack it without re-sending. Keyed on content rather
-  // than a client token so it needs no schema change and survives a client
-  // that forgets to send a key.
-  const duplicate = await env.METRICS.prepare(
-    'SELECT 1 AS n FROM contact WHERE email = ?1 AND message = ?2 AND at > ?3 LIMIT 1',
-  )
-    .bind(emailKey, payload.message, isoCutoff(now, CONTACT_WINDOWS_MS.duplicate))
-    .first<{ n: number }>()
-    .catch(failOpen('duplicate'))
-  if (duplicate) return apiJson('{"ok":true}')
-
+  // resend) would otherwise store a second row and send a second e-mail. An
+  // identical message from the same address within a short window is the
+  // same submission: acked without re-sending. Keyed on content rather than a
+  // client token so it needs no schema change and survives a client that
+  // forgets to send a key.
+  const now = Date.now()
   const at = new Date(now).toISOString()
+  const ipCutoff = isoCutoff(now, CONTACT_WINDOWS_MS.perIp)
+  const emailCutoff = isoCutoff(now, CONTACT_WINDOWS_MS.perEmail)
+  let checked = true
   const row = await env.METRICS.prepare(
-    'INSERT INTO contact (at, ip, name, email, message) VALUES (?1, ?2, ?3, ?4, ?5) RETURNING id',
+    `INSERT INTO contact (at, ip, name, email, message) SELECT ?1, ?2, ?3, ?4, ?5
+     WHERE (SELECT COUNT(*) FROM contact WHERE ip = ?2 AND at > ?6) < ${CONTACT_IP_LIMIT}
+       AND (SELECT COUNT(*) FROM contact WHERE email = ?4 AND at > ?7) < ${CONTACT_EMAIL_LIMIT}
+       AND NOT EXISTS (SELECT 1 FROM contact WHERE email = ?4 AND message = ?5 AND at > ?8)
+     RETURNING id`,
   )
-    .bind(at, sender, payload.name, emailKey, payload.message)
+    .bind(
+      at,
+      sender,
+      payload.name,
+      emailKey,
+      payload.message,
+      ipCutoff,
+      emailCutoff,
+      isoCutoff(now, CONTACT_WINDOWS_MS.duplicate),
+    )
     .first<{ id: number }>()
     .catch((err) => {
-      console.error('contact: D1 insert failed', err)
+      // Fails open — a D1 hiccup must not close the form, and the burst cap
+      // and Turnstile above still stand — but never silently: an unlogged
+      // failure would switch the windows off with nothing to show for it.
+      console.error('contact: D1 checks and insert failed, sent unchecked', err)
+      checked = false
       return null
     })
+
+  // No row and no error: a window is full or it's a duplicate. Which one is
+  // a second read, on this rare path only.
+  if (!row && checked) {
+    const counts = await env.METRICS.prepare(
+      `SELECT (SELECT COUNT(*) FROM contact WHERE ip = ?1 AND at > ?2) AS byIp,
+              (SELECT COUNT(*) FROM contact WHERE email = ?3 AND at > ?4) AS byEmail`,
+    )
+      .bind(sender, ipCutoff, emailKey, emailCutoff)
+      .first<{ byIp: number; byEmail: number }>()
+      .catch((err) => {
+        console.error('contact: D1 window read failed', err)
+        return null
+      })
+    // Unknown (the read failed) is answered as limited: nothing was stored or
+    // mailed, and the form keeps the text for a retry.
+    const limited = !counts || counts.byIp >= CONTACT_IP_LIMIT || counts.byEmail >= CONTACT_EMAIL_LIMIT
+    return limited ? apiJson('{"error":"rate limited"}', 429) : apiJson('{"ok":true}')
+  }
 
   try {
     // The owner's inbox is a secret (the repo is public). Unset → the send

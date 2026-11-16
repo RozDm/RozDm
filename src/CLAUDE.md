@@ -122,7 +122,10 @@ ops workflows: `.github/CLAUDE.md`; incident background: `docs/history.md`.
   `hostname` must be the request's), an e-mail pattern without
   `<>,;"()[]\:` (it lands in `Reply-To`), D1 limits per sender (`contact.ip`
   holds `clientKey(ip)`) and per address, and a 2-minute dedup (same address
-  + message → ack'd, no second mail). The address is compared and stored
+  + message → ack'd, no second mail) — the windows, the dedup and the
+  insert are ONE conditional `INSERT … SELECT … RETURNING` (a second read,
+  only on a refusal, says 429 or dedup; it failing → 429). Keep it one: each
+  D1 call is ~2 ms of CPU and four took the route to 9–10 ms (CPU below). The address is compared and stored
   lower-cased (`Reply-To` keeps it as typed); dots and `+tags` are left
   alone — providers differ. Anyone can spend an address's window for an
   hour: that is the limit's price, accepted.
@@ -222,6 +225,15 @@ ops workflows: `.github/CLAUDE.md`; incident background: `docs/history.md`.
   failed mail send, which also writes the `mailfail` AE point. Traces stay
   off (`"traces": {}` enables nothing; owner's call, `docs/decisions.md`):
   from 2026-12-01 logs and traces share Free's 0.5 GB/day.
+
+- CPU: Free allows 10 ms per request or cron run (then error 1102; an
+  isolate tolerates an occasional overrun). Our JS is well under 1 ms; the
+  cost is the binding calls — ~2 ms per D1 call, ~1 per KV, cache or fetch
+  (measured 2026-11-16, `docs/history.md`). Add a binding call to a route
+  only with a reason, never a D1 call per loop item. Watched by
+  `status-watchdog.yml`'s `cpu` job (p99.9 over 24 h > 8 ms fails); the
+  heaviest events: the Workers Observability telemetry query with
+  `$workers.cpuTimeMs` `gt` 6 (`node scripts/mcp.mjs cloudflare execute`).
 
 ## Tests
 

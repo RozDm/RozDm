@@ -227,25 +227,47 @@ describe('POST /api/contact', () => {
 
   // The windows and the dedup are D1 reads that fail open (the burst cap and
   // Turnstile still stand). Unlogged, a dead D1 switched them off unseen.
-  it('fails open when the D1 reads fail, and logs each skipped check', async () => {
+  it('fails open when D1 fails: mails the message unchecked and logs it', async () => {
+    const fake = makeEnv()
+    const d1Down = { prepare: () => ({ bind: () => ({ first: async () => Promise.reject(new Error('D1 down')) }) }) }
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = (await handleContact(URL_, post(FORM), { ...fake.env, METRICS: d1Down } as unknown as Env))!
+    expect(res.status).toBe(200)
+    expect(fake.sent).toHaveLength(1)
+    expect(error.mock.calls.map(([message]) => message)).toEqual([
+      'contact: D1 checks and insert failed, sent unchecked',
+    ])
+  })
+
+  // One D1 call on the way to a sent message (each costs ~2 ms of CPU of
+  // Free's 10), a second only when the message is refused.
+  it('makes one D1 call for a sent message', async () => {
     const fake = makeEnv()
     const d1 = fake.env.METRICS
-    const readsFail = {
+    let calls = 0
+    const counting = { prepare: (sql: string) => (calls++, d1.prepare(sql)) }
+    const env = { ...fake.env, METRICS: counting } as unknown as Env
+    expect((await handleContact(URL_, post(FORM), env))!.status).toBe(200)
+    expect(calls).toBe(1)
+    expect(rows(fake)).toBe(1)
+  })
+
+  it('answers 429 when the reason read fails after a refusal (nothing stored or mailed)', async () => {
+    const fake = makeEnv()
+    seed(fake, 1)
+    seed(fake, 2, { message: 'En annen melding her.' })
+    const d1 = fake.env.METRICS
+    const reasonFails = {
       prepare: (sql: string) =>
         sql.startsWith('SELECT')
           ? { bind: () => ({ first: async () => Promise.reject(new Error('D1 down')) }) }
           : d1.prepare(sql),
     }
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const res = (await handleContact(URL_, post(FORM), { ...fake.env, METRICS: readsFail } as unknown as Env))!
-    expect(res.status).toBe(200)
-    expect(fake.sent).toHaveLength(1)
-    expect(rows(fake)).toBe(1)
-    expect(error.mock.calls.map(([message]) => message)).toEqual([
-      'contact: D1 per-sender window read failed, check skipped',
-      'contact: D1 per-address window read failed, check skipped',
-      'contact: D1 duplicate read failed, check skipped',
-    ])
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = (await handleContact(URL_, post(FORM), { ...fake.env, METRICS: reasonFails } as unknown as Env))!
+    expect(res.status).toBe(429)
+    expect(fake.sent).toHaveLength(0)
+    expect(rows(fake)).toBe(2)
   })
 
   it('enforces Turnstile when the secret is set', async () => {

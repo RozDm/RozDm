@@ -241,6 +241,25 @@ apex). A preview URL runs whatever old version it was built from against the
 production D1, KV and mail, past any protection added since. Both are off
 for good (owner's call).
 
+## 2026-11-16 — Worker CPU near Free's 10 ms
+
+7 days of Workers Observability + GraphQL (`workersInvocationsAdaptive`):
+2984 invocations, 0 errors, CPU p50 2.4 / p99 6.1 / p99.9 9.7 ms; the
+heaviest were `POST /api/contact` 200s at 5–10 ms (wall 2.4–6.4 s). Our own
+JS is not it: a local run of the handlers takes 0.1–1 ms, the bundle is
+36 KB, startup ~0. Each binding call is: a cache-missed `/api/geo` (cache
+match + one D1 read + put) runs at p50 3 / max 9 ms, `/api/status` (the same
+with a KV read) at p50 1 / max 3, so a D1 call costs ~2 ms of CPU, and the
+contact route made four (two windows, the dedup, the insert). Now one
+conditional `INSERT … SELECT … RETURNING` (a second read only on a refusal).
+Checked and dropped: longer edge-cache TTLs on geo/timeseries (88 of 101 geo
+and 18 of 18 timeseries GETs were misses — low traffic over ~20 colos, hours
+apart, so a TTL of minutes changes nothing), precomputing in the cron (a KV
+read costs about what the D1 read does, and the D1 read would move into the
+cron). Smaller: the MIME base64 in 32 KB slices (~1 → ~0.2 ms on a cold
+isolate), the cron parses the snapshot once and cancels the probes' bodies.
+`status-watchdog.yml`'s `cpu` job now fails on p99.9 > 8 ms over 24 h.
+
 ## Removed features that must not quietly return
 
 - **Cloudflare Web Analytics** — removed 2026-10-17 (above). Visits are
