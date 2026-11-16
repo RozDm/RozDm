@@ -8,8 +8,11 @@
 import { readFileSync } from 'node:fs'
 import { HEADER_CSP, cspProblems } from '../src/csp.ts'
 import { htmlFiles } from './finalize-export.mjs'
+import { die } from './cli.mjs'
 
+const USAGE = 'usage: node scripts/check-csp.mjs [--live BASE PATH…]'
 const args = process.argv.slice(2)
+if (args.length && args[0] !== '--live') die(USAGE)
 let bad = 0
 const report = (where, problems) => {
   for (const p of problems) console.error(`FAIL ${where}: ${p}`)
@@ -18,7 +21,7 @@ const report = (where, problems) => {
 
 if (args[0] === '--live') {
   const [base, ...paths] = args.slice(1)
-  if (!base || paths.length === 0) throw new Error('usage: check-csp.mjs --live BASE PATH…')
+  if (!base || paths.length === 0) die(USAGE)
   for (const path of paths) {
     const res = await fetch(base + path, { headers: { 'Sec-Fetch-Mode': 'navigate', Accept: 'text/html' } })
     const problems = res.ok ? await cspProblems(await res.text()) : [`HTTP ${res.status}`]
@@ -30,7 +33,7 @@ if (args[0] === '--live') {
   }
 } else {
   const files = htmlFiles()
-  if (files.length === 0) throw new Error('no HTML in out/ — run npm run build first')
+  if (files.length === 0) die('check-csp: no HTML in out/ — run npm run build first')
   for (const file of files) report(file, await cspProblems(readFileSync(file, 'utf8')))
   if (!bad) console.log(`check-csp: OK — ${files.length} pages, every inline script hashed in its own policy`)
 }

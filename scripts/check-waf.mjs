@@ -14,6 +14,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { flags } from './cli.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const EXPR_FILE = '.github/waf/scanner-block.expr'
@@ -375,9 +376,10 @@ const fail = (head, lines) => {
   console.error(`check-waf: ${head}\n  ${lines.join('\n  ')}`)
   process.exit(1)
 }
+const selfTestOnly = flags(['--self-test'], 'node scripts/check-waf.mjs [--self-test]').has('--self-test')
 const testFailures = selfTest()
 if (testFailures.length) fail('the evaluator failed its self-test:', testFailures)
-if (process.argv.includes('--self-test')) {
+if (selfTestOnly) {
   console.log('check-waf: self-test ok')
   process.exit(0)
 }

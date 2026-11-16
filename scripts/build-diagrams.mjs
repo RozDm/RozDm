@@ -16,6 +16,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { inflateSync } from 'node:zlib'
+import { flags } from './cli.mjs'
 
 const SOURCES = 'content/diagrams'
 const OUTPUT = 'public/images'
@@ -246,7 +247,7 @@ export function outlineText(svg, file) {
 }
 
 function main() {
-  const check = process.argv.includes('--check')
+  const check = flags(['--check'], 'node scripts/build-diagrams.mjs [--check]').has('--check')
   const files = existsSync(SOURCES)
     ? readdirSync(SOURCES, { recursive: true })
         .filter((f) => f.endsWith('.svg'))

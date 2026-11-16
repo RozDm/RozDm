@@ -4,6 +4,9 @@
 // the package version bumps:  node scripts/build-world-svg.mjs
 import fs from 'node:fs'
 import shapesPkg from 'world-map-country-shapes'
+import { flags } from './cli.mjs'
+
+flags([], 'node scripts/build-world-svg.mjs')
 
 const shapes = shapesPkg.default ?? shapesPkg
 
