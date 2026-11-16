@@ -36,11 +36,11 @@ an HTTP call from `worker/domain/contact.ts`, not a binding. There is no R2.
 | `migrations/` | D1 schema as numbered `wrangler d1 migrations` (`0001_init.sql`, …); never edit an applied one |
 | `scripts/` | Build finalisation, CSP/WAF/docs checks, smoke test, read-only API tools |
 | `tests/`, `e2e/` | Vitest (Worker handlers on real SQLite) and Playwright browser tests |
-
-Who may import whom between these (the app never reaches into `worker/` but for the `api-types.ts` types; `worker/` takes only `lib/shared/`; browser code never takes `lib/server/`) is enforced by ESLint (`eslint.config.mjs`), not by this page.
 | `.github/` | CI, deploy, monitoring and one-shot ops workflows, zone rules |
 | `.claude/` | Agent config: skills, hooks, permissions |
 | `docs/` | Decisions, incident history, gotchas, edge security |
+
+Who may import whom between these (the app never reaches into `worker/` but for the `api-types.ts` types; `worker/` takes only `lib/shared/`; browser code never takes `lib/server/`) is enforced by ESLint (`eslint.config.mjs`), not by this page.
 
 `node scripts/check-docs.mjs --map` prints every module with its purpose line.
 Scripts share `scripts/cli.mjs` (`usage:` on bad arguments, a one-line reason
