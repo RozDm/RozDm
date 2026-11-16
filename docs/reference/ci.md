@@ -43,7 +43,9 @@ secret model. The traps to know before editing `.github/` are in
   build job could have written): one `wrangler secret bulk` syncing
   `OWNER_INBOX` (required: the step fails before anything is pushed when it
   is empty), `TURNSTILE_SECRET`, `CF_ACCOUNT_ID`, `AE_API_TOKEN`, `NETBOX_URL`
-  (unset ones skipped, never blanked) → `npx wrangler deploy` with the repo's pinned
+  (unset ones skipped, never blanked) → `d1 migrations list METRICS --remote`
+  (a `::warning::` on pending migrations or a failed read, never red) →
+  `npx wrangler deploy` with the repo's pinned
   wrangler (not `cloudflare/wrangler-action`: Node 20) → `scripts/smoke.sh`
   (also `check-csp.mjs --live` on the front pages, the sample posts and
   `/kontakt/`; it takes its sample posts from the deployed build's feeds,
@@ -104,7 +106,8 @@ secret model. The traps to know before editing `.github/` are in
   runs `wrangler d1 migrations apply METRICS --remote`: the pending files in
   `migrations/`, recorded in `d1_migrations`, so a re-run is a no-op. Run
   it by hand after a new migration merges; non-interactive in CI (wrangler's
-  confirmation falls back to yes). `deploy.yml` does not apply migrations.
+  confirmation falls back to yes). `deploy.yml` never applies them (owner, 2026-11-16: rollback can't undo
+  a migration), it only warns on pending ones.
 - `zone-rules.yml` — manual, idempotent, token `CLOUDFLARE_ZONE_TOKEN`
   (user-owned: Zone Read + Transform Rules, Bot Management, Zone Settings,
   Zone WAF and Single Redirect Edit). It applies:

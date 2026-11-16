@@ -33,6 +33,8 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
 - D1 schema goes only through `wrangler d1 migrations apply METRICS --remote`
   (by binding: after `d1 create --binding METRICS` it reaches the new id),
   never `d1 execute --file`, which records nothing in `d1_migrations`.
+  `deploy.yml` only lists pending ones (a warning) and never applies them
+  (owner, 2026-11-16: `wrangler rollback` can't undo a migration).
 - `d1-repair.yml` `sql` refuses any statement naming `contact` (public logs):
   contact rows are the dashboard's D1 console, never a workflow.
 - `reset-metrics.yml` is followed by a `METRICS_EPOCH` bump (`worker/CLAUDE.md`).

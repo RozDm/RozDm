@@ -114,6 +114,26 @@ jobs:
           ')
           printf '%s' "$payload" | npx wrangler secret bulk
 
+      # Reminder only: deploy never applies migrations (owner's call,
+      # 2026-11-16 — `wrangler rollback` can't undo one, and a destructive one
+      # would land unattended). `migrations list` reads d1_migrations (its one
+      # write, CREATE TABLE IF NOT EXISTS, is a no-op). A pending file or a
+      # failed read is a warning, never a red deploy: D1 is not this step's gate.
+      - name: Check for unapplied D1 migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if ! out=$(npx wrangler d1 migrations list METRICS --remote 2>&1); then
+            printf '%s\n' "$out"
+            echo "::warning::could not list D1 migrations; the deploy goes on"
+            exit 0
+          fi
+          printf '%s\n' "$out"
+          if grep -q 'Migrations to be applied' <<<"$out"; then
+            echo "::warning::D1 has unapplied migrations: run Actions → Bootstrap D1 (one-shot)"
+          fi
+
       # The repo's own pinned wrangler (package-lock), not cloudflare/
       # wrangler-action: the action runs on the deprecated Node 20 runtime and
       # adds nothing over the CLI that `npm ci` already installed — same
