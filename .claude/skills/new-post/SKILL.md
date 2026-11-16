@@ -1,13 +1,13 @@
 ---
 name: new-post
-description: Scaffold a new blog post in Norwegian and English (content/blog/<slug>.md + content/blog/en/<slug>.md, linked by translationOf) with the project's frontmatter conventions (title, description, ISO date, tags from data/tags.ts), and publish a draft when it is ready. Use when the user asks to create, start, draft, translate, add or publish a blog post / artikkel / blogginnlegg / статью.
+description: Scaffold a new blog post in Norwegian and English (content/blog/nb/<slug>.md + content/blog/en/<slug>.md, linked by translationOf) with the project's frontmatter conventions (title, description, ISO date, tags from data/tags.ts), and publish a draft when it is ready. Use when the user asks to create, start, draft, translate, add or publish a blog post / artikkel / blogginnlegg / статью.
 model: sonnet
 effort: high
 ---
 
 # New blog post
 
-The blog is bilingual: a Norwegian post in `content/blog/<slug>.md` and its English twin in `content/blog/en/<en-slug>.md`, which names the Norwegian slug in `translationOf`. The owner may write the draft in any language (often Russian) — you produce both versions, and they read both before publishing. A post that only makes sense in one language (e.g. a Norway-specific topic) may skip the twin; ask if unsure.
+The blog is bilingual: a Norwegian post in `content/blog/nb/<slug>.md` and its English twin in `content/blog/en/<en-slug>.md`, which names the Norwegian slug in `translationOf`. The owner may write the draft in any language (often Russian) — you produce both versions, and they read both before publishing. A post that only makes sense in one language (e.g. a Norway-specific topic) may skip the twin; ask if unsure.
 
 The rules below are enforced, so a slip fails `npm run dev`, `npm test` and the build instead of going live: the frontmatter by `lib/server/post-frontmatter.ts` (on every read), the text by `tests/blog-content.test.ts`, the twins by `tests/blog-pairs.test.ts`, images by `lib/server/post-images.ts` at build.
 
@@ -25,7 +25,7 @@ If the user did not state them, ask once (combined `AskUserQuestion`) for:
 1. Read `data/tags.ts` for `STANDARD_TAGS` (and `TAG_LABELS_EN`).
 2. Today's date in ISO-8601 (UTC): `YYYY-MM-DD`, quoted.
 3. Slugs: Norwegian from the Norwegian title, English from the English title — lowercase, ASCII-fold `æ→ae ø→o å→a`, non-alphanumeric → `-`, trimmed. Neither file may already exist (append `-2`…); the English slug must also not equal any existing Norwegian slug of a *different* post (`tests/blog-pairs.test.ts` checks).
-4. Write `content/blog/<slug>.md` — these fields only, any other is refused:
+4. Write `content/blog/nb/<slug>.md` — these fields only, any other is refused:
 
 ```markdown
 ---
@@ -79,6 +79,6 @@ Then the owner submits `https://rozsoshnykh.no/sitemap.xml` in Google Search Con
 
 ## Constraints
 
-- Files: `content/blog/<slug>.md` and `content/blog/en/<en-slug>.md`; slugs lowercase ASCII + dashes.
+- Files: `content/blog/nb/<slug>.md` and `content/blog/en/<en-slug>.md`; slugs lowercase ASCII + dashes.
 - Dates are quoted `"YYYY-MM-DD"` strings (an unquoted date is read as the same day, but quoted keeps the files uniform).
 - Do not edit `lib/`, the sitemap, RSS or components as part of this skill — new posts flow through the existing pipeline. A genuinely new tag is a separate change to `data/tags.ts` (add it to `STANDARD_TAGS`, and to `TAG_LABELS_EN` if it is a Norwegian word).

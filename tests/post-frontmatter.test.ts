@@ -5,7 +5,7 @@ import { parseFrontmatter } from '@/lib/server/post-frontmatter'
 // The frontmatter as YAML, the way a post file carries it (gray-matter turns
 // it into the object lib/server/blog.ts hands over).
 const parse = (yaml: string, lang: 'nb' | 'en' = 'nb') =>
-  parseFrontmatter(matter(`---\n${yaml}\n---\nTekst.\n`).data, lang, 'content/blog/x.md')
+  parseFrontmatter(matter(`---\n${yaml}\n---\nTekst.\n`).data, lang, `content/blog/${lang}/x.md`)
 
 const DESCRIPTION = 'En beskrivelse som er lang nok til et søkeresultat eller en lenke.'
 const post = (extra = '', { tags = '["Linux"]', date = '"2026-11-09"' } = {}) =>

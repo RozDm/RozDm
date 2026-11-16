@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getPostBySlug, getPostSlugs } from '@/lib/server/blog'
 import { isValidSlug } from '@/worker/domain/metrics'
 
-// Runs against the real content/blog/ (no fs mock): the two language versions
+// Runs against the real content/blog/<lang>/ (no fs mock): the two language versions
 // of a post must not drift apart. A twin pair shares its date, revision date,
 // tags and draft state; only the words differ.
 const nbSlugs = getPostSlugs('nb')
@@ -40,7 +40,7 @@ describe('blog translations', () => {
 // isValidSlug rejects, and the WAF rule (.github/waf/scanner-block.expr) is
 // slug-safe only because slugs have no dot — `/blogg/install.sh/` could 403.
 describe('blog slugs', () => {
-  it('every content/blog post file name is a valid slug', () => {
+  it('every content/blog/<lang> post file name is a valid slug', () => {
     expect([...nbSlugs, ...getPostSlugs('en')].filter((slug) => !isValidSlug(slug))).toEqual([])
   })
 })

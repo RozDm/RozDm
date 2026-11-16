@@ -340,14 +340,14 @@ function servedUrls() {
   }
   // /api/views/<viewKey> (lib/server/blog.ts): the Norwegian twin's slug, else the
   // post's own. Drafts too — they go public later.
-  const slugs = (dir) =>
+  const slugs = (lang) =>
     fs
-      .readdirSync(path.join(ROOT, dir))
+      .readdirSync(path.join(ROOT, 'content/blog', lang))
       .filter((f) => f.endsWith('.md'))
       .map((f) => f.slice(0, -3))
-  const nb = slugs('content/blog')
+  const nb = slugs('nb')
   for (const slug of nb) urls.add(`/api/views/${slug}`)
-  for (const slug of slugs('content/blog/en')) {
+  for (const slug of slugs('en')) {
     const md = fs.readFileSync(path.join(ROOT, 'content/blog/en', `${slug}.md`), 'utf8')
     const twin = /^translationOf:\s*["']?([^"'\s]+)/m.exec(/^---\r?\n([\s\S]*?)\r?\n---/.exec(md)?.[1] ?? '')?.[1]
     urls.add(`/api/views/${twin && nb.includes(twin) ? twin : slug}`)
