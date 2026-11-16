@@ -9,6 +9,9 @@ model: `docs/reference/ci.md` (workflows: `ci.yml`, `deploy.yml`,
 - `check` (`ci.yml`) is the one required status; green only when `build`,
   `e2e` and `actionlint` all are. Never merge by hand while it is red or
   pending. A workflow change that actionlint flags is fixed, not silenced.
+- shellcheck (`actionlint` job) covers every `run:` block and, by glob,
+  every `scripts/*.sh` and `.claude/hooks/*.sh` — a new script there is
+  checked automatically; findings get fixed, not silenced.
 - Secrets live only in the `production` environment, none at repo level
   (public repo: any branch could read one). A job reading a secret runs in
   `production`, installs with `npm ci --ignore-scripts` and no npm cache; no
