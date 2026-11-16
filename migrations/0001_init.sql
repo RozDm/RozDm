@@ -1,3 +1,7 @@
+-- Initial schema (was schema/metrics.sql). Applied migrations are never
+-- edited: a schema change is a new numbered file. IF NOT EXISTS keeps this
+-- one a no-op on the live database, which had the tables before migrations.
+
 -- Page-view counter per post slug.
 CREATE TABLE IF NOT EXISTS views (
   slug TEXT PRIMARY KEY,

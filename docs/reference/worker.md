@@ -85,7 +85,8 @@ The module inventory is the purpose header of each file
   5-minute cron. Free = 1000 KV writes/day: NEVER a per-request KV write —
   per-request data goes to D1 (100k writes/day) or AE (100k points/day,
   shared by every channel).
-- D1 `rozsoshnykh-metrics-v2` (`METRICS`, `schema/metrics.sql`):
+- D1 `rozsoshnykh-metrics-v2` (`METRICS`; schema = `migrations/*.sql`,
+  `migrations_dir` in `wrangler.jsonc`, applied by `d1-bootstrap.yml`):
   `views(slug, count)`, `geo(country, count)`,
   `contact(id, at, ip, name, email, message)`; counters are atomic
   `INSERT … ON CONFLICT … count = count + 1`.
@@ -279,7 +280,7 @@ status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
 - Route handlers, the entry's dispatch and both crons
   (`tests/worker/index.test.ts`) run under plain Vitest with in-process
   bindings from `tests/worker/fakes.ts`: D1 is REAL SQLite (`node:sqlite`,
-  Node ≥ 22.5) loaded with `schema/metrics.sql`; KV, AE, Email Routing and
+  Node ≥ 22.5) loaded with `migrations/*.sql` in file-name order; KV, AE, Email Routing and
   ASSETS are fakes; `cloudflare:email` is aliased to a stub in
   `vitest.config.mts`. They type-check under `tsconfig.worker.json` (Node
   bits in `node-shims.d.ts`). `tests/worker/errors.test.ts`: one test per

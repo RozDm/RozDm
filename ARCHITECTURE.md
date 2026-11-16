@@ -33,7 +33,7 @@ an HTTP call from `worker/domain/contact.ts`, not a binding. There is no R2.
 | `lib/`, `data/` | Helpers split by where they run (`lib/server/` build/export only, `lib/client/` browser, `lib/shared/` pure, also imported by the Worker); copy, skills, tag canon |
 | `content/` | Blog posts (Markdown, `content/blog/{nb,en}/<slug>.md`), diagram sources |
 | `worker/` | The Worker: `index.ts` dispatches to `worker/routes/*` (HTTP only), which call `worker/domain/*` (rules; `*-store.ts` hold the bindings); CSP, the `/api/*` contract |
-| `schema/` | D1 schema (`metrics.sql`) |
+| `migrations/` | D1 schema as numbered `wrangler d1 migrations` (`0001_init.sql`, …); never edit an applied one |
 | `scripts/` | Build finalisation, CSP/WAF/docs checks, smoke test, read-only API tools |
 | `tests/`, `e2e/` | Vitest (Worker handlers on real SQLite) and Playwright browser tests |
 

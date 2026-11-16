@@ -1,11 +1,18 @@
 // In-process fakes for the Worker's bindings, so route handlers run under
 // plain Vitest (no workerd). D1 is REAL SQLite (node:sqlite) loaded with
-// schema/metrics.sql — SQL semantics such as TEXT comparison are exactly
+// migrations/*.sql in order, as `wrangler d1 migrations apply` runs them — SQL semantics such as TEXT comparison are exactly
 // what production gets, which is what caught the ISO-vs-datetime() bug.
 import { DatabaseSync } from 'node:sqlite'
-import schema from '../../schema/metrics.sql?raw'
 import type { ApiError, ApiErrorCode } from '../../worker/api-types'
 import { API_ERRORS } from '../../worker/http'
+
+// Every migration's text, keyed by path; wrangler applies them in file-name
+// order (0001_…, 0002_…), so sort the same way.
+const migrations = import.meta.glob<string>('../../migrations/*.sql', { query: '?raw', import: 'default', eager: true })
+const schema = Object.keys(migrations)
+  .sort()
+  .map((path) => migrations[path])
+  .join('\n')
 
 // The body a refusal with `code` carries (worker/http.ts apiError).
 export const errorBody = (code: ApiErrorCode): ApiError => ({ error: { code, message: API_ERRORS[code].message } })

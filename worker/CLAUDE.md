@@ -24,6 +24,10 @@ file purposes: `node scripts/check-docs.mjs --map`; incidents: `docs/history.md`
   `HEADER_CSP`. Turn on nothing that makes the EDGE inject a script (JS
   Detections, Rocket Loader, Zaraz, Web Analytics): the CSP refuses it and each
   refusal is a Worker request. Trusted Types stays off (Next 16).
+- D1 schema = `migrations/NNNN_<what>.sql` (`wrangler d1 migrations`): a
+  schema change is a new numbered migration; never edit an applied one (the
+  `d1_migrations` table won't re-run it). Land it backward-compatible with the
+  deployed Worker, then run `d1-bootstrap.yml` (applies pending migrations).
 - Contact: a failed mail send deletes its D1 row. Time windows use
   `isoCutoff()` as bound parameters, NEVER `datetime('now', …)` (ISO is TEXT).
 - Status alerts are flap-damped: a failed KV read skips the tick, a failed
