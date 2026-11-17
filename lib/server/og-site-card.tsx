@@ -3,7 +3,7 @@
 import { ImageResponse } from 'next/og'
 import type { Lang } from '@/lib/shared/i18n'
 import { OG_FONT_FAMILY, ogFonts } from './og-fonts'
-import { AUTHOR, SITE_CARD_SIZE, SITE_COPY } from '@/lib/shared/site'
+import { AUTHOR, SITE_CARD_SIZE, SITE_COPY, SITE_HOST } from '@/lib/shared/site'
 
 export { SITE_CARD_SIZE, siteCardAlt } from '@/lib/shared/site'
 
@@ -51,7 +51,7 @@ export async function siteCardImage(lang: Lang): Promise<ImageResponse> {
         <div style={{ color: '#94a3b8', fontSize: 30, marginTop: 24 }}>{SITE_COPY[lang].focus}</div>
       </div>
 
-      <div style={{ display: 'flex', color: '#475569', fontSize: 24 }}>rozsoshnykh.no</div>
+      <div style={{ display: 'flex', color: '#475569', fontSize: 24 }}>{SITE_HOST}</div>
     </div>,
     { ...SITE_CARD_SIZE, fonts: await ogFonts() },
   )

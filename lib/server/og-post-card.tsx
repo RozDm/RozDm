@@ -5,7 +5,7 @@ import { DICT } from '@/data/dictionary'
 import { getPostBySlug } from './blog'
 import type { Lang } from '@/lib/shared/i18n'
 import { OG_FONT_FAMILY, ogFonts } from './og-fonts'
-import { AUTHOR } from '@/lib/shared/site'
+import { AUTHOR, SITE_HOST } from '@/lib/shared/site'
 
 // Social card for one blog post (HAL eye, BLOGG/BLOG label, title), rendered
 // at build time by app/blogg/[slug]/opengraph-image.tsx and its /en/ twin.
@@ -66,7 +66,7 @@ export async function postCardImage(lang: Lang, slug: string): Promise<ImageResp
         </div>
       </div>
 
-      <div style={{ display: 'flex', color: '#475569', fontSize: 24 }}>{`${AUTHOR.name} · rozsoshnykh.no`}</div>
+      <div style={{ display: 'flex', color: '#475569', fontSize: 24 }}>{`${AUTHOR.name} · ${SITE_HOST}`}</div>
     </div>,
     { ...POST_CARD_SIZE, fonts: await ogFonts() },
   )
