@@ -2,6 +2,7 @@
 title: "Network troubleshooting: two ways through the TCP/IP stack"
 description: "Network troubleshooting bottom-up or top-down: the thinking behind the TCP/IP model, and how to choose the right way."
 date: "2026-11-09"
+updated: "2026-11-17"
 tags: ["Nettverk", "TCP/IP"]
 translationOf: "feilsoking-to-veier-gjennom-tcp-ip-stakken"
 ---
@@ -44,7 +45,7 @@ And a proof only holds for what you tested with. A small ping doesn't prove that
 
 The first way starts at the cable and proves layer by layer upwards: a signal, contact with the neighbour, a route to the target, an open port, a service that answers.
 
-It fits when the symptom is broad — many users or every service down — when something physical has changed, on new installations, and when one machine has no network at all. It also fits when you know little: the method needs no theory about the fault, only thoroughness.
+It fits when the symptom is broad — many users and several services down — when something physical has changed, on new installations, and when one machine has no network at all. It also fits when you know little: the method needs no theory about the fault, only thoroughness.
 
 Its strength is that nothing gets skipped. Every proven layer is solid ground, and you never chase a ghost high up that really comes from a fault further down. Its weakness is time: if the fault is an expired certificate, you have proven four layers for nothing. And it needs access to the lower layers — cables, switches, routing — which you don't always have.
 
@@ -63,7 +64,7 @@ It fits when one service fails while the rest work: email goes through, but the 
 | No reply once connected | The connection stands, but the service behind it doesn't answer | The application, layer 5 |
 | Certificate error | The trust fails, or you reached the wrong host | TLS, layer 5; for a wrong host, DNS or a proxy |
 
-Its weakness is that symptoms can lie. A fault far down can pass for one high up: through a VPN tunnel with too small an MTU, the name resolves, ping answers and the port opens, but the connection hangs when the server sends its certificate chain. It looks like a TLS fault, but the cause sits at layer 3. The defence is to let go quickly: if a hypothesis high up doesn't hold, go down.
+Its weakness is that symptoms can lie. A fault far down can pass for one high up: through a VPN tunnel with too small an MTU and broken Path MTU Discovery (ICMP ‘Fragmentation Needed’ is dropped, see [RFC 2923](https://www.rfc-editor.org/rfc/rfc2923.html)), the name resolves, ping answers and the port opens, but the connection hangs when the server sends its certificate chain. It looks like a TLS fault, but the cause sits at layer 3. The defence is to let go quickly: if a hypothesis high up doesn't hold, go down.
 
 ## Start in the middle
 
@@ -79,7 +80,7 @@ A typical case: on Monday morning users can't get into the intranet, but email a
 2. The server answers ping. There is a way there, at least for ICMP.
 3. On the server, the service is running and listening on the port. The fault is not a dead process but somewhere on the way.
 4. The traffic on the server shows the connection attempts never arrive. Something between the networks drops them.
-5. What changed? A firewall rule over the weekend, which took the office network's access with it.
+5. What changed? A firewall rule over the weekend, which took the office network's access with it. Asked first, the question would have pointed straight at the firewall and saved the first four steps.
 
 Bottom-up would have walked the same fault like this: signal, neighbour, address and gateway on the client are all fine, four proofs without a finding. Then the target answers ping but the port doesn't, and from there the rest is the same: the server listens, the packets don't arrive, the firewall. Both ways end at the same answer; bottom-up just spends more steps proving what already worked.
 
@@ -89,8 +90,8 @@ Had it been the cable, though, the user would have had trouble with everything, 
 
 ![The TCP/IP stack with five layers, from 1 Physical at the bottom to 5 Application at the top. Bottom-up starts at layer 1 and goes up, top-down starts at layer 5 and goes down, and starting in the middle means layer 3, then up or down depending on the answer.](/images/feilsoking-to-veier-gjennom-tcp-ip-stakken/tcp-ip-stack.svg)
 
-- Many users or every service down, or something physical changed: bottom-up.
-- One service fails, the rest work: top-down.
+- Many users and several services down, or something physical changed: bottom-up.
+- One service fails, the rest work, even if many users are hit: top-down.
 - The symptom points nowhere: start in the middle, and let the answer pick the direction.
 - And always first: what changed?
 
@@ -100,6 +101,6 @@ Had it been the cable, though, the user would have had trouble with everything, 
 - **Change one thing at a time.** Otherwise you don't know what fixed the fault, or what caused a new one.
 - **Don't trust a single signal.** Confirm with a second, independent test.
 - **Test from the user's side.** A proof only holds for the path you tested.
-- **Tell the symptom from the cause.** The fault isn't solved when it works again, but when you know why the rule disappeared and how to stop it happening again.
+- **Tell the symptom from the cause.** The fault isn't solved when it works again, but when you know why the access disappeared and how to stop it happening again.
 
 Commands change with tools and operating systems. The way of thinking doesn't.
