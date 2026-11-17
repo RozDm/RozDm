@@ -35,7 +35,7 @@ export default function PersonvernPage() {
               «Personvern-/erklæring» there and nowhere else. */}
         Personvern&shy;erklæring
       </PageTitle>
-      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-10">Sist oppdatert: 23. oktober 2026</p>
+      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-10">Sist oppdatert: 17. november 2026</p>
 
       <div className="prose dark:prose-invert max-w-none prose-a:text-red-600 dark:prose-a:text-red-400 prose-a:underline prose-a:underline-offset-2 hover:prose-a:decoration-2 prose-headings:font-bold">
         <h2>Behandlings&shy;ansvarlig</h2>
@@ -51,10 +51,13 @@ export default function PersonvernPage() {
           henvendelsen og til å begrense misbruk av skjemaet (antall innsendinger per adresse).
         </p>
         <p>
-          Meldingen leveres til e-postinnboksen min hos Gmail, og en kopi lagres i en database hos Cloudflare.
-          Databasekopien slettes automatisk etter 30 dager. Hvis e-posten ikke kan leveres, slettes kopien med en gang,
-          og du får beskjed om å prøve igjen. Selve e-posten slettes senest tre måneder etter siste kontakt om
-          henvendelsen, med mindre den fører til et oppdrag eller en avtale som krever at den oppbevares lenger.
+          Meldingen leveres til e-postinnboksen min hos Gmail, og en kopi lagres i en database hos Cloudflare. Sammen
+          med kopien lagres IP-adressen din (for IPv6 bare nettverksprefikset, de første 64 bitene, ikke hele adressen).
+          Databasekopien, inkludert IP-adressen, slettes automatisk etter 30 dager, og slettede data blir liggende i
+          databasens sikkerhetskopi (Cloudflare D1 Time Travel) i opptil 7 dager til før de er helt borte. Hvis e-posten
+          ikke kan leveres, slettes kopien med en gang, og du får beskjed om å prøve igjen. Selve e-posten slettes
+          senest tre måneder etter siste kontakt om henvendelsen, med mindre den fører til et oppdrag eller en avtale
+          som krever at den oppbevares lenger.
         </p>
         <p>
           Skjemaet er beskyttet av Cloudflare Turnstile, som skiller mennesker fra roboter. For å gjøre det behandler
@@ -85,7 +88,7 @@ export default function PersonvernPage() {
         <p>
           Når nettstedets server (en Cloudflare Worker) håndterer en forespørsel, lagrer Cloudflare en teknisk logg over
           den: blant annet tidspunktet, adressen som ble bedt om og opplysninger om forbindelsen, som kan omfatte
-          IP-adressen din. Loggene brukes kun til feilsøking og sikkerhet, lagres i opptil 7 dager og slettes deretter
+          IP-adressen din. Loggene brukes kun til feilsøking og sikkerhet, lagres i opptil 3 dager og slettes deretter
           automatisk.
         </p>
 
