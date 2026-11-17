@@ -9,11 +9,19 @@ import type { ContactRequest } from '../../worker/api-types'
 export const CONTACT_ADDRESS = 'contact@rozsoshnykh.no'
 
 export const CONTACT_LIMITS = {
+  nameMin: 1,
   name: 100,
   email: 200,
   message: 5000,
   messageMin: 10,
 } as const
+
+// The Worker trims a field before it checks its length (worker/validate.ts
+// text()), so the form must too: "   " or "a" + 9 spaces would pass the
+// browser's `required`/`minLength` (which count spaces) and get a 422.
+export function contactFieldLongEnough(field: 'name' | 'message', value: string): boolean {
+  return value.trim().length >= (field === 'name' ? CONTACT_LIMITS.nameMin : CONTACT_LIMITS.messageMin)
+}
 
 // The contact form's honeypot field, shared by the form and the Worker so the
 // two can't drift. Not `website`/`url`/`company`/`phone`-like: autofill and

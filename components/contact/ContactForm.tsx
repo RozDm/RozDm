@@ -5,7 +5,13 @@ import Turnstile, { type TurnstileHandle } from './Turnstile'
 import { DICT } from '@/data/dictionary'
 import { useLang } from '@/lib/client/use-lang'
 import type { ApiError, ContactErrorCode } from '@/worker/api-types'
-import { CONTACT_ADDRESS, CONTACT_LIMITS, EMAIL_PATTERN, HONEYPOT_FIELD } from '@/lib/shared/contact'
+import {
+  CONTACT_ADDRESS,
+  CONTACT_LIMITS,
+  EMAIL_PATTERN,
+  HONEYPOT_FIELD,
+  contactFieldLongEnough,
+} from '@/lib/shared/contact'
 
 type FormState = 'idle' | 'sending' | 'sent' | 'error' | 'invalid' | 'ratelimited' | 'challenge' | 'blocked' | 'widget'
 
@@ -57,6 +63,7 @@ export default function ContactForm() {
   // under it, and back to the first field for the next message.
   const sentRef = useRef<HTMLHeadingElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const messageRef = useRef<HTMLTextAreaElement>(null)
   const sentBodyId = useId()
   const wasSent = useRef(false)
   useEffect(() => {
@@ -77,18 +84,33 @@ export default function ContactForm() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const form = e.currentTarget
+    const data = Object.fromEntries(new FormData(form).entries())
+    // The Worker trims before it checks; so do we, and refuse with the field's
+    // own bubble. Nothing is sent, so the Turnstile token stays unspent.
+    const trimmed = Object.fromEntries(
+      (['name', 'email', 'message'] as const).map((k) => [k, String(data[k] ?? '').trim()]),
+    ) as Record<'name' | 'email' | 'message', string>
+    for (const [field, el, text] of [
+      ['name', nameRef.current, t.nameInvalid],
+      ['message', messageRef.current, t.messageInvalid],
+    ] as const) {
+      if (el && !contactFieldLongEnough(field, trimmed[field])) {
+        el.setCustomValidity(text)
+        el.reportValidity()
+        return
+      }
+    }
     if (SITE_KEY && !turnstileToken) {
       setState((s) => (s === 'widget' ? 'widget' : 'challenge'))
       return
     }
-    const form = e.currentTarget
-    const data = Object.fromEntries(new FormData(form).entries())
     setState('sending')
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, turnstileToken }),
+        body: JSON.stringify({ ...data, ...trimmed, turnstileToken }),
       })
       if (res.ok) {
         form.reset()
@@ -225,9 +247,9 @@ export default function ContactForm() {
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-gray-900 dark:text-white">{t.message}</span>
         <textarea
+          ref={messageRef}
           name="message"
           required
-          minLength={CONTACT_LIMITS.messageMin}
           maxLength={CONTACT_LIMITS.message}
           rows={6}
           className={inputClass}

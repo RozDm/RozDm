@@ -164,6 +164,9 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   when the toggle flips it. Limits, the e-mail `pattern` and the address
   come from `lib/shared/contact.ts` (`CONTACT_LIMITS`, `EMAIL_PATTERN`,
   `CONTACT_ADDRESS`), so the browser refuses what the Worker would. The
+  Worker trims before it checks length, so `onSubmit` trims name/e-mail/message
+  and refuses with the field's bubble via `contactFieldLongEnough` (nothing
+  is sent, the token stays unspent). The
   honeypot's name is `HONEYPOT_FIELD` (`topic`: autofill fills
   website/url/company-like fields, and a filled one drops a real message). The form
   and its confirmation replace each other, so focus is moved by hand: to the

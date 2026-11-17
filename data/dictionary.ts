@@ -140,7 +140,8 @@ const nb = {
     sentBody: 'Jeg svarer som regel innen en dag eller to.',
     sendAnother: 'Send en til',
     errorFailed: 'Meldingen ble ikke sendt. Prøv igjen, eller send en e-post direkte til',
-    errorInvalid: 'Sjekk feltene: en gyldig e-postadresse og minst 10 tegn i meldingen.',
+    errorInvalid:
+      'Sjekk feltene: navn, en gyldig e-postadresse og minst 10 tegn i meldingen (mellomrom i endene teller ikke).',
     errorRate: 'For mange meldinger på kort tid — prøv igjen om noen minutter, eller send en e-post direkte til',
     errorChallenge: 'Bekreft at du ikke er en bot, så prøv igjen.',
     errorBlocked: 'Meldingen ble stanset av sikkerhetsfiltrene. Prøv på nytt, eller send en e-post direkte til',
@@ -306,7 +307,8 @@ const en: Dict = {
     sentBody: 'I usually reply within a day or two.',
     sendAnother: 'Send another',
     errorFailed: 'The message was not sent. Try again, or email me directly at',
-    errorInvalid: 'Check the fields: a valid email address and at least 10 characters in the message.',
+    errorInvalid:
+      'Check the fields: your name, a valid email address and at least 10 characters in the message (spaces at the ends don’t count).',
     errorRate: 'Too many messages in a short time — try again in a few minutes, or email me directly at',
     errorChallenge: 'Please confirm you are not a bot, then try again.',
     errorBlocked: 'The message was stopped by the security filters. Try again, or email me directly at',
