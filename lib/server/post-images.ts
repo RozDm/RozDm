@@ -1,7 +1,7 @@
 // Rehype plugin that resolves blog post images and fails the build on a broken one.
 // Images in blog posts — `![alt](/images/<slug>/file.webp)` in the markdown,
-// the file in public/. One rehype plugin for the post page (PostPage's
-// ReactMarkdown) and the RSS body (lib/server/markdown.ts); it runs at build and
+// the file in public/. One rehype plugin for the post page and the RSS body (both through
+// markdownToHtml in lib/server/markdown.ts); it runs at build and
 // fails the build rather than ship a broken image:
 //  - The pages' CSP takes images from 'self' and data: only (worker/csp.ts): an
 //    external image would be refused, silently, in every browser.

@@ -4,9 +4,6 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import { createElement } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
-import ReactMarkdown from 'react-markdown'
 import { imageSize, rehypePostImages, type PostImageOptions } from '@/lib/server/post-images'
 
 // Real files (made with Pillow), so the header parsing is checked against
@@ -71,17 +68,4 @@ describe('rehypePostImages', () => {
       'src="data:image/gif;base64,R0lGODlhAQABAAAAACw="',
     )
   })
-})
-
-// The post page renders with ReactMarkdown (components/blog/PostPage.tsx):
-// the attributes must survive its hast → React step too.
-it('reaches the page through ReactMarkdown', () => {
-  const html = renderToStaticMarkup(
-    createElement(
-      ReactMarkdown,
-      { rehypePlugins: [[rehypePostImages, { publicDir: FIXTURES }]] },
-      '![Kvadrat](/images/e-lossy.webp)',
-    ),
-  )
-  expect(html).toContain('width="9" height="6" loading="lazy" decoding="async"')
 })
