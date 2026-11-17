@@ -157,19 +157,28 @@ describe('withMetaCsp / cspProblems', () => {
 describe('parseCspReports', () => {
   const ORIGIN = 'https://rozsoshnykh.no'
 
-  it('reads the legacy report-uri body', () => {
+  it('keeps origin and path only — no query strings, no full URLs', () => {
     const out = parseCspReports(
-      {
-        'csp-report': {
-          'document-uri': 'https://rozsoshnykh.no/blogg/velkommen/?utm=x',
-          'blocked-uri': 'https://evil.example/x.js?token=secret',
-          'violated-directive': "script-src-elem 'self'",
+      [
+        {
+          type: 'csp-violation',
+          body: {
+            documentURL: 'https://rozsoshnykh.no/blogg/velkommen/?utm=x',
+            blockedURL: 'https://evil.example/x.js?token=secret',
+            effectiveDirective: 'script-src-elem',
+          },
         },
-      },
+      ],
       ORIGIN,
     )
-    // Origin and path only — no query strings, no full URLs.
     expect(out).toEqual([{ directive: 'script-src-elem', blocked: 'https://evil.example', page: '/blogg/velkommen/' }])
+  })
+
+  it('ignores a legacy report-uri body: no policy sends report-uri', () => {
+    const legacy = {
+      'csp-report': { 'document-uri': `${ORIGIN}/`, 'blocked-uri': 'inline', 'violated-directive': 'script-src-elem' },
+    }
+    expect(parseCspReports(legacy, ORIGIN)).toEqual([])
   })
 
   it('reads a Reporting API batch and keeps keywords like inline', () => {
@@ -263,28 +272,19 @@ describe('parseCspReports', () => {
     expect(parseCspReports(Array(50).fill(one), ORIGIN)).toHaveLength(10)
     expect(parseCspReports(null, ORIGIN)).toEqual([])
     expect(parseCspReports('nope', ORIGIN)).toEqual([])
-    expect(parseCspReports({ 'csp-report': { 'document-uri': 'not a url' } }, ORIGIN)).toEqual([])
+    expect(parseCspReports([{ type: 'csp-violation', body: { documentURL: 'not a url' } }], ORIGIN)).toEqual([])
   })
 
   it('keeps only URL-safe characters of a junk blocked value and directive', () => {
     // Anyone can POST a report; its strings reach the analytics-report run
     // summary, where a newline could start a workflow command (`::error::`)
     // and a `|` would break the table.
-    const out = parseCspReports(
-      {
-        'csp-report': {
-          'document-uri': `${ORIGIN}/`,
-          'blocked-uri': '<b>\n::error::x |',
-          'violated-directive': '|<i>',
-        },
-      },
-      ORIGIN,
-    )
+    const report = (blockedURL: string, effectiveDirective: string) => [
+      { type: 'csp-violation', body: { documentURL: `${ORIGIN}/`, blockedURL, effectiveDirective } },
+    ]
+    const out = parseCspReports(report('<b>\n::error::x |', '|<i>'), ORIGIN)
     expect(out).toEqual([{ directive: 'i', blocked: 'b::error::x', page: '/' }])
-    const empty = parseCspReports(
-      { 'csp-report': { 'document-uri': `${ORIGIN}/`, 'blocked-uri': '| |', 'violated-directive': '||' } },
-      ORIGIN,
-    )
+    const empty = parseCspReports(report('| |', '||'), ORIGIN)
     expect(empty).toEqual([{ directive: 'unknown', blocked: 'unknown', page: '/' }])
   })
 })

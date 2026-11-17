@@ -64,7 +64,11 @@ export const HEADER_CSP = ["frame-ancestors 'none'", "object-src 'none'", "base-
 // frame-ancestors, report-uri and sandbox, so they're left out; violations
 // are reported through report-to + the Reporting-Endpoints header from
 // public/_headers (Chromium — verified to report from <meta> like from a
-// header; Firefox/Safari only implement report-uri).
+// header). Browsers that only implement report-uri (Firefox, Safari) don't
+// report: report-uri would have to sit in HEADER_CSP, and a policy reports
+// only its own directives — HEADER_CSP's four, never the meta's script-src
+// hashes, the ones that matter. So no policy sends report-uri, and
+// parseCspReports reads only the Reporting API format.
 export function metaCsp(hashes: string[]): string {
   return [
     ['script-src', "'self'", ...hashes, SCRIPT_TAIL].join(' '),
@@ -190,31 +194,21 @@ function blockedKey(raw: string): string {
   }
 }
 
-// Normalise both report formats into a short, PII-free list: the legacy
-// report-uri body ({"csp-report": {...}}) and the Reporting API batch
-// ([{type: "csp-violation", body: {...}}]). Only reports about documents on
-// `origin` are kept — anything else is someone POSTing junk at the endpoint.
+// Normalise a Reporting API batch ([{type: "csp-violation", body: {...}}])
+// into a short, PII-free list. A legacy report-uri body ({"csp-report":
+// {...}}) is junk like any other: no policy sends report-uri (see metaCsp).
+// Only reports about documents on `origin` are kept — anything else is
+// someone POSTing junk at the endpoint.
 // Origins and paths only: no query strings, no full URLs, no user agent.
 export function parseCspReports(payload: unknown, origin: string, max = 10): CspViolation[] {
+  if (!Array.isArray(payload)) return []
   const raw: { doc?: unknown; blocked?: unknown; directive?: unknown }[] = []
-  if (Array.isArray(payload)) {
-    for (const r of payload) {
-      if (typeof r !== 'object' || r === null) continue
-      const { type, body } = r as { type?: unknown; body?: unknown }
-      if (type !== 'csp-violation' || typeof body !== 'object' || body === null) continue
-      const b = body as Record<string, unknown>
-      raw.push({ doc: b.documentURL, blocked: b.blockedURL, directive: b.effectiveDirective })
-    }
-  } else if (typeof payload === 'object' && payload !== null) {
-    const b = (payload as Record<string, unknown>)['csp-report']
-    if (typeof b === 'object' && b !== null) {
-      const r = b as Record<string, unknown>
-      raw.push({
-        doc: r['document-uri'],
-        blocked: r['blocked-uri'],
-        directive: r['effective-directive'] ?? r['violated-directive'],
-      })
-    }
+  for (const r of payload) {
+    if (typeof r !== 'object' || r === null) continue
+    const { type, body } = r as { type?: unknown; body?: unknown }
+    if (type !== 'csp-violation' || typeof body !== 'object' || body === null) continue
+    const b = body as Record<string, unknown>
+    raw.push({ doc: b.documentURL, blocked: b.blockedURL, directive: b.effectiveDirective })
   }
 
   const out: CspViolation[] = []

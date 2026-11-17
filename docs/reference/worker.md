@@ -179,7 +179,9 @@ Two answers are the same on every path: a method the route doesn't serve is
   alone — providers differ. Anyone can spend an address's window for an
   hour: that is the limit's price, accepted.
 - `/api/csp-report` — POST → always 204, AE only (anyone can POST): body via
-  `readCapped` (64 KB); `parseCspReports` keeps own-origin reports (origin +
+  `readCapped` (64 KB); `parseCspReports` reads the Reporting API batch
+  only (no policy sends `report-uri`, so a legacy `{"csp-report": …}` body
+  is junk) and keeps own-origin reports (origin +
   path only) and a POST writes at most one point; a `blocked` that is
   neither a keyword nor a URL keeps only `[\w.:/-]`, a directive only
   letters and hyphens (they reach `analytics-report`'s public log). GET →
@@ -219,7 +221,10 @@ Two answers are the same on every path: a method the route doesn't serve is
 - CSP: each page carries `metaCsp(hashes)` as a `<meta>` right after the
   charset, ahead of any script (`COMMON_DIRECTIVES` incl.
   `upgrade-insecure-requests`, minus `frame-ancestors`, plus `report-to` →
-  `/api/csp-report`; only Chromium reports from `<meta>`). Every asset
+  `/api/csp-report`; only Chromium reports from `<meta>`). No `report-uri`
+  anywhere: `<meta>` can't carry it, and in `HEADER_CSP` it would report only
+  that policy's four directives, never the hashed `script-src`, so Firefox
+  and Safari stay silent by choice. Every asset
   response also gets `HEADER_CSP` (`public/_headers` `/*`, equal by test):
   `frame-ancestors`/`object-src`/`base-uri`/`form-action` only — both
   policies apply, so a fetch directive there would block the hashed inline

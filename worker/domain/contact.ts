@@ -3,6 +3,7 @@
 // lib/shared/contact.ts. D1 and the mail binding: contact-store.ts.
 import type { ContactRequest } from '../api-types'
 import { CONTACT_LIMITS, EMAIL_PATTERN } from '../../lib/shared/contact'
+import { SITE_HOST } from '../../lib/shared/site'
 import { object, text } from '../validate'
 
 // Time windows over the contact table, applied as ISO cutoffs bound into SQL
@@ -132,7 +133,7 @@ export function encodeMimeHeader(text: string): string {
 
 // Minimal raw MIME message: plain text, base64-encoded body so UTF-8 is safe.
 export function buildContactMime(from: string, to: string, payload: ContactPayload, at: string): string {
-  const subject = encodeMimeHeader(`Ny melding fra ${payload.name} (rozsoshnykh.no)`)
+  const subject = encodeMimeHeader(`Ny melding fra ${payload.name} (${SITE_HOST})`)
   const body = base64Utf8(`Navn: ${payload.name}\nE-post: ${payload.email}\nTidspunkt: ${at}\n\n${payload.message}\n`)
   // 76-char lines per RFC 2045.
   const wrapped = body.replace(/(.{76})/g, '$1\r\n')

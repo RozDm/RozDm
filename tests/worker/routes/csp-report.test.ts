@@ -9,10 +9,13 @@ describe('/api/csp-report', () => {
   const report = (doc: string, blocked: string) =>
     new Request(url, {
       method: 'POST',
-      headers: { 'content-type': 'application/csp-report' },
-      body: JSON.stringify({
-        'csp-report': { 'document-uri': doc, 'blocked-uri': blocked, 'violated-directive': 'script-src-elem' },
-      }),
+      headers: { 'content-type': 'application/reports+json' },
+      body: JSON.stringify([
+        {
+          type: 'csp-violation',
+          body: { documentURL: doc, blockedURL: blocked, effectiveDirective: 'script-src-elem' },
+        },
+      ]),
     })
 
   it('records an own-origin violation as one AE point and answers 204', async () => {
@@ -51,14 +54,13 @@ describe('/api/csp-report', () => {
 
   it('drops an oversized body unread, even without a Content-Length', async () => {
     const fake = makeEnv()
-    const valid = JSON.stringify({
-      'csp-report': {
-        'document-uri': `${ORIGIN}/`,
-        'blocked-uri': 'inline',
-        'violated-directive': 'script-src-elem',
+    const valid = JSON.stringify([
+      {
+        type: 'csp-violation',
+        body: { documentURL: `${ORIGIN}/`, blockedURL: 'inline', effectiveDirective: 'script-src-elem' },
         pad: 'x'.repeat(70_000),
       },
-    })
+    ])
     const bytes = new TextEncoder().encode(valid)
     // A stream body: the request carries no Content-Length to refuse it by.
     const body = new ReadableStream({ start: (c) => (c.enqueue(bytes), c.close()) })

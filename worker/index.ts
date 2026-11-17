@@ -18,6 +18,7 @@
 // generated with `npm run cf-typegen` — rerun it after changing wrangler.jsonc.
 
 import { ENFORCED_CSP, HSTS, applyBaseHeaders } from './csp'
+import { SITE_HOST } from '../lib/shared/site'
 import { apiError } from './http'
 import { CONTACT_PRUNE_CRON } from './domain/contact'
 import { pruneContactRows } from './domain/contact-store'
@@ -78,8 +79,8 @@ export default {
     // Canonical host for the API. www (and mta-sts, but for its policy) is
     // redirected at the edge (Single Redirect, zone-rules.yml) before it gets
     // here — this is the backstop. workers.dev is off (wrangler.jsonc).
-    if (url.hostname === 'www.rozsoshnykh.no' || url.hostname === 'mta-sts.rozsoshnykh.no') {
-      url.hostname = 'rozsoshnykh.no'
+    if (url.hostname === `www.${SITE_HOST}` || url.hostname === `mta-sts.${SITE_HOST}`) {
+      url.hostname = SITE_HOST
       return redirect301(null, url.toString())
     }
 

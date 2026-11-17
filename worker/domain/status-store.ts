@@ -5,8 +5,12 @@
 import { EmailMessage } from 'cloudflare:email'
 import { buildStatusAlertMime } from './contact'
 import { MONITOR_TIMEOUT_MS, STATUS_KEY, buildStatusData, detectTransitions, monitors, parseHistory } from './status'
+import { SITE_HOST, SITE_URL } from '../../lib/shared/site'
 
-const STATUS_ALERT_FROM = 'status@rozsoshnykh.no'
+const STATUS_ALERT_FROM = `status@${SITE_HOST}`
+// The probes' User-Agent points at the public status widget (/status is only
+// a 301 to it, public/_redirects).
+const MONITOR_USER_AGENT = `StatusMonitor/1.0 (+${SITE_URL}/#status)`
 
 // The cron's snapshot as stored (StatusData JSON), or null when KV has none
 // or the read failed — logged, not thrown: the route answers "no data yet".
@@ -48,7 +52,7 @@ export async function runHealthChecks(env: Env): Promise<void> {
           // Bound the probe so a hung host is recorded as down, not waited on.
           signal: AbortSignal.timeout(MONITOR_TIMEOUT_MS),
           headers: {
-            'User-Agent': 'StatusMonitor/1.0 (+https://rozsoshnykh.no/status)',
+            'User-Agent': MONITOR_USER_AGENT,
           },
         })
         status = res.status
