@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchGeoCountries, geoBucket, showVisitCounts } from '@/lib/client/geo'
 import { DICT } from '@/data/dictionary'
 import { INTL_LOCALE } from '@/lib/shared/i18n'
@@ -30,13 +30,13 @@ export default function GeoMap() {
   const [svgFailed, setSvgFailed] = useState(false)
   const [dataFailed, setDataFailed] = useState(false)
 
-  const regionNames = useMemo(() => {
+  const regionNames = (() => {
     try {
       return new Intl.DisplayNames([INTL_LOCALE[lang]], { type: 'region' })
     } catch {
       return null
     }
-  }, [lang])
+  })()
 
   // Fetch the pre-built /world.svg (browser-cached for a week). The
   // markup is set via dangerouslySetInnerHTML below so React knows not to

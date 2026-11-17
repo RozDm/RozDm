@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/shared/trends-axis'
 import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/shared/timeseries-fill'
 import { MIN_PUBLIC_VISITS, fetchGeoCountries, showVisitCounts } from '@/lib/client/geo'
@@ -164,7 +164,7 @@ export default function TrendsChart() {
     }
   }, [])
 
-  const { dots, yMax, waveTotal, tickLabels, allCapped } = useMemo(() => {
+  const { dots, yMax, waveTotal, tickLabels, allCapped } = (() => {
     // Zero-fill so the x-axis spans the whole window and quiet stretches read
     // as real gaps. We plot a point per bucket that actually had visits; empty
     // buckets contribute no dot (just a gap).
@@ -198,7 +198,7 @@ export default function TrendsChart() {
       tickLabels: range === '24h' ? ticks : dropRepeatedDays(ticks),
       allCapped: range === 'all' && isAllRangeCapped(now),
     }
-  }, [series, range, lang, PLOT_W, PLOT_H, BASELINE])
+  })()
 
   // Don't unmount the whole section on a fetch hiccup — that nuked the header
   // and the period tabs, leaving no way to retry without a page reload.

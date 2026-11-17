@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, use, useEffect, useState } from 'react'
 import { THEME_BG } from '@/lib/shared/site'
 
 type Theme = 'light' | 'dark'
@@ -81,24 +81,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // flipping back to the OS's own theme is the way back to "follow the
   // system", without a third button state.
   const toggleTheme = () => {
-    setThemeState((prev) => {
-      const next: Theme = prev === 'light' ? 'dark' : 'light'
-      applyTheme(next)
-      const followOs = next === osTheme()
-      try {
-        if (followOs) localStorage.removeItem('theme')
-        else localStorage.setItem('theme', next)
-      } catch {}
-      syncThemeColor(followOs ? null : next)
-      return next
-    })
+    const next: Theme = theme === 'light' ? 'dark' : 'light'
+    applyTheme(next)
+    const followOs = next === osTheme()
+    try {
+      if (followOs) localStorage.removeItem('theme')
+      else localStorage.setItem('theme', next)
+    } catch {}
+    syncThemeColor(followOs ? null : next)
+    setThemeState(next)
   }
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>{children}</ThemeContext.Provider>
+  return <ThemeContext value={{ theme, toggleTheme, mounted }}>{children}</ThemeContext>
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
+  const context = use(ThemeContext)
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider')
   }
