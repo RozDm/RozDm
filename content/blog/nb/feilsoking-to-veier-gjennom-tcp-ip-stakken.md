@@ -2,6 +2,7 @@
 title: "Feilsøking i nettverk: to veier gjennom TCP/IP-stakken"
 description: "Feilsøking i nettverk nedenfra og opp eller ovenfra og ned: tankegangen bak TCP/IP-modellen, og hvordan du velger riktig vei."
 date: "2026-11-09"
+updated: "2026-11-17"
 tags: ["Nettverk", "TCP/IP"]
 ---
 
@@ -43,7 +44,7 @@ Og et bevis gjelder bare det du testet med. Et lite ping beviser ikke at store p
 
 Den første veien begynner ved kabelen og beviser lag for lag oppover: signal, kontakt med naboen, en vei til målet, en åpen port, en tjeneste som svarer.
 
-Den passer når symptomet er bredt – mange brukere eller alle tjenester er nede – når noe fysisk er endret, ved nye installasjoner, og når én maskin ikke har nett i det hele tatt. Den passer også når du vet lite: metoden krever ingen teori om feilen, bare grundighet.
+Den passer når symptomet er bredt – mange brukere og flere tjenester er nede – når noe fysisk er endret, ved nye installasjoner, og når én maskin ikke har nett i det hele tatt. Den passer også når du vet lite: metoden krever ingen teori om feilen, bare grundighet.
 
 Styrken er at ingenting hoppes over. Hvert bevist lag er sikker grunn, og du jager aldri et spøkelse høyt oppe som egentlig skyldes en feil lenger nede. Svakheten er tiden: er feilen et utløpt sertifikat, har du bevist fire lag forgjeves. Og den krever tilgang til de nederste lagene, til kabler, svitsjer og ruting, som du ikke alltid har.
 
@@ -62,7 +63,7 @@ Den passer når én tjeneste feiler mens resten virker: e-posten går, men intra
 | Ikke noe svar etter tilkobling | Forbindelsen står, men tjenesten bak svarer ikke | Applikasjonen, lag 5 |
 | Sertifikatfeil | Tilliten svikter, eller du havnet hos feil vert | TLS, lag 5; ved feil vert: DNS eller en proxy |
 
-Svakheten er at symptomer kan lyve. En feil langt nede kan forkle seg som en feil høyt oppe: gjennom en VPN-tunnel med for liten MTU slås navnet opp, ping svarer og porten åpner seg, men forbindelsen henger når serveren sender sertifikatkjeden. Det ser ut som en TLS-feil, men årsaken ligger på lag 3. Forsvaret er å gi slipp raskt: holder ikke en hypotese høyt oppe, går du ned.
+Svakheten er at symptomer kan lyve. En feil langt nede kan forkle seg som en feil høyt oppe: gjennom en VPN-tunnel med for liten MTU og blokkert Path MTU Discovery (ICMP «Fragmentation Needed» droppes, se [RFC 2923](https://www.rfc-editor.org/rfc/rfc2923.html)) slås navnet opp, ping svarer og porten åpner seg, men forbindelsen henger når serveren sender sertifikatkjeden. Det ser ut som en TLS-feil, men årsaken ligger på lag 3. Forsvaret er å gi slipp raskt: holder ikke en hypotese høyt oppe, går du ned.
 
 ## Begynn på midten
 
@@ -78,7 +79,7 @@ Et typisk tilfelle: mandag morgen kommer brukerne ikke inn på intranettet, men 
 2. Serveren svarer på ping. Det finnes en vei dit, i hvert fall for ICMP.
 3. På serveren kjører tjenesten og lytter på porten. Feilen er ikke en død prosess, men et sted på veien.
 4. Trafikken på serveren viser at tilkoblingsforsøkene aldri kommer fram. Noe mellom nettene kaster dem.
-5. Hva ble endret? En brannmurregel i helgen, som tok med seg tilgangen fra kontornettet.
+5. Hva ble endret? En brannmurregel i helgen, som tok med seg tilgangen fra kontornettet. Stilt først hadde spørsmålet pekt rett på brannmuren og spart de fire første stegene.
 
 Nedenfra og opp hadde gått gjennom den samme feilen slik: signal, nabo, adresse og gateway på klienten er i orden, fire bevis uten funn. Så svarer målet på ping, men porten svarer ikke, og derfra er resten likt: serveren lytter, pakkene kommer ikke fram, brannmuren. Begge veier ender i samme svar; nedenfra og opp bruker bare flere steg på å bevise det som allerede virket.
 
@@ -88,8 +89,8 @@ Hadde det derimot vært kabelen, hadde brukeren hatt feil på alt, ikke bare int
 
 ![TCP/IP-stakken med fem lag, fra 1 Fysisk nederst til 5 Applikasjon øverst. Nedenfra og opp begynner på lag 1 og går oppover, ovenfra og ned begynner på lag 5 og går nedover, og begynner du på midten, starter du på lag 3 og går opp eller ned, alt etter svaret.](/images/feilsoking-to-veier-gjennom-tcp-ip-stakken/tcp-ip-stakken.svg)
 
-- Mange brukere eller alle tjenester nede, eller noe fysisk endret: nedenfra og opp.
-- Én tjeneste feiler, resten virker: ovenfra og ned.
+- Mange brukere og flere tjenester nede, eller noe fysisk endret: nedenfra og opp.
+- Én tjeneste feiler, resten virker, selv om mange brukere rammes: ovenfra og ned.
 - Symptomet peker ingen steder: begynn på midten, og la svaret velge retningen.
 - Og alltid først: hva ble endret?
 
@@ -99,6 +100,6 @@ Hadde det derimot vært kabelen, hadde brukeren hatt feil på alt, ikke bare int
 - **Endre én ting om gangen.** Ellers vet du ikke hva som løste feilen, eller hva som skapte en ny.
 - **Stol ikke på ett signal.** Bekreft med en annen, uavhengig test.
 - **Test fra brukerens side.** Et bevis gjelder bare veien du testet.
-- **Skill symptom fra årsak.** Feilen er ikke løst når det virker igjen, men når du vet hvorfor regelen forsvant og hvordan du hindrer at det skjer igjen.
+- **Skill symptom fra årsak.** Feilen er ikke løst når det virker igjen, men når du vet hvorfor tilgangen forsvant og hvordan du hindrer at det skjer igjen.
 
 Kommandoene endrer seg med verktøy og operativsystem. Tankegangen gjør det ikke.
