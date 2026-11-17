@@ -67,7 +67,6 @@ export interface ViewsResponse {
   views: number
 }
 export type ViewsErrorCode = 'bad_slug' // 400
-export type ViewsError = ApiError<ViewsErrorCode>
 
 // ── GET /api/geo ────────────────────────────────────────────────────────────
 // Visits per ISO country code, all time (D1). A failed read is a 503.
@@ -75,7 +74,6 @@ export interface GeoResponse {
   countries: Record<string, number>
 }
 export type GeoErrorCode = 'unavailable' // 503
-export type GeoError = ApiError<GeoErrorCode>
 
 // ── /api/visit ──────────────────────────────────────────────────────────────
 // POST (no body) → ApiOk; GET is a diagnostic that stores nothing.
@@ -86,7 +84,6 @@ export interface VisitProbe {
   note: string
 }
 export type VisitErrorCode = 'forbidden' | 'rate_limited' // 403, 429
-export type VisitError = ApiError<VisitErrorCode>
 
 // ── GET /api/timeseries?metric=…&range=… ────────────────────────────────────
 export type SeriesMetric = 'view' | 'geo' | 'mailfail'

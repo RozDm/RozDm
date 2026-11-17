@@ -38,7 +38,7 @@ export interface ContactInput extends ContactPayload {
 const EMAIL_RE = new RegExp(`^${EMAIL_PATTERN}$`)
 
 const contactFields = object({
-  name: text({ max: CONTACT_LIMITS.name }),
+  name: text({ min: CONTACT_LIMITS.nameMin, max: CONTACT_LIMITS.name }),
   email: text({ max: CONTACT_LIMITS.email, pattern: EMAIL_RE }),
   message: text({ min: CONTACT_LIMITS.messageMin, max: CONTACT_LIMITS.message }),
 })
