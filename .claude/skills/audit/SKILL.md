@@ -12,9 +12,9 @@ Produce a focused, opinionated improvement list for `rozsoshnykh.no`. The output
 
 Audit everything that ships:
 - App: `app/`, `components/`, `lib/`, `data/`, `content/`, `public/`, `app/globals.css`.
-- Worker: `worker/` (`index.ts`, `csp.ts`, `http.ts`, `ip.ts`, `status.ts`, `metrics.ts`, `contact.ts`, `timeseries.ts`, `routes/*`) — it serves only `/api/*`; pages are asset-served with a build-time CSP (`scripts/finalize-export.mjs`).
+- Worker: `worker/` — it serves only `/api/*`; pages are asset-served with a build-time CSP (`scripts/finalize-export.mjs`). Layout: `index.ts` dispatch, `routes/*` HTTP only, `domain/*` rules and stores (`*-store.ts`), `http.ts`, `csp.ts`, `ip.ts`, `validate.ts`, `api-types.ts`; `node scripts/check-docs.mjs --map` prints the current module map. Unknown `/api/*` paths answer JSON 404 `not_found` and wrong methods 405 + `Allow` (PR #42) — by design, don't re-flag.
 - Build/deploy: `package.json`, `next.config.mjs`, `wrangler.jsonc`, `.github/workflows/*`, `scripts/*`, `tsconfig*.json`.
-- Docs: `CLAUDE.md`, `app/CLAUDE.md`, `components/CLAUDE.md`, `worker/CLAUDE.md`, `.github/CLAUDE.md`, `content/CLAUDE.md`, `README.md`, `docs/decisions.md`, `docs/gotchas.md`, `docs/history.md`, `docs/cloudflare-security.md` (drift against code or the live zone is a finding; narrative belongs in history.md, rules in the CLAUDE.md files).
+- Docs: `ARCHITECTURE.md`, `CLAUDE.md`, `app/CLAUDE.md`, `components/CLAUDE.md`, `worker/CLAUDE.md`, `.github/CLAUDE.md`, `content/CLAUDE.md`, `docs/reference/{worker,frontend,ci,app}.md`, `README.md`, `docs/decisions.md`, `docs/gotchas.md`, `docs/history.md`, `docs/cloudflare-security.md` (drift against code or the live zone is a finding; narrative belongs in history.md, rules in the CLAUDE.md files).
 - Tests: `tests/` (Vitest, the Worker's in `tests/worker/`) and `e2e/` (Playwright).
 
 Look for:
@@ -36,7 +36,7 @@ Read `docs/decisions.md` first: the owner's standing decisions (workers.dev off,
 - **ESLint stays on 9.** `eslint-plugin-react` via `eslint-config-next` is not ESLint-10-compatible. Don't propose a bump.
 - **`HISTORY_LIMIT = 149` is intentional** (monolith 1:4:9 — the 2001 theme is load-bearing). Don't propose "fixing" it.
 - **`%USERNAME%` in the intro is a literal joke**, not a template variable.
-- **`/kontakt`, `/personvern` and `/status` stay `noindex`** permanently; never propose adding them to the sitemap.
+- **`/kontakt`, `/personvern` (and `/en/contact/`, `/en/privacy/`) stay `noindex`** permanently; never propose adding them to the sitemap. `/status` is a 301 to `/#status` (`public/_redirects`), not a page.
 - **`StatusDashboard`, `GeoMap` and `TrendsChart` are code-split** (`Lazy*.tsx`), so the smoke-checked headings must stay in the server components `Status.tsx`, `Visitors.tsx` and `Trends.tsx`.
 
 ## Workflow
