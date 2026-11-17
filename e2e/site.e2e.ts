@@ -432,6 +432,41 @@ test.describe('contact form', () => {
     await expect(page.getByLabel('Navn')).toBeFocused()
   })
 
+  // The Worker trims before it checks, so a name of spaces or «a» + 9 spaces
+  // would pass `required`/`minLength` and come back a 422: the form trims too.
+  test('a name or message that is only spaces is refused in the browser, nothing is sent', async ({ page }) => {
+    let sent = 0
+    await page.route('**/api/contact', (r) => (sent++, r.fulfill({ status: 200, body: '{}' })))
+    await page.goto('/kontakt/')
+    const name = page.getByLabel('Navn')
+    const message = page.getByLabel('Melding')
+    await page.getByLabel('E-post').fill('test@example.com')
+    const send = page.getByRole('button', { name: 'Send melding' })
+
+    await name.fill('   ')
+    await message.fill('Hei! Dette er en testmelding.')
+    await send.click()
+    await expect
+      .poll(() => name.evaluate((el: HTMLInputElement) => el.validationMessage))
+      .toBe('Skriv inn navnet ditt.')
+    await expect(name).toBeFocused()
+
+    await name.fill('Test Person')
+    await message.fill('a' + ' '.repeat(9))
+    await send.click()
+    await expect
+      .poll(() => message.evaluate((el: HTMLTextAreaElement) => el.validationMessage))
+      .toBe('Meldingen må være minst 10 tegn.')
+    await expect(message).toBeFocused()
+    expect(sent).toBe(0)
+
+    // The error clears as the visitor types, and a trimmed message goes through.
+    await message.fill('  Hei! Dette er en testmelding.  ')
+    await send.click()
+    await expect(page.getByRole('heading', { name: 'Takk! Meldingen er sendt.' })).toBeVisible()
+    expect(sent).toBe(1)
+  })
+
   test('says so on a rate limit and keeps the typed text', async ({ page, pageProblems }) => {
     await page.route('**/api/contact', (r) =>
       r.fulfill({ status: 429, body: '{"error":{"code":"rate_limited","message":"Too many requests."}}' }),
