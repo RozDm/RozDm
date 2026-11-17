@@ -1,9 +1,10 @@
-// Serves out/ the way the asset server does, for the browser (e2e) tests.
+// Serves out/ the way the asset server does, for the browser (e2e) tests and `npm start`.
 // Serves out/ for the browser tests (playwright.config.ts, e2e/) the way the
 // asset server does in production, minus public/_headers: a page at its
 // trailing-slash path, a 301 from the slash-less one, and the 404 page (with a
 // 404) for a miss. /api/* belongs to the Worker — the tests stub it with
-// page.route, so here it is a plain miss. Zero dependencies; test-only.
+// page.route, so here it is a plain miss. Zero dependencies. `npm start` runs it
+// after `npm run build` (`next start` can't serve an `output: 'export'` site).
 //
 // TLS=1 serves HTTPS with a throwaway self-signed certificate (openssl), for
 // WebKit: the pages' CSP carries upgrade-insecure-requests, which WebKit

@@ -24,9 +24,13 @@ public repository (owner's call, `docs/decisions.md`).
   `data/tags.ts`; `TAG_LABELS_EN` gives English labels and URLs; tag URLs
   fold æ/ø/å like post slugs).
 - Code blocks: highlighted at build by `rehype-highlight` with lowlight's
-  common languages plus PowerShell (`HIGHLIGHT_OPTIONS` in `lib/server/markdown.ts`,
-  shared by the page and RSS; a language left out renders plain), palette in
-  `app/globals.css` (e2e checks both themes).
+  common languages plus PowerShell (`lib/server/markdown.ts`; a language left
+  out renders plain), palette in `app/globals.css` (e2e checks both themes).
+  One pipeline, `markdownToHtml(md, options)`, renders both the post page
+  (`PostPage` inserts the HTML; options `inlineCode`, `focusablePre`) and the
+  RSS body (`lib/server/feed.ts`; option `absolute` for image URLs). The feed
+  skips the page-only options: a reader has no `.code-word` CSS, nor a use for
+  `tabindex`. Add a plugin there, never in a caller.
 - Inline code: a chip that breaks only between words (`lib/server/inline-code.ts`,
   `.post-body` in `app/globals.css`), so `curl -v` never splits at its
   hyphen.

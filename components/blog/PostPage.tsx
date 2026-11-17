@@ -1,12 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeHighlight from 'rehype-highlight'
-import { HIGHLIGHT_OPTIONS } from '@/lib/server/markdown'
-import { rehypeInlineCode } from '@/lib/server/inline-code'
-import { rehypePostImages } from '@/lib/server/post-images'
+import { markdownToHtml } from '@/lib/server/markdown'
 import BackLink from '@/components/layout/BackLink'
 import PageShell from '@/components/layout/PageShell'
 import ShareRow from './ShareRow'
@@ -67,7 +62,7 @@ export function postMetadata(lang: Lang, slug: string): Metadata {
   })
 }
 
-export default function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
+export default async function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
   const post = load(lang, slug)
   if (!post) notFound()
 
@@ -78,6 +73,8 @@ export default function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
   if (post.draft && process.env.NODE_ENV === 'production') notFound()
   const isDraft = post.draft === true
   const t = DICT[lang].blog
+  // Own content rendered at build time (lib/server/markdown.ts), so raw HTML insertion is safe.
+  const html = await markdownToHtml(post.content, { post: post.slug, inlineCode: true, focusablePre: true })
 
   const { prev, next } = getAdjacentPosts(slug, lang)
   const twin = getTranslation(post)
@@ -181,21 +178,10 @@ export default function PostPage({ lang, slug }: { lang: Lang; slug: string }) {
               light mode sets a white block with dark text (e2e checks both
               themes with axe). Inline code: .post-body chips in globals.css,
               broken only between words (lib/server/inline-code.ts). */}
-          <div className="post-body prose dark:prose-invert max-w-none prose-a:text-red-600 dark:prose-a:text-red-400 prose-a:underline prose-a:underline-offset-2 hover:prose-a:decoration-2 prose-headings:font-bold prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800 prose-pre:bg-white prose-pre:text-slate-800 dark:prose-pre:bg-black/50 dark:prose-pre:text-gray-300 prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[
-                [rehypeHighlight, HIGHLIGHT_OPTIONS],
-                rehypeInlineCode,
-                [rehypePostImages, { post: post.slug }],
-              ]}
-              // A long line makes a code block scroll sideways, and a scroller
-              // keyboard users can't focus can't be scrolled without a mouse.
-              components={{ pre: ({ node: _node, ...props }) => <pre tabIndex={0} {...props} /> }}
-            >
-              {post.content}
-            </ReactMarkdown>
-          </div>
+          <div
+            className="post-body prose dark:prose-invert max-w-none prose-a:text-red-600 dark:prose-a:text-red-400 prose-a:underline prose-a:underline-offset-2 hover:prose-a:decoration-2 prose-headings:font-bold prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800 prose-pre:bg-white prose-pre:text-slate-800 dark:prose-pre:bg-black/50 dark:prose-pre:text-gray-300 prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
 
           <ShareRow url={`${SITE_URL}${postPath(lang, slug)}`} lang={lang} />
 
