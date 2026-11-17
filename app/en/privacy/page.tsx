@@ -26,7 +26,7 @@ export default function PrivacyPage() {
       <BackLink href={localePath('en', '/')}>{DICT.en.backHome}</BackLink>
 
       <PageTitle eyebrow={DICT.en.footer.privacy}>Privacy notice</PageTitle>
-      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-4">Last updated: 23 October 2026</p>
+      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-4">Last updated: 17 November 2026</p>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-10 max-w-xl">
         This is a translation for convenience. The{' '}
         <Link
@@ -53,10 +53,13 @@ export default function PrivacyPage() {
           reply to your enquiry and to limit abuse of the form (the number of submissions per address).
         </p>
         <p>
-          The message is delivered to my Gmail inbox, and a copy is stored in a database at Cloudflare. The database
-          copy is deleted automatically after 30 days. If the email cannot be delivered, the copy is deleted at once and
-          you are asked to try again. The email itself is deleted no later than three months after our last contact
-          about the enquiry, unless it leads to an assignment or contract that requires keeping it longer.
+          The message is delivered to my Gmail inbox, and a copy is stored in a database at Cloudflare. Your IP address
+          is stored with the copy (for IPv6 only the network prefix, the first 64 bits, not the full address). The
+          database copy, including the IP address, is deleted automatically after 30 days, and deleted data remains in
+          the database’s backup (Cloudflare D1 Time Travel) for up to 7 more days before it is gone for good. If the
+          email cannot be delivered, the copy is deleted at once and you are asked to try again. The email itself is
+          deleted no later than three months after our last contact about the enquiry, unless it leads to an assignment
+          or contract that requires keeping it longer.
         </p>
         <p>
           The form is protected by Cloudflare Turnstile, which tells humans from bots. To do that, Turnstile processes a
@@ -87,7 +90,7 @@ export default function PrivacyPage() {
         <p>
           When the website’s server (a Cloudflare Worker) handles a request, Cloudflare stores a technical log of it:
           among other things the time, the address requested and details of the connection, which may include your IP
-          address. The logs are used only for troubleshooting and security, kept for up to 7 days and then deleted
+          address. The logs are used only for troubleshooting and security, kept for up to 3 days and then deleted
           automatically.
         </p>
 
