@@ -289,7 +289,7 @@ Two answers are the same on every path: a method the route doesn't serve is
   cost is the binding calls — ~2 ms per D1 call, ~1 per KV, cache or fetch
   (measured 2026-11-16, `docs/history.md`). Add a binding call to a route
   only with a reason, never a D1 call per loop item. Watched by
-  `status-watchdog.yml`'s `cpu` job (p99.9 over 24 h > 8 ms fails); the
+  `status-watchdog.yml`'s `cpu` job (p99 over 24 h > 8 ms or any error fails); the
   heaviest events: the Workers Observability telemetry query with
   `$workers.cpuTimeMs` `gt` 6 (`node scripts/mcp.mjs cloudflare execute`).
 

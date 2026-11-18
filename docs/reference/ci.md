@@ -83,9 +83,11 @@ secret model. The traps to know before editing `.github/` are in
   `AE_API_TOKEN`; GraphQL `workersInvocationsAdaptive` needs only Account
   Analytics: Read) runs on its own slots `44 1,7,13,19 * * *` and manual
   runs, not every watchdog run (each production job records a deployment):
-  it fails on Worker CPU p99.9 > 8 ms over 24 h (Free's limit is 10) or any
-  Worker error (1102 = CPU exceeded). A 24 h window: one spike stays red
-  for up to four runs.
+  it fails on Worker CPU p99 > 8 ms over 24 h (Free's limit is 10) or any
+  Worker error (1102 = CPU exceeded). Not p99.9: at a few hundred
+  invocations a day that is the single slowest one, and isolates
+  occasionally take 8–10 ms on routes that usually take 2–3 (2026-11-18).
+  A 24 h window: one error stays red for up to four runs.
 - `analytics-report.yml` — manual, `days` 1–90, read-only: AE breakdowns
   (Besøk by ASN/operator and country, browser CSP violations, mails the
   Worker failed to send, honeypot drops) in the run summary, also teed to the job log for `get_job_logs`.
