@@ -26,7 +26,7 @@ Each of the rest loads only when a task touches its area:
 - `README.md` — repo is RozDm/rozsoshnykh.no (renamed so github.com/RozDm stays
   neutral): never create a repository named RozDm (`docs/decisions.md`);
 - skills `.claude/skills/`: `browser-check`, `new-post`, `audit`, `ship`
-  (model pick, child sessions, verify and archive), `pr-flow` (GitHub MCP
+  (model pick, child sessions, verify and report), `pr-flow` (GitHub MCP
   recipes, after-PR routine — load when opening/watching a PR or checking
   a deploy).
 
@@ -54,7 +54,8 @@ API route, workflow, skill or hook in no doc, or on a file without that header.
   CSP, WAF, counters, deploy pipeline, `/audit`; a hard bug: Opus `xhigh`,
   `max` only on the owner's word; no Fable in the subscription). Work for
   its own model it does here; a PR for another model goes to a child
-  session that it waits for, verifies and archives. The reply opens with
+  session that it waits for and verifies, then tells the owner whether
+  the child can be deleted (the owner deletes it). The reply opens with
   one line naming the pick; a child skips it.
 - PRs: open ready with squash auto-merge (to hold, a draft without it); no
   `send_later`; look at the deploy run once after the merge; report merge +
