@@ -35,7 +35,7 @@ export default function PersonvernPage() {
               «Personvern-/erklæring» there and nowhere else. */}
         Personvern&shy;erklæring
       </PageTitle>
-      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-10">Sist oppdatert: 17. november 2026</p>
+      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-10">Sist oppdatert: 20. november 2026</p>
 
       <div className="prose dark:prose-invert max-w-none prose-a:text-red-600 dark:prose-a:text-red-400 prose-a:underline prose-a:underline-offset-2 hover:prose-a:decoration-2 prose-headings:font-bold">
         <h2>Behandlings&shy;ansvarlig</h2>
@@ -88,7 +88,7 @@ export default function PersonvernPage() {
         <p>
           Når nettstedets server (en Cloudflare Worker) håndterer en forespørsel, lagrer Cloudflare en teknisk logg over
           den: blant annet tidspunktet, adressen som ble bedt om og opplysninger om forbindelsen, som kan omfatte
-          IP-adressen din. Loggene brukes kun til feilsøking og sikkerhet, lagres i opptil 3 dager og slettes deretter
+          IP-adressen din. Loggene brukes kun til feilsøking og sikkerhet, lagres i opptil 7 dager og slettes deretter
           automatisk.
         </p>
 
