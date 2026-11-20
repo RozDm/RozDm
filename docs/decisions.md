@@ -6,6 +6,7 @@ skill reads it first). Where it says "don't re-propose", don't — not in an
 audit, a PR or a reply. A new decision goes here and gets a one-line pointer
 in the doc it concerns.
 
+- **The session picks the model and delegates** — the cheapest model that does the task (`ship`'s table; Haiku joins for exact mechanical edits); a PR for another model goes to a child session, which the parent waits for, verifies (merge, `check`, diff, deploy) and archives; no more stopping for a manual model switch — 2026-11-20 (`.claude/skills/ship/SKILL.md`)
 - **Only the owner in `main`'s history: no Dependabot or Claude as author or co-author** — the Contributors box counts squash co-authors (dependabot[bot] got in via #39; that commit was rewritten and force-pushed on the owner's word); Dependabot PRs are never merged, a session redoes the bump, and `ci.yml`'s `authors` keeps every other PR red — 2026-11-16 (`.github/CLAUDE.md`)
 - **D1 migrations are applied by hand (`d1-bootstrap.yml`), never by `deploy.yml`** — `wrangler rollback` restores code, not the schema, and a destructive migration would land on an ordinary push; schema changes are rare. `deploy.yml` only warns on pending ones (`d1 migrations list`) — 2026-11-16 (`.github/CLAUDE.md`, `docs/reference/ci.md`)
 - **`lib/shared/` may import `worker/api-types.ts` as a type, nothing else from `worker/`** — the shared files (timeseries fill, status, contact) take the `/api/*` shapes; the alternatives, duplicating the types or moving `api-types.ts` into `lib/shared/`, give two sources of truth or undo the #24 layout; don't re-propose either — 2026-11-16 (`docs/gotchas.md`, `eslint.config.mjs`)
@@ -34,4 +35,4 @@ Undated, standing:
 - Worker traces stay off (`"traces": {}`) — (`worker/CLAUDE.md`)
 - `CF_ACCOUNT_ID` stays a secret, not a `vars` entry — declined, no gain — (`worker/CLAUDE.md`)
 - The Cloudflare notification set is the owner's; no Universal SSL Alert — (`docs/cloudflare-security.md`)
-- Fable at `max` effort only on the owner's word — (root `CLAUDE.md`)
+- Fable is not in the subscription (2026-11-20): a hard bug goes to Opus `xhigh`, `max` only on the owner's word — (root `CLAUDE.md`, `.claude/skills/ship/SKILL.md`)

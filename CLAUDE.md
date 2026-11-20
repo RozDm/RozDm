@@ -25,9 +25,10 @@ Each of the rest loads only when a task touches its area:
 - `docs/history.md` — incidents behind the hard rules: only to question one;
 - `README.md` — repo is RozDm/rozsoshnykh.no (renamed so github.com/RozDm stays
   neutral): never create a repository named RozDm (`docs/decisions.md`);
-- skills `.claude/skills/`: `browser-check`, `new-post`, `audit`, `ship`,
-  `pr-flow` (GitHub MCP recipes, after-PR routine, model/effort details —
-  load when opening/watching a PR or checking a deploy).
+- skills `.claude/skills/`: `browser-check`, `new-post`, `audit`, `ship`
+  (model pick, child sessions, verify and archive), `pr-flow` (GitHub MCP
+  recipes, after-PR routine — load when opening/watching a PR or checking
+  a deploy).
 
 A PR that changes the `/api/*` surface, a workflow, a skill or a hook updates
 the matching doc in the same PR. Every file in `worker/`, `lib/`, `scripts/` and
@@ -47,12 +48,14 @@ API route, workflow, skill or hook in no doc, or on a file without that header.
   (`.claude/settings.json`, `.ignore`, `guard-bash.mjs`); regenerate with
   `npm run cf-typegen` / `prebuild`; `git diff --stat` says if they changed.
   `public/world.svg` is gitignored (built by `predev`/`prebuild`), the other two are committed.
-- Model/effort: open with one line naming the pick — Sonnet `high` (posts,
-  translations, bumps, copy, docs, small UI), Opus `high` (Worker, CSP, WAF,
-  counters, deploy pipeline, `/audit`), Fable (hard bug, no known cause; `max`
-  only on the owner's word). Read yours with `get_session`. **Model** differs →
-  stop after that line so the owner can switch; **effort-only** differs → say
-  so in the line and go on; matches or unknown → go on.
+- Model/effort: the session picks the cheapest model that does the task
+  and delegates — `ship` (Haiku: an exact mechanical edit; Sonnet `high`:
+  posts, translations, bumps, copy, docs, small UI; Opus `high`: Worker,
+  CSP, WAF, counters, deploy pipeline, `/audit`; a hard bug: Opus `xhigh`,
+  `max` only on the owner's word; no Fable in the subscription). Work for
+  its own model it does here; a PR for another model goes to a child
+  session that it waits for, verifies and archives. The reply opens with
+  one line naming the pick; a child skips it.
 - PRs: open ready with squash auto-merge (to hold, a draft without it); no
   `send_later`; look at the deploy run once after the merge; report merge +
   deploy once, or a red check. Recipes and details: `pr-flow`.
