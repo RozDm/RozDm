@@ -282,7 +282,9 @@ Two answers are the same on every path: a method the route doesn't serve is
   `console.error` — Workers Logs is the only place they show, except a
   failed mail send, which also writes the `mailfail` AE point. Traces stay
   off (`"traces": {}` enables nothing; owner's call, `docs/decisions.md`):
-  from 2026-12-01 logs and traces share Free's 0.5 GB/day.
+  from 2026-12-01 logs and traces share Free's 0.5 GB/day (we write ~1 MB,
+  peak 17.6 MB) and are kept 7 days (was 3). The privacy notices state that
+  retention («opptil 7 dager», "up to 7 days"): a change updates both pages.
 
 - CPU: Free allows 10 ms per request or cron run (then error 1102; an
   isolate tolerates an occasional overrun). Our JS is well under 1 ms; the

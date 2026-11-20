@@ -26,7 +26,7 @@ export default function PrivacyPage() {
       <BackLink href={localePath('en', '/')}>{DICT.en.backHome}</BackLink>
 
       <PageTitle eyebrow={DICT.en.footer.privacy}>Privacy notice</PageTitle>
-      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-4">Last updated: 17 November 2026</p>
+      <p className="text-sm font-mono text-gray-500 dark:text-gray-400 mb-4">Last updated: 20 November 2026</p>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-10 max-w-xl">
         This is a translation for convenience. The{' '}
         <Link
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
         <p>
           When the website’s server (a Cloudflare Worker) handles a request, Cloudflare stores a technical log of it:
           among other things the time, the address requested and details of the connection, which may include your IP
-          address. The logs are used only for troubleshooting and security, kept for up to 3 days and then deleted
+          address. The logs are used only for troubleshooting and security, kept for up to 7 days and then deleted
           automatically.
         </p>
 
