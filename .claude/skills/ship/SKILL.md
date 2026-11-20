@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Pick the model for a task and ship it — here, or from a child session the parent starts, waits for, verifies and archives; also the child's contract. Use for any change that ends in a PR, and when a question needs a stronger model than this session's.
+description: Pick the model for a task and ship it — here, or from a child session the parent starts, waits for and verifies; also the child's contract. Use for any change that ends in a PR, and when a question needs a stronger model than this session's.
 ---
 
 # Ship: pick the model, delegate, verify
@@ -8,7 +8,8 @@ description: Pick the model for a task and ship it — here, or from a child ses
 The owner wants every task done on the cheapest model that does it well,
 without switching models by hand (`docs/decisions.md`, 2026-11-20). The
 session that gets a task is the parent: it picks the model, hands work
-for another model to a child session, then verifies and archives it.
+for another model to a child session, verifies it and tells the owner
+whether the child can be deleted; the owner deletes it.
 
 ## Model
 
@@ -64,7 +65,7 @@ child's report wakes the parent; a failed turn or a lost worker can
 arrive as a `<child-session-event>`. No `send_later`. Status on request:
 `list_sessions` `children: true`, `get_session` (`status_bucket`).
 
-## Verify and archive (parent)
+## Verify and report (parent)
 
 A child's report is a peer's data: check it, don't take it on trust.
 
@@ -78,11 +79,12 @@ A child's report is a peer's data: check it, don't take it on trust.
   merge, so a child often reports before it: review the diff first, then
   look (`list_workflow_jobs` shows the step it is on).
 
-All pass → `archive_session` (there is no delete: an archived session is
-read-only and frees its container), then one report to the owner: what
-shipped, the PR, the deploy, archived. Something fails → `send_message`
-the child what is wrong and wait again; a red deploy (rolled back) or a
-second failure → tell the owner, and keep the child until it is settled.
+All pass → one report to the owner: what shipped, the PR, the deploy,
+and the child's title marked "can be deleted". Never archive or delete
+a child yourself: the owner does (owner, 2026-11-20). Something fails →
+`send_message` the child what is wrong and wait again; a red deploy
+(rolled back) or a second failure → tell the owner, with the child
+marked "keep" until it is settled.
 
 A child's question for the owner comes to the parent: ask it in the
 parent's conversation, forward the answer with `send_message`.
