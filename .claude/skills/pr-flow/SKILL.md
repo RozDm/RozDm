@@ -25,6 +25,9 @@ One thing per call, minimal output:
 
 - Open it ready with squash auto-merge. To hold one: a draft without
   auto-merge.
+- The GitHub MCP tool appends a Claude footer to the PR body: remove it
+  (`update_pull_request`). The squash message comes from the commits, so
+  `main`'s history stays clean either way.
 - Don't arm `send_later`: green `check` auto-merges in minutes and the PR
   subscription wakes the session on anything red.
 - After the merge look at the deploy run once: its smoke step is the real

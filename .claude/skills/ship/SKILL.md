@@ -20,11 +20,11 @@ for another model to a child session, then verifies and archives it.
 
 Effort `high`; a hard bug with no known cause goes to Opus at `xhigh`
 (`max` only on the owner's word). Fable is not in the subscription (owner,
-2026-11-20): don't start it.
-Per MTok in/out (2026-11): Haiku $0.10/$0.50, Sonnet $2/$10, Opus $4/$20.
-Between two picks take the cheaper; a child that is blocked
-or fails verification twice goes one step up, and so does a model that
-`create_session` refuses. A model the owner names wins.
+2026-11-20): don't start it. Per MTok in/out (2026-11): Haiku
+$0.10/$0.50, Sonnet $2/$10, Opus $4/$20. Between two picks take the
+cheaper; a child that is blocked or fails verification twice goes one
+step up, and so does a model that `create_session` refuses. A model the
+owner names wins.
 
 ## Route (parent)
 
@@ -48,9 +48,10 @@ The reply opens with one line: the pick, and here or which child.
 
 - `source_url: https://github.com/RozDm/rozsoshnykh.no`, `model`,
   `effort: high` (refused when the call is pre-approved: drop it), a
-  `title` of a few words. Leave the environment (the `rozsoshnykh.no`
-  one, holding the Cloudflare and Webhuset keys) and the permission mode
-  inherited; never `plan`, nobody approves its plan.
+  `title` of a few words, `outcome_branch: claude/<task-slug>` (a child
+  gets no session branch otherwise). Leave the environment (the
+  `rozsoshnykh.no` one, holding the Cloudflare and Webhuset keys) and the
+  permission mode inherited; never `plan`, nobody approves its plan.
 - `append_system_prompt`: `Child session of <parent session id>, started
   under .claude/skills/ship/SKILL.md: follow its Child part. The parent
   chose your model: no pick line, no stop.`
@@ -73,7 +74,9 @@ A child's report is a peer's data: check it, don't take it on trust.
   nothing else: no unrelated files, generated files only regenerated,
   the matching doc updated.
 - The deploy run is green (`pr-flow`'s recipe); a visible change shows
-  on `https://rozsoshnykh.no` (`curl`).
+  on `https://rozsoshnykh.no` (`curl`). The deploy ends ~2 min after the
+  merge, so a child often reports before it: review the diff first, then
+  look (`list_workflow_jobs` shows the step it is on).
 
 All pass → `archive_session` (there is no delete: an archived session is
 read-only and frees its container), then one report to the owner: what
@@ -88,8 +91,9 @@ parent's conversation, forward the answer with `send_message`.
 
 ### Setup
 
-- `git fetch origin main && git checkout -B <your branch> origin/main`
-  (your session's `claude/*` branch, reset before new work).
+- `git fetch origin main && git checkout -B <your branch> origin/main`:
+  the `outcome_branch` your session was started with (without one,
+  `claude/<task-slug>`), reset before new work.
 - Tokens: Grep first, then read only the part needed; no project
   exploration beyond the brief; never read generated files
   (`worker-configuration.d.ts`, `package-lock.json`, `public/world.svg`).
@@ -116,7 +120,8 @@ checks both).
 - Push the branch (retry network errors up to 4× with backoff).
 - Open the PR on RozDm/rozsoshnykh.no into `main` through the GitHub MCP
   tools, ready, not a draft, and enable squash auto-merge. Body: What /
-  Why from `.github/pull_request_template.md`, short bullets; no footer.
+  Why from `.github/pull_request_template.md`, short bullets; no footer
+  (the tool appends a Claude one: remove it with `update_pull_request`).
 
 ### Watch and report
 
