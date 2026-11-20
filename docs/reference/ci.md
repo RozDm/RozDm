@@ -160,6 +160,10 @@ secret model. The traps to know before editing `.github/` are in
 - The repository was RozDm/RozDm until 2026-11-16 (renamed: `docs/decisions.md`); GitHub redirects the old URLs. The About box (description, website, topics) is a repository setting: owner-only.
 - `pull_request_template.md` — What / Why and a three-box checklist (check,
   docs, build + e2e); PRs from sessions follow it too.
+- Sessions (`.claude/skills/ship/SKILL.md`): a session picks the model per
+  task; a PR for another model goes to a child session (its own `claude/*`
+  branch and PR) that reports back with `send_message`; the parent checks
+  the merge, `check`, the diff and the deploy, then archives the child.
 - `dependabot.yml` — monthly (the 1st, 06:00 Europe/Oslo; owner's call
   2026-11-09, was weekly) grouped PRs: npm minor+patch, wrangler,
   Playwright, GitHub Actions (npm: 7-day cooldown); security updates come

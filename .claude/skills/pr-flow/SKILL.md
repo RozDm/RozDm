@@ -1,6 +1,6 @@
 ---
 name: pr-flow
-description: The GitHub MCP call recipes and the routine around a PR — checking PR CI, looking at the deploy run, reading a red run's log, what to do after opening a PR, model/effort picks. Use when opening, watching or merging a PR, or checking a deploy.
+description: The GitHub MCP call recipes and the routine around a PR — checking PR CI, looking at the deploy run, reading a red run's log, what to do after opening a PR. Use when opening, watching or merging a PR, or checking a deploy.
 ---
 
 # PR and deploy flow
@@ -35,26 +35,18 @@ One thing per call, minimal output:
 
 ## Model and effort
 
-The reply to a task opens with one line naming what it needs:
+The pick and the delegation are `ship`'s. A cloud session reads its own
+model and effort with `get_session` (`session_context.model`,
+`effort_level`).
 
-| Pick | Tasks |
-|---|---|
-| Sonnet `high` | posts, translations, dependency bumps, copy, docs, small UI changes |
-| Opus `high` | the Worker, CSP, WAF, counters, the deploy pipeline, `/audit` |
-| Fable | a hard bug with no known cause (`max` only on the owner's word) |
-
-A cloud session reads its own model and effort with `get_session`
-(`session_context.model`, `effort_level`).
-
-- Model differs → stop after the line so the owner can switch before the
-  work is paid for. A model switch re-reads the whole conversation once
-  without the cache — cheapest as a session's first prompt.
-- Only the effort differs → say so in that line and go on. An effort
-  change keeps the prompt cache and can be made mid-session; stopping on
-  it cost a full round trip (2026-11-16).
-- Matches, or the session can't tell → go on.
-- `new-post` (Sonnet, `high`) and `audit` (`high`) pin theirs for the turn
-  in their frontmatter.
+- The model differs from the pick → don't stop for a switch (a switch
+  re-reads the whole conversation once without the cache): a child
+  session (`ship`).
+- Only the effort differs → say so in the opening line and go on. An
+  effort change keeps the prompt cache and can be made mid-session;
+  stopping on it cost a full round trip (2026-11-16).
+- `new-post` (Sonnet, `high`) and `audit` (`high`) pin theirs for the
+  turn in their frontmatter.
 
 ## Session branch
 
