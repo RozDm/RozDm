@@ -17,11 +17,12 @@ for another model to a child session, then verifies and archives it.
 | Haiku | `claude-haiku-5-5` | a mechanical edit the parent spells out exactly (files, old → new text) |
 | Sonnet | `claude-sonnet-5-5` | posts, translations, dependency bumps, copy, docs, small UI |
 | Opus | `claude-opus-5-5` | the Worker, CSP, WAF, counters, the deploy pipeline, `/audit` |
-| Fable | `claude-fable-5-2` | a hard bug with no known cause |
 
-Effort `high` for every pick; Fable at `max` only on the owner's word.
-Per MTok in/out (2026-11): Haiku $0.10/$0.50, Sonnet $2/$10, Opus $4/$20,
-Fable $8/$40. Between two picks take the cheaper; a child that is blocked
+Effort `high`; a hard bug with no known cause goes to Opus at `xhigh`
+(`max` only on the owner's word). Fable is not in the subscription (owner,
+2026-11-20): don't start it.
+Per MTok in/out (2026-11): Haiku $0.10/$0.50, Sonnet $2/$10, Opus $4/$20.
+Between two picks take the cheaper; a child that is blocked
 or fails verification twice goes one step up, and so does a model that
 `create_session` refuses. A model the owner names wins.
 
@@ -32,7 +33,7 @@ Read your own model with `get_session` (`session_context.model`).
 - The pick is your model → do it here, `pr-flow` as usual; no child.
 - A question, analysis or lookup with no PR → answer here; if it needs a
   stronger model than yours, a subagent (Agent tool, `model`
-  `haiku`/`sonnet`/`opus`/`fable`, `effort: high`): its report comes
+  `haiku`/`sonnet`/`opus`, `effort: high`): its report comes
   back by itself and leaves nothing to clean up.
 - A change for another model → a child session, one per PR. Independent
   changes run in parallel (three at most); one that needs another's

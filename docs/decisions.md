@@ -35,4 +35,4 @@ Undated, standing:
 - Worker traces stay off (`"traces": {}`) — (`worker/CLAUDE.md`)
 - `CF_ACCOUNT_ID` stays a secret, not a `vars` entry — declined, no gain — (`worker/CLAUDE.md`)
 - The Cloudflare notification set is the owner's; no Universal SSL Alert — (`docs/cloudflare-security.md`)
-- Fable at `max` effort only on the owner's word — (root `CLAUDE.md`)
+- Fable is not in the subscription (2026-11-20): a hard bug goes to Opus `xhigh`, `max` only on the owner's word — (root `CLAUDE.md`, `.claude/skills/ship/SKILL.md`)

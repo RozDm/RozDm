@@ -51,10 +51,11 @@ API route, workflow, skill or hook in no doc, or on a file without that header.
 - Model/effort: the session picks the cheapest model that does the task
   and delegates — `ship` (Haiku: an exact mechanical edit; Sonnet `high`:
   posts, translations, bumps, copy, docs, small UI; Opus `high`: Worker,
-  CSP, WAF, counters, deploy pipeline, `/audit`; Fable: hard bug, `max`
-  only on the owner's word). Work for its own model it does here; a PR for
-  another model goes to a child session that it waits for, verifies and
-  archives. The reply opens with one line naming the pick; a child skips it.
+  CSP, WAF, counters, deploy pipeline, `/audit`; a hard bug: Opus `xhigh`,
+  `max` only on the owner's word; no Fable in the subscription). Work for
+  its own model it does here; a PR for another model goes to a child
+  session that it waits for, verifies and archives. The reply opens with
+  one line naming the pick; a child skips it.
 - PRs: open ready with squash auto-merge (to hold, a draft without it); no
   `send_later`; look at the deploy run once after the merge; report merge +
   deploy once, or a red check. Recipes and details: `pr-flow`.
