@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import HalEye from './HalEye'
 import Starfield from './Starfield'
 import { makeStars, type Star } from '@/lib/shared/stars'
@@ -29,6 +29,7 @@ export default function Intro() {
   const [active, setActive] = useState(false)
   const [phase, setPhase] = useState(0)
   const [stars, setStars] = useState<Star[]>([])
+  const skipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   // Decide on mount whether this visitor has seen the intro before.
   useEffect(() => {
@@ -87,13 +88,13 @@ export default function Intro() {
     // gets a ~1.8s solo (phase 4) before the HAL eye joins (phase 5), then
     // both play their own exit (phase 6) before the overlay fades (phase 7).
     const timers = [
-      setTimeout(() => setPhase(1), 150),
-      setTimeout(() => setPhase(2), 3000),
-      setTimeout(() => setPhase(3), 3500),
-      setTimeout(() => setPhase(4), 4000),
-      setTimeout(() => setPhase(5), 5800),
-      setTimeout(() => setPhase(6), 8000),
-      setTimeout(() => setPhase(7), 9800),
+      setTimeout(() => setPhase((p) => Math.max(p, 1)), 150),
+      setTimeout(() => setPhase((p) => Math.max(p, 2)), 3000),
+      setTimeout(() => setPhase((p) => Math.max(p, 3)), 3500),
+      setTimeout(() => setPhase((p) => Math.max(p, 4)), 4000),
+      setTimeout(() => setPhase((p) => Math.max(p, 5)), 5800),
+      setTimeout(() => setPhase((p) => Math.max(p, 6)), 8000),
+      setTimeout(() => setPhase((p) => Math.max(p, 7)), 9800),
       setTimeout(finish, 11200),
     ]
     return () => timers.forEach(clearTimeout)
@@ -102,8 +103,10 @@ export default function Intro() {
   const skip = useCallback(() => {
     markSeen()
     setPhase(7)
-    setTimeout(() => setActive(false), 1400)
+    skipTimer.current = setTimeout(() => setActive(false), 1400)
   }, [])
+
+  useEffect(() => () => clearTimeout(skipTimer.current), [])
 
   // Any key skips too — the overlay is click-only otherwise, which left
   // keyboard and screen-reader users waiting out the full sequence (and their
