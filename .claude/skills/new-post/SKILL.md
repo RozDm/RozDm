@@ -72,7 +72,7 @@ When the owner says the post is ready:
 Only on the owner's explicit word — never with a post on your own (pre-launch; on 2026-11-09 the owner said they will tell when). Flip all three in one PR, or CI or the deploy fails:
 
 - `robots.index: false` → `true` in `app/layout.tsx`;
-- the e2e test "pre-launch: every page tells search engines noindex" (`e2e/site.e2e.ts`) → the sitemap's pages carry no `noindex`, while `/kontakt/`, `/personvern/` and the tag pages outside `INDEXED_TAGS` keep it;
+- the e2e test "pre-launch: every page tells search engines noindex" (`e2e/layout.e2e.ts`) → the sitemap's pages carry no `noindex`, while `/kontakt/`, `/personvern/` and the tag pages outside `INDEXED_TAGS` keep it;
 - the home check in `scripts/smoke.sh`, which asserts `content="noindex` → assert it is gone.
 
 Then the owner submits `https://rozsoshnykh.no/sitemap.xml` in Google Search Console.

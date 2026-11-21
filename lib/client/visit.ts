@@ -2,7 +2,7 @@
 // When the Besøk beacon (components/effects/VisitBeacon.tsx) may count a
 // visit — and, with onFirstHumanInput, when a post view counts
 // (components/blog/ViewCounter.tsx). Pure, so it is unit-tested (tests/lib/client/visit.test.ts); the
-// browser side is covered by e2e/site.e2e.ts.
+// browser side is covered by e2e/counters.e2e.ts.
 //
 // The aim is people, not page loads: a visit counts
 //   - once per browser per local day (a localStorage date, not a per-tab
