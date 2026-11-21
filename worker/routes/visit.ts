@@ -10,10 +10,13 @@
 // GET is a harmless self-diagnostic (shows the caller's own country and
 // whether it would count; stores nothing) — handy when the map looks empty,
 // e.g. to tell "ad-blocker swallowed the POST" from "edge sees no country".
-import type { VisitProbe, VisitResponse } from '../api-types'
+import type { VisitErrorCode, VisitProbe, VisitResponse } from '../api-types'
 import { allowWrite, apiError, apiJson, refuseMethod } from '../http'
 import { isCountableCountry, isWriteAllowed } from '../domain/metrics'
 import { recordGeo } from '../domain/geo-store'
+
+// This route refuses only with its own codes (VisitErrorCode); tsc holds it to that.
+const refuse: (code: VisitErrorCode) => Response = apiError
 
 export async function handleVisit(
   url: URL,
@@ -36,8 +39,8 @@ export async function handleVisit(
     )
   }
 
-  if (!isWriteAllowed(request.headers, url.origin)) return apiError('forbidden')
-  if (!(await allowWrite(env, request, 'visit'))) return apiError('rate_limited')
+  if (!isWriteAllowed(request.headers, url.origin)) return refuse('forbidden')
+  if (!(await allowWrite(env, request, 'visit'))) return refuse('rate_limited')
 
   recordGeo(env, ctx, request.cf?.country, {
     asn: request.cf?.asn,

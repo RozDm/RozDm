@@ -3,10 +3,13 @@
 // The series comes from domain/timeseries-store.ts. When AE doesn't answer
 // (secrets unset, AE down) the answer is an empty series flagged `degraded`,
 // so the UI degrades gracefully instead of erroring.
-import type { TimeseriesResponse } from '../api-types'
+import type { TimeseriesErrorCode, TimeseriesResponse } from '../api-types'
 import { apiError, cachedApiJson, putCachedApiJson, refuseMethod } from '../http'
 import { parseMetric, parseRange } from '../domain/timeseries'
 import { querySeries } from '../domain/timeseries-store'
+
+// This route refuses only with its own codes (TimeseriesErrorCode); tsc holds it to that.
+const refuse: (code: TimeseriesErrorCode) => Response = apiError
 
 // Must stay below the 30 s between the watchdog's three tries
 // (status-watchdog.yml), so each try asks AE again.
@@ -23,9 +26,9 @@ export async function handleTimeseries(
   if (refused) return refused
 
   const metric = parseMetric(url.searchParams.get('metric'))
-  if (!metric) return apiError('bad_metric')
+  if (!metric) return refuse('bad_metric')
   const parsed = parseRange(url.searchParams.get('range'))
-  if (!parsed) return apiError('bad_range')
+  if (!parsed) return refuse('bad_range')
   const { key: rangeKey, range } = parsed
 
   // Canonical key from the validated metric+range only — the raw URL would
