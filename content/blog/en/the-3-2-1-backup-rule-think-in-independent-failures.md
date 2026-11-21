@@ -2,7 +2,7 @@
 title: "The 3-2-1 backup rule: think in independent failures"
 description: "A backup is judged only by the restore. 3-2-1 is a model of independent failures: each part answers a threat, and you can derive it yourself."
 date: "2026-11-21"
-tags: ["Sikkerhet", "SRE"]
+tags: ["Sikkerhet"]
 translationOf: "3-2-1-regelen-for-sikkerhetskopiering-tenk-i-uavhengige-feil"
 draft: true
 ---

@@ -2,7 +2,7 @@
 title: "3-2-1-regelen for sikkerhetskopiering: tenk i uavhengige feil"
 description: "En sikkerhetskopi bedømmes bare på gjenopprettingen. 3-2-1 er en modell for uavhengige feil: hver del svarer på en trussel, og du kan utlede den selv."
 date: "2026-11-21"
-tags: ["Sikkerhet", "SRE"]
+tags: ["Sikkerhet"]
 draft: true
 ---
 
