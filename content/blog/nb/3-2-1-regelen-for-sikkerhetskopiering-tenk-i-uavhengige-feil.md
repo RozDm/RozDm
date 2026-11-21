@@ -77,6 +77,7 @@ Utvidelsen legger til to ledd som svarer på to feil den enkle regelen ikke dekk
 ## Versjoner og oppbevaringstid
 
 En sikkerhetskopi som overskriver gårsdagens med dagens, er et speil med litt forsinkelse: ødelagte data blir kopiert ved neste kjøring. Du trenger historikk. Vanlig er nivåer som tynnes ut med alderen: daglige kopier for de siste ukene, ukentlige for månedene, månedlige for lenger tilbake.
+
 Tallet å sammenligne med, er hvor lang tid det tar før du oppdager et problem. Begynner stille ødeleggelse i mars og du merker det i mai, og du beholder seks uker, finnes det ingen hel versjon. **Er tiden til oppdagelse lengre enn oppbevaringstiden, er dataene tapt.** Oppbevaringen må derfor overstige den lengste oppdagelsestiden du realistisk kan vente.
 
 Den har også en øvre grense: noen data skal slettes etter en tid, og sletting må før eller siden nå også kopiene. Uforanderlighet og påkrevd sletting må forenes i utformingen. Enten er uforanderlighetsvinduet ikke lengre enn tiden sletting må skje innen, eller så krypterer du datasett med hver sin nøkkel og sletter nøkkelen (kryptografisk sletting), også de deponerte kopiene av den. Det virker bare med grov granularitet (per kunde, datasett eller periode), og det flytter problemet til nøkkellageret, som trenger sin egen utforming: det må overleve like godt som dataene, men likevel la nøkler slettes.
@@ -94,7 +95,7 @@ Gjenopprettingen avgjør om du har en sikkerhetskopi. Krypteringen avgjør om si
 En sikkerhetskopi som ikke er prøvd, er en hypotese. Sikkerhetskopier svikter stille: feil sti, filer som mangler, en jobb som «lykkes» med å kopiere en tom mappe, et format som krever programvare du ikke lenger har, et medium som er ødelagt. Ingenting av dette viser seg før du gjenoppretter.
 
 - **Stikkprøver, ofte.** Gjenopprett noen tilfeldige filer, og sjekk innholdet. Det er billig, så gjør det jevnlig.
-- **Full gjenoppretting, på fast tid.** Start fra rent utstyr med bare det lag null rommer (se under): kopien, nøkkelen, veiledningen, verktøyet og tilgangen til lagringen. Ta tiden og sammenlign med RTO. Mange oppdager her at RTO var et ønske.
+- **Full gjenoppretting, på fast tid.** Start fra rent utstyr med bare kopien og det lag null rommer (se under): nøkkelen, veiledningen, verktøyet og tilgangen til lagringen. Ta tiden og sammenlign med RTO. Mange oppdager her at RTO var et ønske.
 - **Integritet.** Lagre sjekksummer når kopien lages, og kontroller dem ved lesing og med jevne mellomrom, slik at stille datarot i en lagret kopi oppdages før du trenger den. For en database betyr gjenoppretting at den starter og består sin egen konsistenssjekk.
 - **Granulær gjenoppretting.** Én tabell, én kunde, ett objekt fra en gitt dag, uten å rulle tilbake andres arbeid. Et helt systembilde kan bestå testen for full gjenoppretting og likevel feile her.
 
@@ -126,7 +127,7 @@ Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og
 - For hver hendelse vi må overleve, vet vi hvor mange kopier som er igjen etterpå, og tallet gir den marginen vi har bestemt.
 - Det finnes minst tre kopier, originalen medregnet, på minst to ulike slags lagring, og minst én ligger et annet sted. Ingen enkelt leverandør, avtale eller betalingskonto har alle kopiene.
 - Ingen enkelthendelse (en feil, en konto, en maskin eller en person) kan slette alle kopiene. Produksjonen kan ikke slette eller overskrive dem, og best er at den ikke har tilgang i det hele tatt.
-- Minst én kopi er frakoblet eller uforanderlig, med begrensede skriverettigheter og kvoter.
+- Minst én kopi er frakoblet eller uforanderlig, med begrensede skriverettigheter og en grense for hvor mye én kjøring kan legge til.
 - Vi har flere versjoner, og oppbevaringen er lengre enn tiden det tar å oppdage et problem.
 - Arkivet kontrolleres jevnlig for integritet, og minst én kopi lages direkte fra kilden inn i et separat arkiv, ikke replikert fra samme arkiv.
 - Alle kopier er kryptert med nøkler vi selv holder, og nøkkelen er delt eller oppbevart på minst to steder som ikke deler skjebne.

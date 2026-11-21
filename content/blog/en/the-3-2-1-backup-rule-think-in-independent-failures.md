@@ -78,6 +78,7 @@ The extended form adds two parts that answer two failures the simple rule does n
 ## Versions and retention
 
 A backup that overwrites yesterday's copy with today's is a mirror with a delay: corrupted data is copied on the next run. You need history. The usual pattern is tiers that thin out with age: daily copies for the last few weeks, weekly for the months, monthly further back.
+
 The number to compare against is how long it takes you to notice a problem. If silent corruption starts in March, you notice in May and you keep six weeks, no intact version exists. **If the time to detect a problem is longer than the retention, the data is lost.** Retention must therefore exceed the longest detection time you can realistically expect.
 
 It also has an upper limit: some data must be deleted after a time, and deletion must sooner or later reach the copies too. Immutability and required deletion have to be reconciled by design. Either the immutability window is no longer than the time within which deletion must happen, or you encrypt data sets with separate keys and delete the key (cryptographic erasure), including the escrowed copies of it. That works only at coarse granularity (per customer, data set or period), and it moves the problem to the key store, which needs its own design: it must survive as well as the data does, yet still allow keys to be deleted.
@@ -95,7 +96,7 @@ The restore decides whether you have a backup. Encryption decides whether the ba
 An untested backup is a hypothesis. Backups fail silently: the wrong path, files that are missing, a job that ‘succeeds’ in copying an empty folder, a format that needs software you no longer have, a damaged medium. None of this shows until you restore.
 
 - **Spot checks, often.** Restore a few random files and check the contents. It is cheap, so do it regularly.
-- **A full restore, on a schedule.** Start from clean equipment with only what layer zero holds (see below): the copy, the key, the runbook, the tool and the access to the storage. Time it and compare with the RTO. Many people find out here that the RTO was a wish.
+- **A full restore, on a schedule.** Start from clean equipment with only the copy and what layer zero holds (see below): the key, the runbook, the tool and the access to the storage. Time it and compare with the RTO. Many people find out here that the RTO was a wish.
 - **Integrity.** Store checksums when the copy is made, and verify them on reading and at intervals, so that silent bit rot in a stored copy is found before you need it. For a database, restoring means that it starts and passes its own consistency check.
 - **A granular restore.** One table, one customer, one object from a given day, without rolling back everyone else's work. A whole-system image can pass the full-restore test and still fail this.
 
@@ -127,7 +128,7 @@ What is deliberately left out belongs on a list, so that it is a choice and not 
 - For each event we must survive, we know how many copies are left afterwards, and that number meets the margin we decided on.
 - There are at least three copies, the original included, on at least two different kinds of storage, and at least one is at another site. No single provider, contract or payment account holds every copy.
 - No single event (a fault, an account, a machine or a person) can delete all the copies. Production cannot delete or overwrite them, and better still, it has no access to them at all.
-- At least one copy is offline or immutable, with limited write rights and quotas.
+- At least one copy is offline or immutable, with limited write rights and a cap on how much one run may add.
 - We keep several versions, and the retention is longer than the time it takes to notice a problem.
 - The repository is checked for integrity regularly, and at least one copy is made directly from the source into a separate repository, not replicated from the same repository.
 - Every copy is encrypted with keys we hold, and the key is split or kept in at least two places that do not share a fate.
