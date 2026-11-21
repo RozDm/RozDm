@@ -136,8 +136,8 @@ Automatikk svikter også stille, og et varsel om feil er ikke nok, for en jobb s
 
 ## En historie til slutt
 
-Noen fortalte meg en gang om en kvinne hvis mann var død. Alle bildene av ham, fra ferier og turer de hadde gjort sammen, lå på én harddisk, og harddisken sviktet.
+Noen fortalte meg en gang om en jobb vedkommende hadde gjort for en kvinne hvis mann var død. Alle bildene av ham, fra ferier og turer de hadde gjort sammen, lå på én harddisk, og harddisken sviktet.
 
-Det tok halvannet år å få dataene tilbake. Det innebar å finne en donordisk, en identisk disk å ta deler fra, og å jobbe med å berge dataene. Den som gjorde jobben, kjente henne og tok derfor ikke betalt.
+Det tok halvannet år å få dataene tilbake. Det innebar å finne en donordisk, en identisk disk å ta deler fra, og å jobbe med å berge dataene. Vedkommende kjente henne og tok derfor ikke betalt.
 
-Jeg fikk høre at hun gråt da hun fikk alt tilbake. Alle bildene av mannen hennes, alt var berget.
+Vedkommende fortalte at hun gråt da hun fikk alt tilbake. Alle bildene av mannen hennes, alt var berget.

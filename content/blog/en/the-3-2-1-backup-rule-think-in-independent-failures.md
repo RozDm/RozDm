@@ -137,8 +137,8 @@ Automation fails silently too, and an alert on failure is not enough, because a 
 
 ## A story to end with
 
-Someone once told me about a woman whose husband had died. All the photos of him, from the holidays and trips they took together, were on one hard drive, and the drive failed.
+Someone once told me about a recovery they did for a woman whose husband had died. All the photos of him, from the holidays and trips they took together, were on one hard drive, and the drive failed.
 
-Getting the data back took a year and a half. It meant finding a donor drive, an identical drive to take parts from, and working to recover the data. The person who did it knew her, so they took no money for it.
+Getting the data back took a year and a half. It meant finding a donor drive, an identical drive to take parts from, and working to recover the data. They knew her, so they took no money for it.
 
 They told me she cried when she got everything back. All the photos of her husband, everything, recovered.
