@@ -1,6 +1,6 @@
 // Contact constants the form and the Worker share: public address, field limits, honeypot name, the email pattern.
 // Pure, no DOM and no Workers APIs: the app (form, footer, privacy pages) and worker/domain/contact.ts both import it.
-import type { ContactRequest } from '../../worker/api-types'
+import type { ContactErrorCode, ContactRequest } from '../../worker/api-types'
 
 // The site's public address (the form's fallback, the footer, the privacy
 // notice; public/.well-known/security.txt is held to it by a test) — also the
@@ -38,3 +38,24 @@ const EMAIL_CHAR = '[^\\s@<>,;"\\(\\)\\[\\]\\\\:]'
 // The contact form's `pattern` (the browser anchors it itself): the same rule
 // as the Worker's, so the browser refuses what the Worker would 422.
 export const EMAIL_PATTERN = `${EMAIL_CHAR}+@${EMAIL_CHAR}+\\.${EMAIL_CHAR}{2,}`
+
+export type RefusedState = 'error' | 'invalid' | 'ratelimited' | 'challenge' | 'blocked'
+
+// What a refused submission means, from the status and the Worker's
+// `{"error": {"code": …}}` (ContactErrorCode, worker/api-types.ts). Only a Turnstile refusal asks the
+// visitor to solve the challenge (and only when the build has a site key to
+// render the widget); the Sec-Fetch/UA filter ("forbidden") and anything that
+// isn't the Worker's own answer (an edge 429 when the daily request quota is
+// spent) send them to e-mail instead.
+export function refusedState(
+  status: number,
+  error: ContactErrorCode | null | undefined,
+  hasSiteKey: boolean,
+): RefusedState {
+  if (status === 429) return error === 'rate_limited' ? 'ratelimited' : 'error'
+  if (status === 422) return 'invalid'
+  if (status === 403) {
+    return hasSiteKey && (error === 'challenge_required' || error === 'challenge_failed') ? 'challenge' : 'blocked'
+  }
+  return 'error'
+}

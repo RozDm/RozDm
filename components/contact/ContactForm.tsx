@@ -11,9 +11,11 @@ import {
   EMAIL_PATTERN,
   HONEYPOT_FIELD,
   contactFieldLongEnough,
+  refusedState,
+  type RefusedState,
 } from '@/lib/shared/contact'
 
-type FormState = 'idle' | 'sending' | 'sent' | 'error' | 'invalid' | 'ratelimited' | 'challenge' | 'blocked' | 'widget'
+type FormState = 'idle' | 'sending' | 'sent' | 'widget' | RefusedState
 
 // Set at build time from CF Turnstile (Site Key). Empty -> widget is not
 // rendered and the worker also leaves the check off when its secret is
@@ -24,20 +26,6 @@ const inputClass =
   'w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/50 px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-500/50 focus:outline-none transition-colors duration-200 ease-out'
 
 type Field = HTMLInputElement | HTMLTextAreaElement
-
-// What a refused submission means, from the status and the Worker's
-// `{"error": {"code": …}}` (ContactErrorCode, worker/api-types.ts). Only a Turnstile refusal asks the
-// visitor to solve the challenge; the Sec-Fetch/UA filter ("forbidden") and
-// anything that isn't the Worker's own answer (an edge 429 when the daily
-// request quota is spent) send them to e-mail instead.
-function refusedState(status: number, error: ContactErrorCode | null | undefined): FormState {
-  if (status === 429) return error === 'rate_limited' ? 'ratelimited' : 'error'
-  if (status === 422) return 'invalid'
-  if (status === 403) {
-    return SITE_KEY && (error === 'challenge_required' || error === 'challenge_failed') ? 'challenge' : 'blocked'
-  }
-  return 'error'
-}
 
 // Force a Norwegian browser-validation bubble instead of the browser-locale
 // default; clearValidity lets the field re-validate as the user types.
@@ -124,7 +112,7 @@ export default function ContactForm() {
           (d: Partial<ApiError<ContactErrorCode>> | null) => d?.error?.code,
           () => null,
         )
-        setState(refusedState(res.status, error))
+        setState(refusedState(res.status, error, SITE_KEY !== ''))
       }
     } catch {
       turnstileRef.current?.reset()
