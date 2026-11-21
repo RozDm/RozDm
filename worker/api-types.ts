@@ -13,9 +13,14 @@ export interface ApiError<E extends string = ApiErrorCode> {
   error: { code: E; message: string }
 }
 
-// Every code the API can send. Two are the same on every route: `not_found`
-// (404, an /api/ path no route claims: worker/index.ts) and
-// `method_not_allowed` (405, with `Allow`: worker/http.ts refuseMethod).
+// Every code the API can send. Each route refuses only with its own union
+// below (`const refuse: (code: XErrorCode) => Response = apiError` in
+// worker/routes/<name>.ts, so tsc fails a code the union lacks); /api/status
+// and /api/csp-report have none. Two codes stay shared, outside every route's
+// union: `not_found` (404, an /api/ path no route claims: worker/index.ts) and
+// `method_not_allowed` (405, with `Allow`: worker/http.ts refuseMethod). The
+// dispatcher and the method gate send them before any route logic, alike on
+// every path, and no client branches on them (each sends its route's method).
 export type ApiErrorCode =
   | ViewsErrorCode
   | GeoErrorCode

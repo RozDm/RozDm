@@ -1,7 +1,10 @@
 // GET /api/geo — visits per country, all time, from D1; edge-cached 60 s.
-import type { GeoResponse } from '../api-types'
+import type { GeoErrorCode, GeoResponse } from '../api-types'
 import { apiError, cachedApiJson, putCachedApiJson, refuseMethod } from '../http'
 import { readCountries } from '../domain/geo-store'
+
+// This route refuses only with its own codes (GeoErrorCode); tsc holds it to that.
+const refuse: (code: GeoErrorCode) => Response = apiError
 
 // Short TTL so a fresh visit shows up on the map within a minute. The
 // underlying D1 query is cheap (single table aggregate) and traffic is
@@ -22,6 +25,6 @@ export async function handleGeo(url: URL, request: Request, env: Env, ctx: Execu
   // A failed read is a 503 (never cached), not an empty map: an empty 200
   // read as "no visitors yet" on the site and as health to smoke.sh and the
   // watchdog, which probe D1 through this endpoint (docs/history.md).
-  if (!countries) return apiError('unavailable')
+  if (!countries) return refuse('unavailable')
   return putCachedApiJson(ctx, cache.key, JSON.stringify({ countries } satisfies GeoResponse), GEO_CACHE_TTL_S)
 }

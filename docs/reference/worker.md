@@ -139,6 +139,9 @@ status on every route (`API_ERRORS` in `worker/http.ts`): `bad_slug`,
 `challenge_failed` 403; `not_found` 404; `method_not_allowed` 405;
 `payload_too_large` 413; `invalid` 422; `rate_limited` 429; `send_failed`
 502; `unavailable` 503. `tests/worker/errors.test.ts` holds each route to it.
+A route refuses only with its own union (`ContactErrorCode`, `ViewsErrorCode`,
+…: a typed `refuse` alias of `apiError`, checked by `tsc`); `not_found` and
+`method_not_allowed` are shared by every route and in no route's union.
 
 Two answers are the same on every path: a method the route doesn't serve is
 405 `method_not_allowed` with `Allow` (the methods below, HEAD never), and an
