@@ -61,7 +61,7 @@ Det betyr:
 - **Oppbevaringsregler fra sikkerhetskopisystemet.** Hvor lenge kopiene lever, settes og håndheves der, ikke av systemet de kommer fra.
 - **Så få felles avhengigheter som mulig.** Samme passordbehandler eller samme administrasjonsverktøy er et felles feilpunkt, uansett hvor mange kopier som ligger bak.
 - **Organisatorisk og avtalemessig domene.** Kopier hos samme leverandør, under samme avtale, juridiske enhet eller betaling kan dele skjebne selv med atskilte kontoer og uforanderlighet: en konto stengt ved en feil eller for brudd på vilkår, data slettet etter en ubetalt regning, en leverandør som avvikler tjenesten. Minst én kopi bør ligge utenfor dette domenet.
-- **Uavhengighet i tid.** Versjoner i en inkrementell eller deduplisert kjede avhenger av hverandre: én skadet basisblokk eller en skadet indeks i arkivet kan ta alle senere versjoner. Det er et felles feildomene, selv med mange versjoner. Mottiltak: kontroller integriteten til selve arkivet jevnlig, ta uavhengige fullkopier med jevne mellomrom, og la den andre kopien utenfor stedet aldri være en replika av samme arkiv, for da kopierer du skaden med.
+- **Uavhengighet i tid.** Versjoner i en inkrementell eller deduplisert kjede avhenger av hverandre: én skadet basisblokk eller en skadet indeks i arkivet kan ta alle senere versjoner. Det er et felles feildomene, selv med mange versjoner. Mottiltak: kontroller integriteten til selve arkivet jevnlig, ta uavhengige fullkopier med jevne mellomrom, og lag minst én kopi uavhengig fra kilden, ikke replikert fra samme arkiv, for da kopierer du skaden med.
 
 ## 3-2-1-1-0
 
@@ -101,7 +101,7 @@ Etter et innbrudd gjenoppretter du ikke hele systembilder, for da gjenoppretter 
 
 Manuelle sikkerhetskopier slutter å bli tatt: en travel uke, en glemt rutine, en person som har sluttet. Automatiser tidsplan, kontroll og oppryddingen etter oppbevaringstiden.
 
-Men automatikk svikter også stille, og et varsel om feil er ikke nok, for en jobb som aldri starter, sender ingen feilmelding. Varsle på **fravær av suksess**: forvent én vellykket kjøring per periode, og slå alarm når den uteblir. Se i tillegg på alderen til den nyeste kopien og på størrelsen, for et plutselig utslag begge veier er et signal. Vekst er også et signal: data som er blitt kryptert av andre enn deg, lar seg verken deduplisere eller komprimere, så inkrementene vokser brått. Det er samme prinsipp som pulsen i [Hvem vokter vokterne? Tilsyn i IT-infrastruktur](/blogg/hvem-vokter-vokterne-i-it-infrastruktur/): stillhet er ikke et svar, og kontrollen skal ikke dele skjebne med det den passer på.
+Men automatikk svikter også stille, og et varsel om feil er ikke nok, for en jobb som aldri starter, sender ingen feilmelding. Varsle på **fravær av suksess**: forvent én vellykket kjøring per periode, og slå alarm når den uteblir. Se i tillegg på alderen til den nyeste kopien og på størrelsen, for et plutselig utslag begge veier er et signal: et fall kan bety at data mangler, og vekst kan bety at data er blitt kryptert av andre enn deg, noe som verken lar seg deduplisere eller komprimere, så inkrementene vokser brått. Det er samme prinsipp som pulsen i [Hvem vokter vokterne? Tilsyn i IT-infrastruktur](/blogg/hvem-vokter-vokterne-i-it-infrastruktur/): stillhet er ikke et svar, og kontrollen skal ikke dele skjebne med det den passer på.
 
 ## Hva som skal med
 
@@ -110,7 +110,7 @@ Ikke bare dataene:
 - **Konfigurasjon:** hvordan systemene ble satt opp, så du kan bygge dem på nytt og ikke bare fylle dem.
 - **Hemmeligheter**, krypterte og etter reglene over.
 - **Gjenopprettingsveiledningen:** trinn for trinn, skrevet for en som er stresset og ikke bygde oppsettet. Den og nøklene må overleve katastrofen. Ligger de bare på systemet som sviktet, kommer du ikke til dem når du trenger dem.
-- **Verktøyet og formatet.** Krever det å lese kopien en agent, en lisensserver eller en konsoll som døde med infrastrukturen eller ikke finnes lenger, er kopien ubrukelig. Formatet og midlene til å lese det må være tilgjengelige uavhengig, og ligge ved siden av kopien.
+- **Verktøyet og formatet.** Krever det å lese kopien en agent, en lisensserver eller en konsoll som døde med infrastrukturen eller ikke finnes lenger, er kopien ubrukelig. Formatet og midlene til å lese det må være tilgjengelige uavhengig, og oppbevares sammen med kopiene, utenfor selve sikkerhetskopien.
 - **Tjenestene alt annet hviler på,** som innlogging og navnetjenester.
 
 Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og ikke en overraskelse.
@@ -128,7 +128,7 @@ Kopierte filer er ikke det samme som en konsistent tilstand. En database som kop
 - Ingen enkelthendelse (en feil, en konto, en maskin eller en person) kan slette alle kopiene. Produksjonen kan ikke slette eller overskrive kopiene, og best er at den ikke har tilgang til dem i det hele tatt.
 - Minst én kopi er frakoblet eller uforanderlig.
 - Vi har flere versjoner, og oppbevaringen er lengre enn tiden det tar å oppdage et problem.
-- Arkivet kontrolleres jevnlig for integritet, og den andre kopien er ikke en replika av samme arkiv.
+- Arkivet kontrolleres jevnlig for integritet, og minst én kopi lages uavhengig, ikke replikert fra samme arkiv.
 - Kopier utenfor vår kontroll er kryptert av oss, og nøkkelen er oppbevart separat, på minst to steder som ikke deler skjebne.
 - Sikkerhetskopieringen kjører automatisk, og vi får alarm når en vellykket kjøring uteblir.
 - Konfigurasjon og hemmeligheter er med i sikkerhetskopien. Gjenopprettingsveiledningen, nøkkelen og midlene til å lese formatet oppbevares utenfor den.

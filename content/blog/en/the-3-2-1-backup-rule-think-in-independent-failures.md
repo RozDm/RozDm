@@ -62,7 +62,7 @@ That means:
 - **Retention rules from the backup system.** How long the copies live is set and enforced there, not by the system they came from.
 - **As few common dependencies as possible.** The same password manager or the same management tool is a shared point of failure, however many copies sit behind it.
 - **The organisational and contractual domain.** Copies with the same provider, under the same contract, legal entity or payment can share a fate even with separate accounts and immutability: an account closed by mistake or for a breach of terms, data deleted after an unpaid bill, a provider that stops the service. At least one copy should sit outside that domain.
-- **Independence in time.** Versions in an incremental or deduplicated chain depend on each other: one damaged base block or a damaged repository index can take every later version. That is a shared failure domain, however many versions you hold. The remedies: check the integrity of the repository itself regularly, take independent full copies at intervals, and never let the second, off-site copy be a replica of the same repository, because replicating it copies the damage.
+- **Independence in time.** Versions in an incremental or deduplicated chain depend on each other: one damaged base block or a damaged repository index can take every later version. That is a shared failure domain, however many versions you hold. The remedies: check the integrity of the repository itself regularly, take independent full copies at intervals, and make at least one copy independently from the source, not replicated from the same repository, because replicating it copies the damage.
 
 ## 3-2-1-1-0
 
@@ -102,7 +102,7 @@ After a break-in you do not restore whole system images, because you would resto
 
 Manual backups stop happening: a busy week, a forgotten routine, a person who has left. Automate the schedule, the verification and the clean-up after the retention period.
 
-But automation fails silently too, and an alert on failure is not enough, because a job that never starts sends no error. Alert on the **absence of a success**: expect one successful run per period and raise the alarm when it does not arrive. Also watch the age of the newest copy and its size, since a sudden change in either direction is a signal. Growth is a signal too: data that someone other than you has encrypted can be neither deduplicated nor compressed, so the increments balloon. It is the same principle as the pulse in [Who watches the watchers? Oversight in IT infrastructure](/en/blog/who-watches-the-watchers-oversight-in-it-infrastructure/): silence is not an answer, and the check must not share a fate with the thing it watches.
+But automation fails silently too, and an alert on failure is not enough, because a job that never starts sends no error. Alert on the **absence of a success**: expect one successful run per period and raise the alarm when it does not arrive. Also watch the age of the newest copy and its size, since a sudden change in either direction is a signal: a drop can mean data is missing, and growth can mean data encrypted by someone other than you, which can be neither deduplicated nor compressed, so the increments balloon. It is the same principle as the pulse in [Who watches the watchers? Oversight in IT infrastructure](/en/blog/who-watches-the-watchers-oversight-in-it-infrastructure/): silence is not an answer, and the check must not share a fate with the thing it watches.
 
 ## What to include
 
@@ -111,7 +111,7 @@ Not only the data:
 - **Configuration:** how the systems were set up, so that you can rebuild them and not merely refill them.
 - **Secrets**, encrypted and following the rules above.
 - **The restore runbook:** step by step, written for someone who is stressed and did not build the setup. It and the keys must survive the disaster. If they live only on the system that failed, you cannot reach them when you need them.
-- **The tool and the format.** If reading the copy needs an agent, a licence server or a console that died with the infrastructure or no longer exists, the copy is useless. The format and the means to read it must be available independently, and kept alongside the copy.
+- **The tool and the format.** If reading the copy needs an agent, a licence server or a console that died with the infrastructure or no longer exists, the copy is useless. The format and the means to read it must be available independently, and kept with the copies, outside the backup itself.
 - **The services everything else rests on,** such as sign-in and name services.
 
 What is deliberately left out belongs on a list, so that it is a choice and not a surprise.
@@ -129,7 +129,7 @@ Copied files are not the same as a consistent state. A database copied at file l
 - No single event (a fault, an account, a machine or a person) can delete all the copies. Production cannot delete or overwrite the copies, and better still, it has no access to them at all.
 - At least one copy is offline or immutable.
 - We keep several versions, and the retention is longer than the time it takes to notice a problem.
-- The repository is checked for integrity regularly, and the second copy is not a replica of the same repository.
+- The repository is checked for integrity regularly, and at least one copy is made independently, not replicated from the same repository.
 - Copies outside our control are encrypted by us, and the key is kept separately, in at least two places that do not share a fate.
 - The backup runs automatically, and we get an alarm when a successful run fails to arrive.
 - Configuration and secrets are in the backup. The restore runbook, the key and the means to read the format are kept outside it.
