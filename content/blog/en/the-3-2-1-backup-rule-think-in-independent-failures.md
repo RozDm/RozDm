@@ -45,7 +45,7 @@ Sort the data too, because not everything deserves the full rule and a long hist
 
 Three things look like a backup and are useful, but they answer a different question:
 
-- **RAID and replication** give availability: the service carries on when a disk or a machine drops out. In their usual, synchronous form they write the same thing to every copy immediately, so a deletion, a corrupted file and a wrong overwrite are copied as quickly as everything else. Delayed replication gives a window to stop the error spreading and to recover from the lagging replica, but it still sits in the same administrative domain.
+- **RAID and replication** give availability: the service carries on when a disk or a machine drops out. In their usual form they pass every change on within moments, so a deletion, a corrupted file and a wrong overwrite are copied as quickly as everything else. Delayed replication gives a window to stop the error spreading and to recover from the lagging replica, but it still sits in the same administrative domain.
 - **Sync** keeps two places identical. Delete a file in one and it disappears from the other. A sync service's version history or trash helps against some mistakes, but it sits in the same administrative domain.
 - **Snapshots on the same system** are good for a quick undo, but they sit in the same failure domain: the same hardware, the same file system, the same administrators. If the system goes, the snapshots go with it. They become a copy once they have been copied out.
 
@@ -53,7 +53,7 @@ A simple test: **can one command or one mistake in production remove this copy?*
 
 ## Consistency
 
-Copied files are not the same as a consistent state. A database copied at file level while it is running can end up unusable. Related systems can be captured at different times: the database at 02:00 and the file store it refers to at 02:40. Use the database's own consistent dump or snapshot. If related systems keep changing, no order makes them consistent; the order only decides which way they diverge. Capture the system that refers first and the one it refers to afterwards (the database before the file store): then every object the database names exists and the extras are harmless, as long as objects are deleted only some time after the last reference to them is gone.
+Copied files are not the same as a consistent state. A database copied at file level while it is running can end up unusable. Related systems can be captured at different times: the database at 02:00 and the file store it refers to at 02:40. Use the database's own consistent dump or snapshot. If related systems keep changing, no order makes them consistent; the order only decides which way they diverge. Capture the system that refers first and the one it refers to afterwards (the database before the file store): then every object the database names exists and the extras are harmless, as long as an object is deleted only after a delay longer than the gap between the two captures, and objects are not overwritten in place.
 
 ## Independence is the real rule
 
@@ -71,7 +71,7 @@ That means:
 
 The extended form adds two parts that answer two failures the simple rule does not cover.
 
-**+1: a copy that is offline or immutable.** This is a property, not necessarily a fourth copy: it can be one of the three, often the off-site one, and it adds no margin by itself. An offline copy is physically disconnected except while it is being written, so nothing running on the network can reach it. An immutable copy can be written only once and is kept for a fixed time that nobody can shorten, not even an administrator. The guarantee holds only if the storage itself enforces the lock, not a setting that the same credentials can change. This covers deletion and encryption carried out with legitimate access, and faults in the automation. The cost is that you cannot clear the copy away until the time is up, and that the reverse can happen too: whoever can write can fill immutable storage with junk that nobody can delete, so the quota fills and new copies stop, or the bill grows until the account is closed. Limit the write rights, and cap how much one run may add, so that a run far beyond normal stops and raises an alarm before the storage fills. A quota alone only protects the budget. The same cap catches a pulled copy of junk or ciphertext from a compromised source.
+**+1: a copy that is offline or immutable.** This is a property, not necessarily a fourth copy: it can be one of the three, often the off-site one, and it adds no margin by itself. An offline copy is physically disconnected except while it is being written, so nothing running on the network can reach it. An immutable copy can be written only once and is kept for a fixed time that nobody can shorten, not even an administrator. The guarantee holds only if the storage itself enforces the lock, not a setting that the same credentials can change. This covers deletion and encryption carried out with legitimate access, and faults in the automation. The cost is that you cannot clear the copy away until the time is up, and that the reverse can happen too: whoever can write can fill immutable storage with junk that nobody can delete, so the quota fills and new copies stop, or the bill grows until the account is closed. Limit the write rights, and cap how much one run, or one period, may add, so that a run far beyond normal stops and raises an alarm before the storage fills. A quota alone only protects the budget. The same cap catches a pulled copy of junk or ciphertext from a compromised source.
 
 **0: zero errors in verified restores.** ‘The job reported success’ is not a measure. The measure is a restore that was read back and compared, and that produced zero errors.
 
@@ -91,12 +91,22 @@ The price is that the key becomes a single point of failure for every copy. Two 
 
 The restore decides whether you have a backup. Encryption decides whether the backup becomes a threat itself.
 
+## What a restore needs
+
+In the backup: the data, the configuration (how the systems were set up, so that you can rebuild them and not merely refill them) and the secrets, encrypted and following the rules above.
+
+Outside it sits a layer zero that comes up with nothing from the system being restored: the restore runbook (step by step, written for someone who is stressed and did not build the setup), the key, the tool to read the format and the access to the backup storage. It is stored separately from the backup and readable without it. If reading the copy needs an agent, a licence server or a console that died with the infrastructure or no longer exists, the copy is useless.
+
+The principle is that the restore order has no cycles. The key in a secrets manager that needs the sign-in service, which itself has to be restored, is a cycle. So is code in a repository behind that same sign-in. The services everything rests on, such as sign-in and name services, come early in the order.
+
+What is deliberately left out belongs on a list, so that it is a choice and not a surprise.
+
 ## The restore drill
 
 An untested backup is a hypothesis. Backups fail silently: the wrong path, files that are missing, a job that ‘succeeds’ in copying an empty folder, a format that needs software you no longer have, a damaged medium. None of this shows until you restore.
 
 - **Spot checks, often.** Restore a few random files and check the contents. It is cheap, so do it regularly.
-- **A full restore, on a schedule.** Start from clean equipment with only the copy and what layer zero holds (see below): the key, the runbook, the tool and the access to the storage. Time it and compare with the RTO. Many people find out here that the RTO was a wish.
+- **A full restore, on a schedule.** Start from clean equipment with only the copy and what layer zero holds (see above): the key, the runbook, the tool and the access to the storage. Time it and compare with the RTO. Many people find out here that the RTO was a wish.
 - **Integrity.** Store checksums when the copy is made, and verify them on reading and at intervals, so that silent bit rot in a stored copy is found before you need it. For a database, restoring means that it starts and passes its own consistency check.
 - **A granular restore.** One table, one customer, one object from a given day, without rolling back everyone else's work. A whole-system image can pass the full-restore test and still fail this.
 
@@ -110,17 +120,7 @@ Do not restore whole system images, because you would restore the intruder too. 
 
 Manual backups stop happening: a busy week, a forgotten routine, a person who has left. Automate the schedule, the verification and the clean-up after the retention period.
 
-But automation fails silently too, and an alert on failure is not enough, because a job that never starts sends no error. Alert on the **absence of a success**: expect one successful run per period and raise the alarm when it does not arrive. Also watch the age of the newest copy and its size, since a sudden change in either direction is a signal: a drop can mean data is missing, and growth can mean data encrypted by someone other than you, which can be neither deduplicated nor compressed, so the increments balloon. It is the same principle as the pulse in [Who watches the watchers? Oversight in IT infrastructure](/en/blog/who-watches-the-watchers-oversight-in-it-infrastructure/): silence is not an answer, and the check must not share a fate with the thing it watches.
-
-## What a restore needs
-
-In the backup: the data, the configuration (how the systems were set up, so that you can rebuild them and not merely refill them) and the secrets, encrypted and following the rules above.
-
-Outside it sits a layer zero that comes up with nothing from the system being restored: the restore runbook (step by step, written for someone who is stressed and did not build the setup), the key, the tool to read the format and the access to the backup storage. It is stored separately from the backup and readable without it. If reading the copy needs an agent, a licence server or a console that died with the infrastructure or no longer exists, the copy is useless.
-
-The principle is that the restore order has no cycles. The key in a secrets manager that needs the sign-in service, which itself has to be restored, is a cycle. So is code in a repository behind that same sign-in. The services everything rests on, such as sign-in and name services, come early in the order.
-
-What is deliberately left out belongs on a list, so that it is a choice and not a surprise.
+But automation fails silently too, and an alert on failure is not enough, because a job that never starts sends no error. Alert on the **absence of a success**: expect one successful run of each scheduled job, the copy and the verification alike, per period, and raise the alarm when one does not arrive. Also watch the age of the newest copy and its size, since a sudden change in either direction is a signal: a drop can mean data is missing, and growth can mean data encrypted by someone other than you, which can be neither deduplicated nor compressed, so the increments balloon. It is the same principle as the pulse in [Who watches the watchers? Oversight in IT infrastructure](/en/blog/who-watches-the-watchers-oversight-in-it-infrastructure/): silence is not an answer, and the check must not share a fate with the thing it watches.
 
 ## Checklist
 
@@ -128,11 +128,11 @@ What is deliberately left out belongs on a list, so that it is a choice and not 
 - For each event we must survive, we know how many copies are left afterwards, and that number meets the margin we decided on.
 - There are at least three copies, the original included, on at least two different kinds of storage, and at least one is at another site. No single provider, contract or payment account holds every copy.
 - No single event (a fault, an account, a machine or a person) can delete all the copies. Production cannot delete or overwrite them, and better still, it has no access to them at all.
-- At least one copy is offline or immutable, with limited write rights and a cap on how much one run may add.
+- At least one copy is offline or immutable, with limited write rights and a cap on how much one run, or one period, may add.
 - We keep several versions, and the retention is longer than the time it takes to notice a problem.
 - The repository is checked for integrity regularly, and at least one copy is made directly from the source into a separate repository, not replicated from the same repository.
 - Every copy is encrypted with keys we hold, and the key is split or kept in at least two places that do not share a fate.
-- The backup runs automatically, and we get an alarm when a successful run fails to arrive.
+- The copying and the verification run automatically, and we get an alarm when a successful run of either fails to arrive.
 - Configuration and secrets are in the backup. The runbook, the key, the tool to read the format and the access to the storage sit outside it, stored separately and readable without it, and the restore order has no cycles.
 - The copies are consistent: related systems are captured at one point in time, or in an order where nothing points to a missing object.
 - We have restored from scratch, granularly too, timed it against the RTO, and repeat it on a schedule.

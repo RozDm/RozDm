@@ -44,7 +44,7 @@ Sorter også dataene, for ikke alt fortjener hele regelen og lang historikk. **U
 
 Tre ting ligner på en sikkerhetskopi, og er nyttige, men svarer på et annet spørsmål:
 
-- **RAID og replikering** gir tilgjengelighet: tjenesten går videre når en disk eller en maskin faller ut. I sin vanlige, synkrone form skriver de det samme til alle kopiene umiddelbart, så en sletting, en ødelagt fil og en feilaktig overskriving blir kopiert like raskt som alt annet. Forsinket replikering gir et vindu til å stoppe feilen før den sprer seg og gjenopprette fra den etterslepende repliken, men ligger fortsatt i samme administrative domene.
+- **RAID og replikering** gir tilgjengelighet: tjenesten går videre når en disk eller en maskin faller ut. I sin vanlige form sender de hver endring videre i løpet av øyeblikk, så en sletting, en ødelagt fil og en feilaktig overskriving blir kopiert like raskt som alt annet. Forsinket replikering gir et vindu til å stoppe feilen før den sprer seg og gjenopprette fra den etterslepende repliken, men ligger fortsatt i samme administrative domene.
 - **Synkronisering** holder to steder like. Slett en fil på det ene, og den forsvinner fra det andre. En synkroniseringstjenestes versjonshistorikk eller papirkurv hjelper mot noen feil, men ligger i samme administrative domene.
 - **Øyeblikksbilder på samme system** er gode til rask angring, men ligger i samme feildomene: samme maskinvare, samme filsystem, samme administratorer. Faller systemet, faller bildene med det. De blir først en kopi når de er kopiert ut.
 
@@ -52,7 +52,7 @@ En enkel test: **kan én kommando eller én feil i produksjon fjerne denne kopie
 
 ## Konsistens
 
-Kopierte filer er ikke det samme som en konsistent tilstand. En database som kopieres på filnivå mens den kjører, kan bli ubrukelig. Hører systemer sammen, kan de bli tatt på ulike tidspunkter: databasen klokken 02.00 og fillageret den peker på klokken 02.40. Bruk databasens egen konsistente dump eller øyeblikksbilde. Endrer relaterte systemer seg stadig, gjør ingen rekkefølge dem konsistente; den avgjør bare hvilken vei de glir fra hverandre. Ta systemet som refererer først, og det det refererer til etterpå (databasen før fillageret): da finnes hvert objekt databasen nevner, og ekstra objekter er ufarlige, så lenge objekter slettes først en stund etter at den siste referansen til dem er borte.
+Kopierte filer er ikke det samme som en konsistent tilstand. En database som kopieres på filnivå mens den kjører, kan bli ubrukelig. Hører systemer sammen, kan de bli tatt på ulike tidspunkter: databasen klokken 02.00 og fillageret den peker på klokken 02.40. Bruk databasens egen konsistente dump eller øyeblikksbilde. Endrer relaterte systemer seg stadig, gjør ingen rekkefølge dem konsistente; den avgjør bare hvilken vei de glir fra hverandre. Ta systemet som refererer først, og det det refererer til etterpå (databasen før fillageret): da finnes hvert objekt databasen nevner, og ekstra objekter er ufarlige, så lenge et objekt slettes først etter en forsinkelse som er lengre enn tiden mellom de to uttakene, og objekter ikke overskrives på stedet.
 
 ## Uavhengighet er den egentlige regelen
 
@@ -70,7 +70,7 @@ Det betyr:
 
 Utvidelsen legger til to ledd som svarer på to feil den enkle regelen ikke dekker.
 
-**+1: en kopi som er frakoblet eller uforanderlig.** Det er en egenskap, ikke nødvendigvis en fjerde kopi: den kan være en av de tre, ofte den utenfor stedet, og gir ikke margin i seg selv. En frakoblet kopi er fysisk atskilt, bortsett fra mens den skrives, så ingenting som kjører i nettet kan nå den. En uforanderlig kopi kan bare skrives én gang og beholdes en fastsatt tid som ingen kan korte ned, heller ikke en administrator. Garantien gjelder bare hvis lagringen selv håndhever låsen, ikke en innstilling som samme legitimasjon kan endre. Dette dekker sletting og kryptering utført med lovlig tilgang, og feil i automatikken. Prisen er at du ikke kan rydde bort kopien før tiden er ute, og at det omvendte også kan skje: den som kan skrive, kan fylle uforanderlig lagring med søppel som ingen kan slette, så kvoten fylles og nye kopier uteblir, eller regningen vokser til kontoen stenges. Begrens skriverettighetene, og sett en grense for hvor mye én kjøring kan legge til, slik at en kjøring langt over det normale stopper og slår alarm før lagringen fylles. En kvote alene verner bare budsjettet. Den samme grensen fanger en trukket kopi av søppel eller chiffertekst fra en kompromittert kilde.
+**+1: en kopi som er frakoblet eller uforanderlig.** Det er en egenskap, ikke nødvendigvis en fjerde kopi: den kan være en av de tre, ofte den utenfor stedet, og gir ikke margin i seg selv. En frakoblet kopi er fysisk atskilt, bortsett fra mens den skrives, så ingenting som kjører i nettet kan nå den. En uforanderlig kopi kan bare skrives én gang og beholdes en fastsatt tid som ingen kan korte ned, heller ikke en administrator. Garantien gjelder bare hvis lagringen selv håndhever låsen, ikke en innstilling som samme legitimasjon kan endre. Dette dekker sletting og kryptering utført med lovlig tilgang, og feil i automatikken. Prisen er at du ikke kan rydde bort kopien før tiden er ute, og at det omvendte også kan skje: den som kan skrive, kan fylle uforanderlig lagring med søppel som ingen kan slette, så kvoten fylles og nye kopier uteblir, eller regningen vokser til kontoen stenges. Begrens skriverettighetene, og sett en grense for hvor mye én kjøring, eller én periode, kan legge til, slik at en kjøring langt over det normale stopper og slår alarm før lagringen fylles. En kvote alene verner bare budsjettet. Den samme grensen fanger en trukket kopi av søppel eller chiffertekst fra en kompromittert kilde.
 
 **0: null feil i verifiserte gjenopprettinger.** «Jobben meldte suksess» er ikke et mål. Målet er at en gjenoppretting er lest tilbake og sammenlignet, og at den ga null feil.
 
@@ -90,12 +90,22 @@ Prisen er at nøkkelen blir en enkeltfeil for alle kopiene. Da gjelder to regler
 
 Gjenopprettingen avgjør om du har en sikkerhetskopi. Krypteringen avgjør om sikkerhetskopien selv blir en trussel.
 
+## Hva en gjenoppretting trenger
+
+I sikkerhetskopien: dataene, konfigurasjonen (hvordan systemene ble satt opp, så du kan bygge dem på nytt og ikke bare fylle dem) og hemmelighetene, krypterte og etter reglene over.
+
+Utenfor den ligger et lag null som kommer opp uten noe fra systemet som gjenopprettes: gjenopprettingsveiledningen (trinn for trinn, skrevet for en som er stresset og ikke bygde oppsettet), nøkkelen, verktøyet til å lese formatet og tilgangen til lagringen med kopiene. Det lagres atskilt fra sikkerhetskopien og kan leses uten den. Krever det å lese kopien en agent, en lisensserver eller en konsoll som døde med infrastrukturen eller ikke finnes lenger, er kopien ubrukelig.
+
+Prinsippet er at gjenopprettingsrekkefølgen ikke har sykluser. Nøkkelen i et hemmelighetslager som trenger innloggingstjenesten, som selv må gjenopprettes, er en syklus. Det samme er koden i et arkiv bak den samme innloggingen. Tjenestene alt annet hviler på, som innlogging og navnetjenester, kommer tidlig i rekkefølgen.
+
+Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og ikke en overraskelse.
+
 ## Gjenopprettingsprøven
 
 En sikkerhetskopi som ikke er prøvd, er en hypotese. Sikkerhetskopier svikter stille: feil sti, filer som mangler, en jobb som «lykkes» med å kopiere en tom mappe, et format som krever programvare du ikke lenger har, et medium som er ødelagt. Ingenting av dette viser seg før du gjenoppretter.
 
 - **Stikkprøver, ofte.** Gjenopprett noen tilfeldige filer, og sjekk innholdet. Det er billig, så gjør det jevnlig.
-- **Full gjenoppretting, på fast tid.** Start fra rent utstyr med bare kopien og det lag null rommer (se under): nøkkelen, veiledningen, verktøyet og tilgangen til lagringen. Ta tiden og sammenlign med RTO. Mange oppdager her at RTO var et ønske.
+- **Full gjenoppretting, på fast tid.** Start fra rent utstyr med bare kopien og det lag null rommer (se over): nøkkelen, veiledningen, verktøyet og tilgangen til lagringen. Ta tiden og sammenlign med RTO. Mange oppdager her at RTO var et ønske.
 - **Integritet.** Lagre sjekksummer når kopien lages, og kontroller dem ved lesing og med jevne mellomrom, slik at stille datarot i en lagret kopi oppdages før du trenger den. For en database betyr gjenoppretting at den starter og består sin egen konsistenssjekk.
 - **Granulær gjenoppretting.** Én tabell, én kunde, ett objekt fra en gitt dag, uten å rulle tilbake andres arbeid. Et helt systembilde kan bestå testen for full gjenoppretting og likevel feile her.
 
@@ -109,17 +119,7 @@ Gjenopprett ikke hele systembilder, for da gjenoppretter du inntrengeren også. 
 
 Manuelle sikkerhetskopier slutter å bli tatt: en travel uke, en glemt rutine, en person som har sluttet. Automatiser tidsplan, kontroll og oppryddingen etter oppbevaringstiden.
 
-Men automatikk svikter også stille, og et varsel om feil er ikke nok, for en jobb som aldri starter, sender ingen feilmelding. Varsle på **fravær av suksess**: forvent én vellykket kjøring per periode, og slå alarm når den uteblir. Se i tillegg på alderen til den nyeste kopien og på størrelsen, for et plutselig utslag begge veier er et signal: et fall kan bety at data mangler, og vekst kan bety at data er blitt kryptert av andre enn deg, noe som verken lar seg deduplisere eller komprimere, så inkrementene vokser brått. Det er samme prinsipp som pulsen i [Hvem vokter vokterne? Tilsyn i IT-infrastruktur](/blogg/hvem-vokter-vokterne-i-it-infrastruktur/): stillhet er ikke et svar, og kontrollen skal ikke dele skjebne med det den passer på.
-
-## Hva en gjenoppretting trenger
-
-I sikkerhetskopien: dataene, konfigurasjonen (hvordan systemene ble satt opp, så du kan bygge dem på nytt og ikke bare fylle dem) og hemmelighetene, krypterte og etter reglene over.
-
-Utenfor den ligger et lag null som kommer opp uten noe fra systemet som gjenopprettes: gjenopprettingsveiledningen (trinn for trinn, skrevet for en som er stresset og ikke bygde oppsettet), nøkkelen, verktøyet til å lese formatet og tilgangen til lagringen med kopiene. Det lagres atskilt fra sikkerhetskopien og kan leses uten den. Krever det å lese kopien en agent, en lisensserver eller en konsoll som døde med infrastrukturen eller ikke finnes lenger, er kopien ubrukelig.
-
-Prinsippet er at gjenopprettingsrekkefølgen ikke har sykluser. Nøkkelen i et hemmelighetslager som trenger innloggingstjenesten, som selv må gjenopprettes, er en syklus. Det samme er koden i et arkiv bak den samme innloggingen. Tjenestene alt annet hviler på, som innlogging og navnetjenester, kommer tidlig i rekkefølgen.
-
-Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og ikke en overraskelse.
+Men automatikk svikter også stille, og et varsel om feil er ikke nok, for en jobb som aldri starter, sender ingen feilmelding. Varsle på **fravær av suksess**: forvent én vellykket kjøring av hver planlagte jobb, både kopieringen og kontrollen, per periode, og slå alarm når en uteblir. Se i tillegg på alderen til den nyeste kopien og på størrelsen, for et plutselig utslag begge veier er et signal: et fall kan bety at data mangler, og vekst kan bety at data er blitt kryptert av andre enn deg, noe som verken lar seg deduplisere eller komprimere, så inkrementene vokser brått. Det er samme prinsipp som pulsen i [Hvem vokter vokterne? Tilsyn i IT-infrastruktur](/blogg/hvem-vokter-vokterne-i-it-infrastruktur/): stillhet er ikke et svar, og kontrollen skal ikke dele skjebne med det den passer på.
 
 ## Sjekkliste
 
@@ -127,11 +127,11 @@ Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og
 - For hver hendelse vi må overleve, vet vi hvor mange kopier som er igjen etterpå, og tallet gir den marginen vi har bestemt.
 - Det finnes minst tre kopier, originalen medregnet, på minst to ulike slags lagring, og minst én ligger et annet sted. Ingen enkelt leverandør, avtale eller betalingskonto har alle kopiene.
 - Ingen enkelthendelse (en feil, en konto, en maskin eller en person) kan slette alle kopiene. Produksjonen kan ikke slette eller overskrive dem, og best er at den ikke har tilgang i det hele tatt.
-- Minst én kopi er frakoblet eller uforanderlig, med begrensede skriverettigheter og en grense for hvor mye én kjøring kan legge til.
+- Minst én kopi er frakoblet eller uforanderlig, med begrensede skriverettigheter og en grense for hvor mye én kjøring, eller én periode, kan legge til.
 - Vi har flere versjoner, og oppbevaringen er lengre enn tiden det tar å oppdage et problem.
 - Arkivet kontrolleres jevnlig for integritet, og minst én kopi lages direkte fra kilden inn i et separat arkiv, ikke replikert fra samme arkiv.
 - Alle kopier er kryptert med nøkler vi selv holder, og nøkkelen er delt eller oppbevart på minst to steder som ikke deler skjebne.
-- Sikkerhetskopieringen kjører automatisk, og vi får alarm når en vellykket kjøring uteblir.
+- Kopieringen og kontrollen kjører automatisk, og vi får alarm når en vellykket kjøring av en av dem uteblir.
 - Konfigurasjon og hemmeligheter er med i sikkerhetskopien. Gjenopprettingsveiledningen, nøkkelen, verktøyet til å lese formatet og tilgangen til lagringen ligger utenfor, atskilt og lesbart uten den, og rekkefølgen har ingen sykluser.
 - Kopiene er konsistente: relaterte systemer er tatt på ett tidspunkt, eller i en rekkefølge der ingenting peker på et manglende objekt.
 - Vi har gjenopprettet fra grunnen, også granulært, tatt tiden og sammenlignet med RTO, og gjentar det på fast tid.
