@@ -163,7 +163,8 @@ secret model. The traps to know before editing `.github/` are in
 - Sessions (`.claude/skills/ship/SKILL.md`): a session picks the model per
   task; a PR for another model goes to a child session (its own `claude/*`
   branch and PR) that reports back with `send_message`; the parent checks
-  the merge, `check`, the diff and the deploy, then tells the owner
+  the merge, `check`, the diff, the PR body (no Claude footer) and the
+  deploy, then tells the owner
   whether the child can be deleted (the owner deletes it).
 - `dependabot.yml` — monthly (the 1st, 06:00 Europe/Oslo; owner's call
   2026-11-09, was weekly) grouped PRs: npm minor+patch, wrangler,
