@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from './fixtures'
+import { STUB_COUNTRIES, hourKey } from './api-stub'
 import { endsWith, post, tagPage, twin } from './posts'
 
 // User-level flows on the built export, desktop and mobile (playwright.config.ts).
@@ -116,6 +117,181 @@ test('the uptime caption is quiet, and says since when a service is down', async
   await expect(status.locator('[title*="nede"]').first().locator('..')).toHaveAttribute('aria-hidden', 'true')
 })
 
+// The Trends card's period switch (components/home/TrendsChart.tsx): buttons
+// with aria-pressed, one /api/timeseries request per range
+// (lib/client/timeseries.ts), a headline that follows the range. The stub
+// answers every range (e2e/api-stub.ts); a test overrides one where it needs.
+type TrendsPage = import('@playwright/test').Page
+const RANGE_BUTTONS = [
+  ['24h', '24t'],
+  ['7d', '7d'],
+  ['30d', '30d'],
+  ['all', 'Alt'],
+] as const
+const SERIES_URL = (range: string) => `/api/timeseries?metric=geo&range=${range}`
+
+// Answers every range with dots on its own bucket grid (1 h for 24h/7d, 6 h for
+// 30d/all: the chart merges by exact bucket key, and the stub's hour keys miss
+// a 6 h grid most of the day). `values` are the dots, newest last; `fail`
+// turns a range into a 500.
+async function routeSeries(page: TrendsPage, values = [1, 2, 3], fail: (range: string) => boolean = () => false) {
+  await page.route('**/api/timeseries**', (r) => {
+    const range = new URL(r.request().url()).searchParams.get('range') ?? '7d'
+    if (fail(range)) {
+      return r.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: '{"error":{"code":"internal","message":"Boom."}}',
+      })
+    }
+    const step = (range === '30d' || range === 'all' ? 6 : 1) * 3_600_000
+    const end = Math.floor(Date.now() / step) * step
+    const points = values.map((value, i) => ({ ts: hourKey(end - (values.length - i) * step), value }))
+    return r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ metric: 'geo', range, points }),
+    })
+  })
+}
+
+// The /api/timeseries requests the page makes, as path + query, in order.
+function watchSeries(page: TrendsPage) {
+  const asked: string[] = []
+  page.on('request', (r) => {
+    const u = new URL(r.url())
+    if (u.pathname === '/api/timeseries') asked.push(u.pathname + u.search)
+  })
+  return asked
+}
+
+// The card, scrolled to (it fetches only once near the viewport).
+async function openTrends(page: TrendsPage) {
+  await page.goto('/')
+  const trends = page.locator('#trender')
+  await trends.scrollIntoViewIfNeeded()
+  const group = trends.getByRole('group', { name: 'Periode' })
+  const button = (label: string) => group.getByRole('button', { name: label, exact: true })
+  return {
+    trends,
+    dots: trends.locator('svg[role="img"] circle'),
+    button,
+    // The headline: the number and its label share one span.
+    headline: (label: string) => trends.getByText(label, { exact: true }).locator('..'),
+    async expectPressed(range: string) {
+      for (const [id, label] of RANGE_BUTTONS) {
+        await expect(button(label)).toHaveAttribute('aria-pressed', String(id === range))
+      }
+    },
+  }
+}
+
+test('each period button is pressed alone, asks its range once and relabels the headline', async ({ page }) => {
+  const asked = watchSeries(page)
+  const card = await openTrends(page)
+  await card.expectPressed('7d')
+  await expect(card.headline('siste 7d')).toBeVisible()
+  await expect(card.dots).toHaveCount(3)
+  expect(asked).toEqual([SERIES_URL('7d')])
+  for (const [range, label, headline] of [
+    ['24h', '24t', 'siste 24t'],
+    ['30d', '30d', 'siste 30d'],
+    ['all', 'Alt', 'totalt'],
+  ]) {
+    await card.button(label).click()
+    await card.expectPressed(range)
+    await expect(card.headline(headline)).toBeVisible()
+    await expect.poll(() => asked.filter((q) => q === SERIES_URL(range))).toHaveLength(1)
+  }
+  expect(asked, 'one request per range, nothing else').toHaveLength(4)
+})
+
+// «Alt» is the exact D1 total (the sum of /api/geo, as on the map), «siste 7d»
+// the AE count of the window: the stub's AE series differs from the geo sum.
+test('«Alt» shows the exact total from /api/geo, a window its own count', async ({ page }) => {
+  const total = Object.values(STUB_COUNTRIES).reduce((a, b) => a + b, 0)
+  expect(total).toBeGreaterThanOrEqual(100)
+  await routeSeries(page, [4, 3])
+  const card = await openTrends(page)
+  await expect(card.headline('siste 7d')).toHaveText('7 siste 7d')
+  await card.button('Alt').click()
+  await expect(card.headline('totalt')).toHaveText(`${total} totalt`)
+  await expect(card.dots).toHaveCount(2)
+})
+
+test('switching back to a period already shown asks nothing new', async ({ page }) => {
+  await routeSeries(page)
+  const asked = watchSeries(page)
+  const card = await openTrends(page)
+  await expect(card.dots).toHaveCount(3)
+  for (const [range, label] of [
+    ['30d', '30d'],
+    ['7d', '7d'],
+    ['30d', '30d'],
+    ['all', 'Alt'],
+    ['7d', '7d'],
+  ]) {
+    await card.button(label).click()
+    await card.expectPressed(range)
+    // Drawn again from the kept answer: its request, if any, has gone out by now.
+    await expect(card.dots).toHaveCount(3)
+  }
+  expect(asked).toEqual([SERIES_URL('7d'), SERIES_URL('30d'), SERIES_URL('all')])
+})
+
+// A failed answer stays inside the card: header and buttons remain, the chart
+// says so, and the next switch to that range asks again (the failure isn't kept).
+test('a failed series request degrades inside the card, and switching retries it', async ({ page, pageProblems }) => {
+  let failing = true
+  await routeSeries(page, [1, 2, 3], (range) => failing && range === '30d')
+  const asked = watchSeries(page)
+  const card = await openTrends(page)
+  await expect(card.dots).toHaveCount(3)
+  await card.button('30d').click()
+  const failed = card.trends.getByText('Kunne ikke laste — bytt periode for å prøve igjen')
+  await expect(failed).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trafikk over tid' })).toBeVisible()
+  for (const [, label] of RANGE_BUTTONS) await expect(card.button(label)).toBeVisible()
+  await expect(card.dots).toHaveCount(0)
+  expect(asked.filter((q) => q === SERIES_URL('30d'))).toHaveLength(1)
+
+  failing = false
+  await card.button('7d').click()
+  await expect(card.dots).toHaveCount(3)
+  await card.button('30d').click()
+  await expect(card.dots).toHaveCount(3)
+  await expect(failed).toHaveCount(0)
+  expect(asked.filter((q) => q === SERIES_URL('30d'))).toHaveLength(2)
+  // The browser logs the 500 this test asked for; anything else still fails.
+  const i = pageProblems.findIndex((p) => p.includes('status of 500'))
+  if (i >= 0) pageProblems.splice(i, 1)
+})
+
+// `degraded: true` (AE unreachable) is an empty answer with a 200, not an
+// error: the chart says "no visits" / "no data", never the failure message.
+test('a degraded answer reads as empty, not as an error', async ({ page }) => {
+  await page.route('**/api/timeseries**', (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ metric: 'geo', range: '7d', points: [], degraded: true }),
+    }),
+  )
+  const card = await openTrends(page)
+  // Visits exist (the stub's geo total), just none in the window.
+  await expect(card.trends.getByText('Ingen besøk i denne perioden')).toBeVisible()
+  await expect(card.trends.getByText('Kunne ikke laste', { exact: false })).toHaveCount(0)
+  await expect(card.dots).toHaveCount(0)
+  // No visits at all yet: the dataset itself is empty.
+  await page.route('**/api/geo', (r) =>
+    r.fulfill({ status: 200, contentType: 'application/json', body: '{"countries":{}}' }),
+  )
+  await page.goto('/')
+  await page.locator('#trender').scrollIntoViewIfNeeded()
+  await expect(page.locator('#trender').getByText('Ingen data ennå')).toBeVisible()
+  await expect(page.locator('#trender').getByText('Kunne ikke laste', { exact: false })).toHaveCount(0)
+})
+
 // A visitor's clock can be days off. The stale banner and the Trends grid
 // both hang on "now", so they take it from the answer's Date header
 // (lib/client/server-clock.ts): on the local clock a fresh snapshot read as dead and
@@ -191,7 +367,7 @@ test.describe('first visit', () => {
     await expect(page.getByText('HEI %USERNAME%')).toHaveCount(0)
   })
 
-  // Skipping mid-sequence: the phase-3 timer (3000ms) fires inside the 1400ms
+  // Skipping mid-sequence: the phase-2 timer (3000ms) fires inside the 1400ms
   // fade-out and must not pull the overlay back to opaque.
   test('a skip between phase timers stays skipped', async ({ page }) => {
     await page.clock.install()
