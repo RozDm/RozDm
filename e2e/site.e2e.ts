@@ -190,6 +190,22 @@ test.describe('first visit', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect(page.getByText('HEI %USERNAME%')).toHaveCount(0)
   })
+
+  // Skipping mid-sequence: the phase-3 timer (3000ms) fires inside the 1400ms
+  // fade-out and must not pull the overlay back to opaque.
+  test('a skip between phase timers stays skipped', async ({ page }) => {
+    await page.clock.install()
+    await page.goto('/')
+    const overlay = page.getByRole('dialog')
+    await expect(overlay).toBeVisible()
+    await page.clock.runFor(2_500)
+    await page.keyboard.press('Space')
+    await page.clock.runFor(700)
+    await expect(overlay).toHaveClass(/opacity-0/)
+    await expect(overlay).toHaveClass(/pointer-events-none/)
+    await page.clock.runFor(1_500)
+    await expect(overlay).toHaveCount(0)
+  })
 })
 
 // The intro and HAL's idle screen cover the page and sit outside every
