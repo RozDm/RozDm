@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { dropRepeatedDays, xTicksFor, yTicksFor } from '@/lib/shared/trends-axis'
-import { ALL_MAX_DAYS, fillBuckets, isAllRangeCapped } from '@/lib/shared/timeseries-fill'
+import { yTicksFor } from '@/lib/shared/trends-axis'
+import { buildSeries, headlineTotal } from '@/lib/shared/trends-series'
+import { ALL_MAX_DAYS } from '@/lib/shared/timeseries-fill'
 import { MIN_PUBLIC_VISITS, fetchGeoCountries, showVisitCounts } from '@/lib/client/geo'
-import { noteServerDate, serverNow } from '@/lib/client/server-clock'
+import { fetchSeries } from '@/lib/client/timeseries'
+import { serverNow } from '@/lib/client/server-clock'
 import { DICT } from '@/data/dictionary'
 import { INTL_LOCALE, type Lang } from '@/lib/shared/i18n'
 import { useLang } from '@/lib/client/use-lang'
@@ -29,19 +31,6 @@ const PAD_B = 28
 // Narrow cards get a shorter plot, so the chart doesn't turn into a tall box.
 function chartHeight(w: number): number {
   return w < 480 ? 180 : 220
-}
-
-// Round up to a "nice" number for the y-axis ceiling (1/2/5 * 10^n). Keeps
-// tick labels readable instead of "max=37, axis goes to 37".
-function niceCeil(n: number): number {
-  if (n <= 1) return 1
-  const exp = Math.floor(Math.log10(n))
-  const base = Math.pow(10, exp)
-  const norm = n / base
-  if (norm <= 1) return base
-  if (norm <= 2) return 2 * base
-  if (norm <= 5) return 5 * base
-  return 10 * base
 }
 
 function formatters(lang: Lang) {
@@ -72,13 +61,6 @@ function formatTick(ts: string, range: Range, lang: Lang): string {
 function formatPoint(ts: string, lang: Lang): string {
   const d = bucketDate(ts)
   return Number.isNaN(d.getTime()) ? '' : FMT[lang].point.format(d)
-}
-
-interface Dot {
-  x: number
-  y: number
-  ts: string
-  value: number
 }
 
 // The latest answer, tagged with the range it answers. Everything derived
@@ -132,21 +114,19 @@ export default function TrendsChart() {
   const series = current?.series ?? null
 
   useEffect(() => {
-    const controller = new AbortController()
-    fetch(`/api/timeseries?metric=geo&range=${range}`, {
-      signal: controller.signal,
-      cache: 'no-store',
-    })
-      .then((r) => {
-        // The grid below is laid out back from the server's "now".
-        noteServerDate(r)
-        return r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))
+    let cancelled = false
+    // One request per range, kept for the Worker's TTL (lib/client/timeseries.ts):
+    // a tab switched back to isn't fetched again.
+    fetchSeries(range)
+      .then((d: Series) => {
+        if (!cancelled) setResult({ range, series: d, failed: false })
       })
-      .then((d: Series) => setResult({ range, series: d, failed: false }))
-      .catch((err) => {
-        if ((err as Error).name !== 'AbortError') setResult({ range, series: null, failed: true })
+      .catch(() => {
+        if (!cancelled) setResult({ range, series: null, failed: true })
       })
-    return () => controller.abort()
+    return () => {
+      cancelled = true
+    }
   }, [range])
 
   useEffect(() => {
@@ -164,41 +144,15 @@ export default function TrendsChart() {
     }
   }, [])
 
-  const { dots, yMax, waveTotal, tickLabels, allCapped } = (() => {
-    // Zero-fill so the x-axis spans the whole window and quiet stretches read
-    // as real gaps. We plot a point per bucket that actually had visits; empty
-    // buckets contribute no dot (just a gap).
-    // By the server's clock (lib/client/server-clock.ts): on a visitor's wrong one
-    // the grid ended at another hour and the buckets' dots fell off it.
-    const now = serverNow()
-    const filled = fillBuckets(series?.points ?? [], range, now)
-    const max = niceCeil(Math.max(1, ...filled.map((p) => p.value)))
-    const n = filled.length
-    const coords: Dot[] = filled.map((p, i) => ({
-      x: n === 1 ? PAD_L + PLOT_W / 2 : PAD_L + (i / (n - 1)) * PLOT_W,
-      y: BASELINE - (p.value / max) * PLOT_H,
-      ts: p.ts,
-      value: p.value,
-    }))
-    // X ticks come from the full grid so labels span the window even though
-    // only non-empty buckets get a dot.
-    const ticks = xTicksFor(
-      coords,
-      (c) => c.x,
-      (c) => formatTick(c.ts, range, lang),
-    )
-    return {
-      dots: coords.filter((c) => c.value > 0),
-      yMax: max,
-      // AE's (sampled) sum over the visible window. It's the headline count on
-      // the windowed tabs (24t/7d/30d — "visits in this period") and, on the
-      // `Alt` tab, only the empty-window vs. empty-dataset signal — there the
-      // headline switches to the exact D1 total.
-      waveTotal: filled.reduce((sum, p) => sum + p.value, 0),
-      tickLabels: range === '24h' ? ticks : dropRepeatedDays(ticks),
-      allCapped: range === 'all' && isAllRangeCapped(now),
-    }
-  })()
+  // By the server's clock (lib/client/server-clock.ts); the math is pure
+  // (lib/shared/trends-series.ts), only the Intl labels live here.
+  const { dots, yMax, waveTotal, tickLabels, allCapped } = buildSeries(
+    series?.points ?? [],
+    range,
+    serverNow(),
+    { padLeft: PAD_L, plotW: PLOT_W, plotH: PLOT_H, baseline: BASELINE },
+    (ts) => formatTick(ts, range, lang),
+  )
 
   // Don't unmount the whole section on a fetch hiccup — that nuked the header
   // and the period tabs, leaving no way to retry without a page reload.
@@ -214,7 +168,7 @@ export default function TrendsChart() {
   // for the selected window. Label follows suit: "totalt" only when it truly is
   // the grand total, "siste 7d" etc. for a windowed count.
   const isAll = range === 'all'
-  const displayTotal = isAll ? geoTotal : series ? waveTotal : null
+  const displayTotal = headlineTotal(range, geoTotal, waveTotal, series !== null)
   const totalLabel = isAll ? t.total : t.last(rangeLabel)
   // Below MIN_PUBLIC_VISITS (or until the total is known) the chart keeps its
   // shape but drops every absolute number: headline, y-axis labels, dot counts.

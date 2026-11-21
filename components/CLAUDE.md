@@ -15,7 +15,7 @@ Traps only. Conventions, widgets, counters, contact form, e2e:
   OS). `HashLink` scrolls natively (`scrollIntoView`, CSS
   `scroll-padding-top`, no rAF); keep `<html data-scroll-behavior="smooth">`.
 - Every `/api/*` call is a Worker request: `cache: 'no-store'`, share fetches
-  (`fetchGeoCountries`, `fetchStatus`), mount and fetch only near the viewport
+  (`fetchGeoCountries`, `fetchStatus`, `fetchSeries`), mount and fetch only near the viewport
   (`useNearViewport`; `Lazy*.tsx` = `lazyNearViewport(() => import(...), Placeholder)`,
   placeholders keep the final height), poll
   only what's on screen.

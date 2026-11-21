@@ -92,7 +92,10 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
 - Every `/api/*` call is a Worker request (client fetches use
   `cache: 'no-store'`; `worker/CLAUDE.md`). Shared fetches:
   `fetchGeoCountries` (`lib/client/geo.ts`: map + the Trends «Alt» total) and
-  `fetchStatus` (`lib/client/status-fetch.ts`: dashboard + footer dot). The status
+  `fetchStatus` (`lib/client/status-fetch.ts`: dashboard + footer dot) and
+  `fetchSeries` (`lib/client/timeseries.ts`: the Trends chart, one promise per
+  range kept for that range's server TTL, so switching back to a tab is free; the
+  chart's series math is pure, `lib/shared/trends-series.ts`). The status
   dashboard, map, Trends chart and footer status dot mount and fetch only as
   they near the viewport (`useNearViewport`, `lib/client/use-near-viewport.ts`;
   each `Lazy*.tsx` placeholder keeps the final height). `StatusDashboard`
@@ -104,7 +107,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   with it (`HISTORY_LIMIT` stays 149). The count stays for screen readers
   (`sr-only`: it is the hidden bar's text), and while a service is down the
   caption adds since when (`failingSince`, `lib/shared/status.ts`). "Now" is the server's (`lib/client/server-clock.ts`):
-  `fetchStatus` and the Trends fetch note each answer's `Date` header
+  `fetchStatus` and `fetchSeries` note each answer's `Date` header
   (stamped by the edge on cached answers too), and the stale check and the
   chart's bucket grid use `serverNow()` — on a visitor's clock that is days
   off, a fresh snapshot read as dead and the dots fell off the grid. A gap
