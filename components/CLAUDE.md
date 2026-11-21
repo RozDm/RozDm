@@ -24,7 +24,7 @@ Traps only. Conventions, widgets, counters, contact form, e2e:
   `VisitBeacon` alone uses the visitor's own day.
 - Client counters count people: first trusted human input, never under
   `navigator.webdriver`, the dedupe flag set BEFORE the fetch (StrictMode,
-  remounts, second tab). `e2e/site.e2e.ts` holds both counters to it; the
+  remounts, second tab). `e2e/counters.e2e.ts` holds both counters to it; the
   `visit-day` / `viewed:<slug>` storage dedupe stays (owner). Absolute numbers
   hide below `MIN_PUBLIC_VISITS` / `MIN_SHOWN`.
 - Trends' SVG `viewBox` is its rendered width, never fixed. Map: never set a

@@ -6,7 +6,7 @@ description: Look at a built page in headless Chromium (Playwright) before it sh
 # Browser check
 
 For a regression that should stay caught, add a test to the suite instead
-(`e2e/site.e2e.ts`, `npm run test:e2e` after a build — CI runs it); this
+(a `e2e/*.e2e.ts` file by area, `npm run test:e2e` after a build — CI runs it); this
 recipe is for a one-off look.
 
 In a cloud sandbox the suite runs as is: `playwright.config.ts` takes the

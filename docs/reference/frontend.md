@@ -127,7 +127,7 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   (one per session per post) counts the same way through `onFirstHumanInput`;
   the Worker skips datacenter ASNs for both. Rule for ALL client counters:
   set the dedupe flag BEFORE the fetch (StrictMode double-invoke, remounts,
-  a second tab). `e2e/site.e2e.ts` holds both to this.
+  a second tab). `e2e/counters.e2e.ts` holds both to this.
 - Below thresholds numbers hide: `ViewCounter` under 50 (`MIN_SHOWN`); map
   and Trends hide every absolute visit number until the all-time D1 total
   reaches `MIN_PUBLIC_VISITS` (`lib/client/geo.ts`) — shades and the chart's shape
@@ -201,6 +201,8 @@ editing `components/` are in `components/CLAUDE.md`. Per-file purposes: run
   stop after 5 failures; its cloud sandbox also runs on the sandbox's
   Chromium and leaves the iPhone project to CI (no WebKit there —
   `browser-check` says how to add it). Blog tests take their post from the
-  build's feeds (`e2e/posts.ts`), never by name. A UI change that breaks a
+  build's feeds (`e2e/posts.ts`), never by name. One file per area —
+  `home`, `intro-hal`, `contact`, `counters`, `blog`, `layout` (`*.e2e.ts`);
+  a helper used by two of them lives in `e2e/helpers.ts`. A UI change that breaks a
   selector updates the test in the same PR. `@playwright/test` and
   `playwright-core` stay pinned to one version.
