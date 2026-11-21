@@ -21,11 +21,11 @@ So the question to put to every pair of copies is: **which single event takes bo
 
 | Part | The threat it answers | Without it |
 | --- | --- | --- |
-| 3 copies of the data, the original included | A single failure: a deleted file, a dead disk, a software bug | One failure and everything is gone |
+| 3 copies of the data, the original included | A second failure while you recover from the first | A failure during the restore leaves you with nothing |
 | 2 different kinds of storage | Failures that hit a whole type: the same manufacturing fault, the same wear, the same software bug | One systematic fault takes both copies at once |
-| 1 copy at another site | Events that take a whole place: fire, water, theft, a power failure | All the copies sit within reach of the same event |
+| 1 copy at another site | Events that take a whole place: fire, water, theft, lightning, a power surge | All the copies sit within reach of the same event |
 
-**Why three.** With only two copies, the restore is the most dangerous moment: the original is gone and the one copy is used for the first time. If it fails then, you have nothing. Three is the lowest number where one loss, and another during the restore, still leaves a copy.
+**Why three.** With only two copies, the restore is the most dangerous moment: the original is gone and the one copy is used for the first time. Three is the lowest number where one loss, and another during the restore, still leaves a copy.
 
 **Why two kinds.** What counts is that the failure modes differ, not that the labels do. Two disks of the same type, bought and put into service together, wear alike and may share a hidden defect. So do two copies managed by the same software. ‘Different kinds’ means one fault is not the other's fault.
 
@@ -33,18 +33,20 @@ So the question to put to every pair of copies is: **which single event takes bo
 
 ## Decide first what you must survive
 
-Two numbers drive everything else, and they are decisions, not technical details. **RPO** is how much data you can afford to lose, measured in time. **RTO** is how long you can afford to be down.
+Two numbers drive everything else, and they are decisions, not technical details. **RPO** (Recovery Point Objective) is how much data you can afford to lose, measured in time. **RTO** (Recovery Time Objective) is how long you can afford to be down.
 
 RPO sets how often you copy: a copy every night means you can lose up to a day. RTO sets the media and the location, because bringing a large volume back over a slow link takes time. A copy that needs a week to come back is a copy against disasters, not against a mistake on a Tuesday. That is why many setups have two tiers: a near, fast copy for everyday errors and a distant one for whatever takes the whole site.
 
 Write the numbers down before choosing a solution, and measure against them later.
 
+Sort the data too, because not everything deserves 3-2-1-1-0 with a long history. **Irreplaceable data** gets the whole rule. **Reproducible data** needs only what reproduces it: code and configuration, which you do back up. **Temporary data**, such as caches, build output and indexes that can be rebuilt, needs no copy. Without the sorting, both the cost and the RTO explode.
+
 ## What is not a backup
 
 Three things look like a backup and are useful, but they answer a different question:
 
-- **RAID and replication** give availability: the service carries on when a disk or a machine drops out. They write the same thing to every copy immediately, so a deletion, a corrupted file and a wrong overwrite are copied as quickly as everything else.
-- **Sync** keeps two places identical. Delete a file in one and it disappears from the other. It is two views of the same data.
+- **RAID and replication** give availability: the service carries on when a disk or a machine drops out. They write the same thing to every copy immediately, so a deletion, a corrupted file and a wrong overwrite are copied as quickly as everything else. Delayed replication can undo some mistakes, but it still sits in the same administrative domain.
+- **Sync** keeps two places identical. Delete a file in one and it disappears from the other. It is two views of the same data. A sync service's version history or trash helps against some mistakes, but it sits in the same administrative domain.
 - **Snapshots on the same system** are good for a quick undo, but they sit in the same failure domain: the same hardware, the same file system, the same administrators. If the system goes, the snapshots go with it. They become a copy once they have been copied out.
 
 A simple test: **can one command or one mistake in production remove this copy?** If so, it is not a backup.
@@ -56,9 +58,11 @@ Hardware and location are easy to see. The administrative domain is the one that
 That means:
 
 - **Separate access.** The backups have their own accounts and credentials. Administering production should not make you an administrator of the copies.
-- **Least privilege.** The production side can write new copies but cannot delete or overwrite old ones. Better still, the backup system fetches the data itself with read access, so a compromised production side holds no key to the copies.
-- **Retention rules set from the copy side.** How long the copies live is decided there, not by the system they came from.
-- **As few shared parts as possible.** The same account at the same provider, the same password manager or the same management tool is a common cause, however many copies sit behind it.
+- **Least privilege.** The production side can write new copies but cannot delete or overwrite old ones. Better still, the backup system fetches the data itself with read-only access, so a compromised production side holds no key to the copies.
+- **Retention rules from the backup system.** How long the copies live is set and enforced there, not by the system they came from.
+- **As few common dependencies as possible.** The same password manager or the same management tool is a shared point of failure, however many copies sit behind it.
+- **The organisational and contractual domain.** Copies with the same provider, under the same contract, legal entity or payment can share a fate even with separate accounts and immutability: an account closed by mistake or for a breach of terms, data deleted after an unpaid bill, a provider that stops the service. At least one copy should sit outside that domain.
+- **Independence in time.** Versions in an incremental or deduplicated chain depend on each other: one damaged base block or a damaged repository index can take every later version. That is a shared failure domain, however many versions you hold. The remedies: check the integrity of the repository itself regularly, take independent full copies at intervals, and never let the second, off-site copy be a replica of the same repository, because replicating it copies the damage.
 
 ## 3-2-1-1-0
 
@@ -72,11 +76,13 @@ The extended form adds two parts that answer two failures the simple rule does n
 
 A backup that overwrites yesterday's copy with today's is a mirror with a delay: corrupted data is copied on the next run. You need history. The usual pattern is tiers that thin out with age: daily copies for the last few weeks, weekly for the months, monthly further back. That keeps the cost bounded.
 
-The number to compare against is how long it takes you to notice a problem. If silent corruption starts in March, you notice in May and you keep six weeks, no intact version exists. **If the time to detect a problem is longer than the retention, the data is lost.** Retention must therefore exceed the longest detection time you can imagine. It also has an upper limit: some data must be deleted after a time, and deletion must sooner or later reach the copies too, through the expiry of the retention.
+The number to compare against is how long it takes you to notice a problem. If silent corruption starts in March, you notice in May and you keep six weeks, no intact version exists. **If the time to detect a problem is longer than the retention, the data is lost.** Retention must therefore exceed the longest detection time you can realistically expect.
+
+It also has an upper limit: some data must be deleted after a time, and deletion must sooner or later reach the copies too. Immutability and required deletion have to be reconciled by design. Either the immutability window is no longer than the time within which deletion must happen, or you encrypt data sets with separate keys and delete the key (cryptographic erasure), including the escrowed copies of it.
 
 ## Encryption
 
-A copy is an extra copy of everything, and you often guard it less well than the original. Copies that leave your control, at another site, with another party or on media that are moved, must be encrypted both in transit and at rest. Otherwise whoever gets hold of the copy gets all the data.
+A copy is an extra copy of everything, and you often guard it less well than the original. Copies that leave your control, at another site, with another party or on media that are moved, must be encrypted. Encrypt on your side, before the data leaves you, with keys you hold yourself. Encryption at rest with the provider's keys protects neither against a compromised account nor against the provider. In transit, of course, the channel should be encrypted too.
 
 The price is that the key becomes a single point of failure for every copy. Two rules follow. The key must never live only inside the backup it unlocks, or you need the copy to open the copy. And it must never live only on the system that can die. Keep it separately, in at least two places that do not share a fate, ideally including a sealed paper copy somewhere else. Test that a person who did not build the setup can get to it.
 
@@ -90,35 +96,44 @@ An untested backup is a hypothesis. Backups fail silently: the wrong path, files
 
 What surprised you goes into the runbook.
 
+After a break-in you do not restore whole system images, because you would restore the intruder too. Rebuild the systems from configuration and code, restore only data, from a point before the intrusion, and treat it as suspect. That requires a clean version to still exist. Intrusions are often found late, so the retention must cover the time they can go unnoticed.
+
 ## Automation and monitoring
 
 Manual backups stop happening: a busy week, a forgotten routine, a person who has left. Automate the schedule, the verification and the clean-up after the retention period.
 
-But automation fails silently too, and an alert on failure is not enough, because a job that never starts sends no error. Alert on the **absence of a success**: expect one successful run per period and raise the alarm when it does not arrive. Also watch the age of the newest copy and its size, since a sudden drop in size is a signal. It is the same principle as the pulse in [Who watches the watchers? Oversight in IT infrastructure](/en/blog/who-watches-the-watchers-oversight-in-it-infrastructure/): silence is not an answer, and the check must not share a fate with the thing it watches.
+But automation fails silently too, and an alert on failure is not enough, because a job that never starts sends no error. Alert on the **absence of a success**: expect one successful run per period and raise the alarm when it does not arrive. Also watch the age of the newest copy and its size, since a sudden change in either direction is a signal. Growth is a signal too: data that someone other than you has encrypted can be neither deduplicated nor compressed, so the increments balloon. It is the same principle as the pulse in [Who watches the watchers? Oversight in IT infrastructure](/en/blog/who-watches-the-watchers-oversight-in-it-infrastructure/): silence is not an answer, and the check must not share a fate with the thing it watches.
 
 ## What to include
 
 Not only the data:
 
 - **Configuration:** how the systems were set up, so that you can rebuild them and not merely refill them.
-- **Secrets and keys**, encrypted and following the rules above.
+- **Secrets**, encrypted and following the rules above.
 - **The restore runbook:** step by step, written for someone who is stressed and did not build the setup. It and the keys must survive the disaster. If they live only on the system that failed, you cannot reach them when you need them.
+- **The tool and the format.** If reading the copy needs an agent, a licence server or a console that died with the infrastructure or no longer exists, the copy is useless. The format and the means to read it must be available independently, and kept alongside the copy.
 - **The services everything else rests on,** such as sign-in and name services.
 
-And take the copy in a way that gives a consistent point in time: a file copied while it is changing can end up unusable. What is deliberately left out belongs on a list, so that it is a choice and not a surprise.
+What is deliberately left out belongs on a list, so that it is a choice and not a surprise.
+
+## Consistency
+
+Copied files are not the same as a consistent state. A database copied at file level while it is running can end up unusable. Related systems can be captured at different times: the database at 02:00 and the file store it refers to at 02:40. Use the database's own consistent dump or snapshot, and capture related systems at one point in time or in a known order. Try this in the restore drill.
 
 ## Checklist
 
-- We have written down the RPO and the RTO.
+- We have written down the RPO and the RTO, and sorted the data into irreplaceable, reproducible and temporary.
 - There are at least three copies, the original included.
 - They sit on at least two different kinds of storage.
-- At least one copy is at another site, outside the reach of the same event.
-- No single event (a fault, an account, a machine or a person) can delete all the copies. Production can write but not delete.
+- At least one copy is at another site, outside the reach of the same event, and outside the provider and contract the other copies belong to.
+- No single event (a fault, an account, a machine or a person) can delete all the copies. Production cannot delete or overwrite the copies, and better still, it has no access to them at all.
 - At least one copy is offline or immutable.
 - We keep several versions, and the retention is longer than the time it takes to notice a problem.
-- Copies outside our control are encrypted, and the key is kept separately, on paper too.
+- The repository is checked for integrity regularly, and the second copy is not a replica of the same repository.
+- Copies outside our control are encrypted by us, and the key is kept separately, in at least two places that do not share a fate.
 - The backup runs automatically, and we get an alarm when a successful run fails to arrive.
-- Configuration, secrets and the restore runbook are included, and kept outside the system that can fail.
+- Configuration and secrets are in the backup. The restore runbook, the key and the means to read the format are kept outside it.
+- The copies are consistent: related systems are captured at one point in time or in a known order.
 - We have restored from scratch, timed it against the RTO, and repeat it on a schedule.
 
 The last item is what turns the others into more than claims.

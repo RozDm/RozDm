@@ -20,11 +20,11 @@ Spørsmålet å stille til hvert par av kopier er derfor: **hvilken enkelthendel
 
 | Del | Trusselen den svarer på | Uten den |
 | --- | --- | --- |
-| 3 kopier av dataene, originalen medregnet | En enkelt feil: en slettet fil, en død disk, en programfeil | Én feil, og alt er borte |
+| 3 kopier av dataene, originalen medregnet | En ny feil mens du gjenoppretter etter den første | En feil under gjenopprettingen, og du står uten noe |
 | 2 ulike slags lagring | Feil som rammer en hel type: samme produksjonsfeil, samme slitasje, samme programfeil | Én systematisk feil tar begge kopiene samtidig |
-| 1 kopi på et annet sted | Hendelser som tar et helt sted: brann, vann, tyveri, strømbrudd | Alle kopiene står innenfor samme hendelse |
+| 1 kopi på et annet sted | Hendelser som tar et helt sted: brann, vann, tyveri, lynnedslag, overspenning | Alle kopiene står innenfor samme hendelse |
 
-**Hvorfor tre.** Med bare to kopier er gjenopprettingen det farligste øyeblikket: originalen er borte, og den ene kopien brukes for første gang. Svikter den da, har du ingenting. Tre er det laveste tallet der ett tap, og ett til under gjenopprettingen, fortsatt etterlater en kopi.
+**Hvorfor tre.** Med bare to kopier er gjenopprettingen det farligste øyeblikket: originalen er borte, og den ene kopien brukes for første gang. Tre er det laveste tallet der ett tap, og ett til under gjenopprettingen, fortsatt etterlater en kopi.
 
 **Hvorfor to slags.** Det som teller, er at feilmåtene er ulike, ikke at merkelappene er det. To disker av samme type, kjøpt og tatt i bruk sammen, slites likt og kan ha samme skjulte feil. Det samme gjelder to kopier som styres av samme programvare. Ulike slags betyr at den ene feilen ikke er den andres.
 
@@ -32,18 +32,20 @@ Spørsmålet å stille til hvert par av kopier er derfor: **hvilken enkelthendel
 
 ## Bestem først hva du må tåle
 
-To tall styrer resten, og de er avgjørelser, ikke tekniske detaljer. **RPO** er hvor mye data du tåler å miste, målt i tid. **RTO** er hvor lenge du tåler å være nede.
+To tall styrer resten, og de er avgjørelser, ikke tekniske detaljer. **RPO** (Recovery Point Objective) er hvor mye data du tåler å miste, målt i tid. **RTO** (Recovery Time Objective) er hvor lenge du tåler å være nede.
 
 RPO bestemmer hvor ofte du kopierer: en kopi hver natt betyr at du kan miste opptil et døgn. RTO bestemmer medier og plassering, for det tar tid å hente tilbake store datamengder over en langsom linje. En kopi som trenger en uke for å komme tilbake, er en kopi mot katastrofer, ikke mot en feil på en tirsdag. Derfor har mange to nivåer: en nær og rask kopi for hverdagens feil, og en fjern kopi for det som tar hele stedet.
 
 Skriv tallene ned før du velger løsning, og mål mot dem senere.
 
+Sorter også dataene, for ikke alt fortjener 3-2-1-1-0 med lang historikk. **Uerstattelige data** får hele regelen. **Reproduserbare data** trenger bare det som gjenskaper dem: kode og konfigurasjon, som du tar vare på. **Midlertidige data**, som hurtigbuffere, byggeresultater og indekser som kan bygges på nytt, trenger ingen kopi. Uten sorteringen eksploderer både kostnaden og RTO.
+
 ## Det som ikke er en sikkerhetskopi
 
 Tre ting ligner på en sikkerhetskopi, og er nyttige, men svarer på et annet spørsmål:
 
-- **RAID og replikering** gir tilgjengelighet: tjenesten går videre når en disk eller en maskin faller ut. De skriver det samme til alle kopiene umiddelbart, så en sletting, en ødelagt fil og en feilaktig overskriving blir kopiert like raskt som alt annet.
-- **Synkronisering** holder to steder like. Slett en fil på det ene, og den forsvinner fra det andre. Det er to visninger av samme data.
+- **RAID og replikering** gir tilgjengelighet: tjenesten går videre når en disk eller en maskin faller ut. De skriver det samme til alle kopiene umiddelbart, så en sletting, en ødelagt fil og en feilaktig overskriving blir kopiert like raskt som alt annet. Forsinket replikering kan angre noen feil, men ligger fortsatt i samme administrative domene.
+- **Synkronisering** holder to steder like. Slett en fil på det ene, og den forsvinner fra det andre. Det er to visninger av samme data. En synkroniseringstjenestes versjonshistorikk eller papirkurv hjelper mot noen feil, men ligger i samme administrative domene.
 - **Øyeblikksbilder på samme system** er gode til rask angring, men ligger i samme feildomene: samme maskinvare, samme filsystem, samme administratorer. Faller systemet, faller bildene med det. De blir først en kopi når de er kopiert ut.
 
 En enkel test: **kan én kommando eller én feil i produksjon fjerne denne kopien?** Hvis ja, er den ikke en sikkerhetskopi.
@@ -54,10 +56,12 @@ Maskinvare og sted er lette å se. Det administrative domenet glemmes. Er alle k
 
 Det betyr:
 
-- **Adskilt tilgang.** Sikkerhetskopiene har egne kontoer og egen legitimasjon. At du administrerer produksjonen, skal ikke gjøre deg til administrator av kopiene.
-- **Minste privilegium.** Produksjonssiden kan skrive nye kopier, men ikke slette eller overskrive de gamle. Best er at sikkerhetskopisystemet henter dataene selv med lesetilgang, så en overtatt produksjon ikke har noen nøkkel til kopiene.
-- **Oppbevaringsregler fra kopisiden.** Hvor lenge kopiene lever, bestemmes der, ikke av systemet de kommer fra.
-- **Færrest mulig delte deler.** Samme konto hos samme leverandør, samme passordbehandler eller samme administrasjonsverktøy er en felles årsak, uansett hvor mange kopier som ligger bak.
+- **Atskilt tilgang.** Sikkerhetskopiene har egne kontoer og egen legitimasjon. At du administrerer produksjonen, skal ikke gjøre deg til administrator av kopiene.
+- **Minste privilegium.** Produksjonssiden kan skrive nye kopier, men ikke slette eller overskrive de gamle. Best er at sikkerhetskopisystemet henter dataene selv med bare lesetilgang, så en overtatt produksjon ikke har noen nøkkel til kopiene.
+- **Oppbevaringsregler fra sikkerhetskopisystemet.** Hvor lenge kopiene lever, settes og håndheves der, ikke av systemet de kommer fra.
+- **Så få felles avhengigheter som mulig.** Samme passordbehandler eller samme administrasjonsverktøy er et felles feilpunkt, uansett hvor mange kopier som ligger bak.
+- **Organisatorisk og avtalemessig domene.** Kopier hos samme leverandør, under samme avtale, juridiske enhet eller betaling kan dele skjebne selv med atskilte kontoer og uforanderlighet: en konto stengt ved en feil eller for brudd på vilkår, data slettet etter en ubetalt regning, en leverandør som avvikler tjenesten. Minst én kopi bør ligge utenfor dette domenet.
+- **Uavhengighet i tid.** Versjoner i en inkrementell eller deduplisert kjede avhenger av hverandre: én skadet basisblokk eller en skadet indeks i arkivet kan ta alle senere versjoner. Det er et felles feildomene, selv med mange versjoner. Mottiltak: kontroller integriteten til selve arkivet jevnlig, ta uavhengige fullkopier med jevne mellomrom, og la den andre kopien utenfor stedet aldri være en replika av samme arkiv, for da kopierer du skaden med.
 
 ## 3-2-1-1-0
 
@@ -71,11 +75,13 @@ Utvidelsen legger til to ledd som svarer på to feil den enkle regelen ikke dekk
 
 En sikkerhetskopi som overskriver gårsdagens med dagens, er et speil med litt forsinkelse: ødelagte data blir kopiert ved neste kjøring. Du trenger historikk. Vanlig er nivåer som tynnes ut med alderen: daglige kopier for de siste ukene, ukentlige for månedene, månedlige for lenger tilbake. Slik holder kostnaden seg avgrenset.
 
-Tallet å sammenligne med, er hvor lang tid det tar før du oppdager et problem. Begynner stille ødeleggelse i mars og du merker det i mai, og du beholder seks uker, finnes det ingen hel versjon. **Er tiden til oppdagelse lengre enn oppbevaringstiden, er dataene tapt.** Oppbevaringen må derfor overstige den lengste oppdagelsestiden du kan tenke deg. Samtidig har den en øvre grense: noen data skal slettes etter en tid, og sletting må før eller siden nå også kopiene, gjennom utløpet av oppbevaringen.
+Tallet å sammenligne med, er hvor lang tid det tar før du oppdager et problem. Begynner stille ødeleggelse i mars og du merker det i mai, og du beholder seks uker, finnes det ingen hel versjon. **Er tiden til oppdagelse lengre enn oppbevaringstiden, er dataene tapt.** Oppbevaringen må derfor overstige den lengste oppdagelsestiden du realistisk kan vente.
+
+Den har også en øvre grense: noen data skal slettes etter en tid, og sletting må før eller siden nå også kopiene. Uforanderlighet og påkrevd sletting må forenes i utformingen. Enten er uforanderlighetsvinduet ikke lengre enn tiden sletting må skje innen, eller så krypterer du datasett med hver sin nøkkel og sletter nøkkelen (kryptografisk sletting), også de deponerte kopiene av den.
 
 ## Kryptering
 
-En kopi er en ekstra kopi av alt, og ofte vokter du den dårligere enn originalen. Kopier som forlater din kontroll, på et annet sted, hos andre eller på medier som flyttes, må krypteres både under overføring og i ro. Ellers får den som får tak i kopien, alle dataene.
+En kopi er en ekstra kopi av alt, og ofte vokter du den dårligere enn originalen. Kopier som forlater din kontroll, på et annet sted, hos andre eller på medier som flyttes, må krypteres. Krypter på din side, før dataene forlater deg, med nøkler du selv holder. Kryptering i ro med leverandørens nøkler beskytter verken mot en kompromittert konto eller mot leverandøren. Under overføring skal selvfølgelig også kanalen være kryptert.
 
 Prisen er at nøkkelen blir en enkeltfeil for alle kopiene. Da gjelder to regler. Nøkkelen skal aldri bare ligge i sikkerhetskopien den låser opp, for da trenger du kopien for å åpne kopien. Og den skal aldri bare ligge på systemet som kan dø. Oppbevar den separat, på minst to steder som ikke deler skjebne, gjerne en forseglet papirkopi et annet sted. Test at en person som ikke har bygget oppsettet, kan komme til den.
 
@@ -89,35 +95,44 @@ En sikkerhetskopi som ikke er prøvd, er en hypotese. Sikkerhetskopier svikter s
 
 Det som overrasket deg, rettes i veiledningen.
 
+Etter et innbrudd gjenoppretter du ikke hele systembilder, for da gjenoppretter du inntrengeren også. Bygg systemene på nytt fra konfigurasjon og kode, gjenopprett bare data fra et tidspunkt før innbruddet, og behandle dem som mistenkelige. Da må en ren versjon fortsatt finnes. Innbrudd oppdages ofte sent, så oppbevaringstiden må dekke den tiden de får gå uoppdaget.
+
 ## Automatisering og overvåking
 
 Manuelle sikkerhetskopier slutter å bli tatt: en travel uke, en glemt rutine, en person som har sluttet. Automatiser tidsplan, kontroll og oppryddingen etter oppbevaringstiden.
 
-Men automatikk svikter også stille, og et varsel om feil er ikke nok, for en jobb som aldri starter, sender ingen feilmelding. Varsle på **fravær av suksess**: forvent én vellykket kjøring per periode, og slå alarm når den uteblir. Se i tillegg på alderen til den nyeste kopien og på størrelsen, for et brått fall i størrelse er et signal. Det er samme prinsipp som pulsen i [Hvem vokter vokterne? Tilsyn i IT-infrastruktur](/blogg/hvem-vokter-vokterne-i-it-infrastruktur/): stillhet er ikke et svar, og kontrollen skal ikke dele skjebne med det den passer på.
+Men automatikk svikter også stille, og et varsel om feil er ikke nok, for en jobb som aldri starter, sender ingen feilmelding. Varsle på **fravær av suksess**: forvent én vellykket kjøring per periode, og slå alarm når den uteblir. Se i tillegg på alderen til den nyeste kopien og på størrelsen, for et plutselig utslag begge veier er et signal. Vekst er også et signal: data som er blitt kryptert av andre enn deg, lar seg verken deduplisere eller komprimere, så inkrementene vokser brått. Det er samme prinsipp som pulsen i [Hvem vokter vokterne? Tilsyn i IT-infrastruktur](/blogg/hvem-vokter-vokterne-i-it-infrastruktur/): stillhet er ikke et svar, og kontrollen skal ikke dele skjebne med det den passer på.
 
 ## Hva som skal med
 
 Ikke bare dataene:
 
 - **Konfigurasjon:** hvordan systemene ble satt opp, så du kan bygge dem på nytt og ikke bare fylle dem.
-- **Hemmeligheter og nøkler**, krypterte og etter reglene over.
+- **Hemmeligheter**, krypterte og etter reglene over.
 - **Gjenopprettingsveiledningen:** trinn for trinn, skrevet for en som er stresset og ikke bygde oppsettet. Den og nøklene må overleve katastrofen. Ligger de bare på systemet som sviktet, kommer du ikke til dem når du trenger dem.
+- **Verktøyet og formatet.** Krever det å lese kopien en agent, en lisensserver eller en konsoll som døde med infrastrukturen eller ikke finnes lenger, er kopien ubrukelig. Formatet og midlene til å lese det må være tilgjengelige uavhengig, og ligge ved siden av kopien.
 - **Tjenestene alt annet hviler på,** som innlogging og navnetjenester.
 
-Og ta kopien på en måte som gir et konsistent tidspunkt: en fil som kopieres mens den endres, kan bli ubrukelig. Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og ikke en overraskelse.
+Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og ikke en overraskelse.
+
+## Konsistens
+
+Kopierte filer er ikke det samme som en konsistent tilstand. En database som kopieres på filnivå mens den kjører, kan bli ubrukelig. Hører systemer sammen, kan de bli tatt på ulike tidspunkter: databasen klokken 02.00 og fillageret den peker på klokken 02.40. Bruk databasens egen konsistente dump eller øyeblikksbilde, og ta relaterte systemer på ett tidspunkt eller i en kjent rekkefølge. Prøv dette i gjenopprettingsprøven.
 
 ## Sjekkliste
 
-- Vi har skrevet ned RPO og RTO.
+- Vi har skrevet ned RPO og RTO og sortert dataene i uerstattelige, reproduserbare og midlertidige.
 - Det finnes minst tre kopier, originalen medregnet.
 - De ligger på minst to ulike slags lagring.
-- Minst én kopi ligger et annet sted, utenfor rekkevidde av samme hendelse.
-- Ingen enkelthendelse (en feil, en konto, en maskin eller en person) kan slette alle kopiene. Produksjonen kan skrive, men ikke slette.
+- Minst én kopi ligger et annet sted, utenfor rekkevidde av samme hendelse, og utenfor leverandøren og avtalen de andre kopiene hører til.
+- Ingen enkelthendelse (en feil, en konto, en maskin eller en person) kan slette alle kopiene. Produksjonen kan ikke slette eller overskrive kopiene, og best er at den ikke har tilgang til dem i det hele tatt.
 - Minst én kopi er frakoblet eller uforanderlig.
 - Vi har flere versjoner, og oppbevaringen er lengre enn tiden det tar å oppdage et problem.
-- Kopier utenfor vår kontroll er kryptert, og nøkkelen er oppbevart separat, også på papir.
+- Arkivet kontrolleres jevnlig for integritet, og den andre kopien er ikke en replika av samme arkiv.
+- Kopier utenfor vår kontroll er kryptert av oss, og nøkkelen er oppbevart separat, på minst to steder som ikke deler skjebne.
 - Sikkerhetskopieringen kjører automatisk, og vi får alarm når en vellykket kjøring uteblir.
-- Konfigurasjon, hemmeligheter og gjenopprettingsveiledning er med, og ligger utenfor systemet som kan svikte.
+- Konfigurasjon og hemmeligheter er med i sikkerhetskopien. Gjenopprettingsveiledningen, nøkkelen og midlene til å lese formatet oppbevares utenfor den.
+- Kopiene er konsistente: relaterte systemer er tatt på ett tidspunkt eller i kjent rekkefølge.
 - Vi har gjenopprettet fra grunnen, tatt tiden og sammenlignet med RTO, og gjentar det på fast tid.
 
 Det siste punktet gjør de andre til mer enn påstander.
