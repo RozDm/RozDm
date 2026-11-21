@@ -51,7 +51,9 @@ and exit 1 on failure) and name no host of their own: the origin is
 
 Each page exists twice: a Norwegian route and an English route under
 `app/en/`, both thin wrappers over the same components, with strings from
-`data/dictionary.ts`. `lib/shared/i18n.ts` maps paths to the language and pairs the twins;
+`data/dictionary.ts` (exceptions: the privacy notices keep their text in
+their pages, and `app/error.tsx` reads `ERROR_COPY` from
+`data/dictionary-error.ts`; `app/CLAUDE.md`). `lib/shared/i18n.ts` maps paths to the language and pairs the twins;
 `pageMetadata` (`lib/shared/metadata.ts`) emits hreflang. A post names its Norwegian
 twin in `translationOf`. After the build, `scripts/finalize-export.mjs`
 bakes each page's hash-based CSP `<meta>`, the `lang` attribute and the
