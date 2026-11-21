@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { TimeseriesResponse } from '@/worker/api-types'
+import type { SeriesRangeKey, TimeseriesResponse } from '@/worker/api-types'
+import { SERIES_TTL_MS } from '@/lib/client/timeseries'
+import { parseRange } from '@/worker/domain/timeseries'
 
 const body = (range: TimeseriesResponse['range']): TimeseriesResponse => ({ metric: 'geo', range, points: [] })
 const ok = (range: TimeseriesResponse['range']) => new Response(JSON.stringify(body(range)), { status: 200 })
@@ -10,6 +12,18 @@ async function load() {
   vi.resetModules()
   return (await import('@/lib/client/timeseries')).fetchSeries
 }
+
+// The client mirrors the Worker's edge-cache TTLs (nothing runtime may be
+// imported from worker/ in the app; a test may).
+describe('SERIES_TTL_MS', () => {
+  it.each(Object.keys(SERIES_TTL_MS) as SeriesRangeKey[])("%s equals the Worker's ttlSeconds", (key) => {
+    expect(SERIES_TTL_MS[key]).toBe(parseRange(key)!.range.ttlSeconds * 1000)
+  })
+  it('covers every range the Worker serves', () => {
+    for (const key of ['24h', '7d', '30d', 'all']) expect(parseRange(key), key).not.toBeNull()
+    expect(Object.keys(SERIES_TTL_MS).sort()).toEqual(['24h', '30d', '7d', 'all'])
+  })
+})
 
 describe('fetchSeries', () => {
   const fetchMock = vi.fn()

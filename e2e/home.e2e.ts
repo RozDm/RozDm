@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from './fixtures'
-import { STUB_COUNTRIES, hourKey } from './api-stub'
+import { STUB_COUNTRIES, apiStub, hourKey } from './api-stub'
 
 // Front page: sections and the live widgets (status dashboard, Trends, footer).
 // User-level flows on the built export, desktop and mobile (playwright.config.ts).
@@ -122,9 +122,8 @@ const RANGE_BUTTONS = [
 const SERIES_URL = (range: string) => `/api/timeseries?metric=geo&range=${range}`
 
 // Answers every range with dots on its own bucket grid (1 h for 24h/7d, 6 h for
-// 30d/all: the chart merges by exact bucket key, and the stub's hour keys miss
-// a 6 h grid most of the day). `values` are the dots, newest last; `fail`
-// turns a range into a 500.
+// 30d/all: the chart merges by exact bucket key). Unlike the default stub's
+// three dots, `values` sets the dots, newest last; `fail` turns a range into a 500.
 async function routeSeries(page: TrendsPage, values = [1, 2, 3], fail: (range: string) => boolean = () => false) {
   await page.route('**/api/timeseries**', (r) => {
     const range = new URL(r.request().url()).searchParams.get('range') ?? '7d'
@@ -196,6 +195,29 @@ test('each period button is pressed alone, asks its range once and relabels the 
   }
   expect(asked, 'one request per range, nothing else').toHaveLength(4)
 })
+
+// The default stub's dots sit on each range's own grid (stubPoints in
+// e2e/api-stub.ts), so 30d and «Alt» draw all three at any time of day. The stub
+// runs in the test process: both its "now" and the page's are pinned here.
+for (const time of ['00:30', '05:59', '06:01', '23:59']) {
+  test(`the default stub draws three dots on 30d and «Alt» at ${time} UTC`, async ({ page }) => {
+    const now = Date.parse(`2026-11-21T${time}:00Z`)
+    await page.clock.setFixedTime(now)
+    await page.route('**/api/**', (r) => {
+      const { status, body, headers } = apiStub(new URL(r.request().url()), r.request().method(), now)
+      return r.fulfill({ status, body, headers, contentType: 'application/json' })
+    })
+    const card = await openTrends(page)
+    for (const [range, label] of [
+      ['30d', '30d'],
+      ['all', 'Alt'],
+    ]) {
+      await card.button(label).click()
+      await card.expectPressed(range)
+      await expect(card.dots).toHaveCount(3)
+    }
+  })
+}
 
 // «Alt» is the exact D1 total (the sum of /api/geo, as on the map), «siste 7d»
 // the AE count of the window: the stub's AE series differs from the geo sum.

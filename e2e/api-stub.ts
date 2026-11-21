@@ -9,6 +9,7 @@ import type {
   ApiErrorCode,
   ApiOk,
   GeoResponse,
+  SeriesPoint,
   SeriesRangeKey,
   StatusResponse,
   TimeseriesError,
@@ -35,6 +36,19 @@ export const hourKey = (ms: number) => {
 // quiet state overrides /api/geo with fewer.
 export const STUB_COUNTRIES: Record<string, number> = { NO: 120, US: 9, UA: 4 }
 export const STUB_MONITORS = ['NetBox', 'Grafana']
+
+// The dots a range's answer carries, on that range's own bucket grid: the chart
+// (lib/shared/timeseries-fill.ts) merges by EXACT bucket key, and 30d/all use 6 h
+// buckets. 24h/7d: hour keys 30, 5 and 2 h back; 30d/all: the 6 h buckets 5, 2
+// and 0 back from the one holding `now`, so any time of day draws three dots.
+export function stubPoints(range: SeriesRangeKey, now: number): SeriesPoint[] {
+  if (range === '30d' || range === 'all') {
+    const step = 6 * 3_600_000
+    const end = Math.floor(now / step) * step
+    return [5, 2, 0].map((back, i) => ({ ts: hourKey(end - back * step), value: i + 1 }))
+  }
+  return [30, 5, 2].map((h, i) => ({ ts: hourKey(now - h * 3_600_000), value: i + 1 }))
+}
 
 const RANGES: string[] = ['24h', '7d', '30d', 'all'] satisfies SeriesRangeKey[]
 
@@ -80,8 +94,7 @@ export function apiStub(url: URL, method: string, now = Date.now()): StubAnswer 
       return json({ error: { code: 'bad_range', message: 'Unknown range.' } } satisfies TimeseriesError, 400)
     const range = asked as SeriesRangeKey
     // No mail has failed in the stub's world.
-    const points =
-      metric === 'mailfail' ? [] : [30, 5, 2].map((h, i) => ({ ts: hourKey(now - h * 3_600_000), value: i + 1 }))
+    const points = metric === 'mailfail' ? [] : stubPoints(range, now)
     return json({ metric, range, points } satisfies TimeseriesResponse)
   }
   if (path.startsWith('/api/views/')) return json({ views: method === 'POST' ? 4 : 3 } satisfies ViewsResponse)

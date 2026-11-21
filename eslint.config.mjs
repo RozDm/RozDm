@@ -71,6 +71,11 @@ const routeSelectors = [
     message:
       'worker/routes/ is HTTP only: read and write KV, D1, Analytics Engine and mail through a worker/domain/*-store.ts function, not env.<binding> in a handler.',
   },
+  {
+    selector: "CallExpression[callee.name='apiError']",
+    message:
+      "Refuse through the route's typed `refuse` alias (const refuse: (code: XErrorCode) => Response = apiError), not apiError(...): tsc then rejects a code outside the route's union.",
+  },
 ]
 
 const config = [

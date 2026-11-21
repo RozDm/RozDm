@@ -43,7 +43,7 @@ file purposes: `node scripts/check-docs.mjs --map`; incidents: `docs/history.md`
   outside `worker/` but `lib/shared/` fail ESLint). A refusal is
   `apiError(code)` → `{ error: { code, message } }`, its status fixed per code
   in `API_ERRORS`: a new code goes there and into its route's union (routes call a
-  typed `refuse`, not `apiError`); clients read
+  typed `refuse`, not `apiError`; ESLint enforces it); clients read
   `code`, never `message`. No schema-validation dependency (owner's word).
 - `worker/` checks under `tsconfig.worker.json`: `npm run cf-typegen` after a
   `wrangler.jsonc` change or wrangler bump, commit it. `csp`, `ip`,
