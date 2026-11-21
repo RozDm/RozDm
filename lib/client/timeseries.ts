@@ -7,8 +7,8 @@ import { noteServerDate } from './server-clock'
 
 // The Worker's edge-cache TTLs per range (worker/domain/timeseries.ts RANGES
 // `ttlSeconds`: 60 / 300 / 600 / 900 s); mirrored here, nothing runtime may
-// be imported from worker/. Keep them in step.
-const TTL_MS: Record<SeriesRangeKey, number> = {
+// be imported from worker/. Held to them by tests/lib/client/timeseries.test.ts.
+export const SERIES_TTL_MS: Record<SeriesRangeKey, number> = {
   '24h': 60_000,
   '7d': 300_000,
   '30d': 600_000,
@@ -20,7 +20,7 @@ const cache = new Map<SeriesRangeKey, { at: number; promise: Promise<TimeseriesR
 export function fetchSeries(range: SeriesRangeKey): Promise<TimeseriesResponse> {
   const now = Date.now()
   const hit = cache.get(range)
-  if (hit && now - hit.at < TTL_MS[range]) return hit.promise
+  if (hit && now - hit.at < SERIES_TTL_MS[range]) return hit.promise
   const promise = fetch(`/api/timeseries?metric=geo&range=${range}`, { cache: 'no-store' }).then((r) => {
     // The chart's grid is laid out back from the server's "now".
     noteServerDate(r)

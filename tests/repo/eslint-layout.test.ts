@@ -120,6 +120,18 @@ const cases: { name: string; file: string; code: string; hit: RegExp | null }[] 
     hit: /HTTP only/,
   },
   {
+    name: 'a route calls apiError directly',
+    file: 'worker/routes/x.ts',
+    code: "import { apiError } from '../http'\nexport const f = () => apiError('bad_slug')\n",
+    hit: /typed `refuse`/,
+  },
+  {
+    name: 'a route refuses through the typed alias',
+    file: 'worker/routes/x.ts',
+    code: "import { apiError } from '../http'\nconst refuse: (code: 'bad_slug') => Response = apiError\nexport const f = () => refuse('bad_slug')\n",
+    hit: null,
+  },
+  {
     name: 'a route passes env to a store',
     file: 'worker/routes/x.ts',
     code: "import { readViews } from '../domain/views-store'\nexport const f = (env: Env) => readViews(env, 'a')\n",
