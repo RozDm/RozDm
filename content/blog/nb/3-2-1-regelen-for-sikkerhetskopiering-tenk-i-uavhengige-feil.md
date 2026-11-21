@@ -24,7 +24,7 @@ Spørsmålet å stille er derfor: **for hver hendelse jeg må overleve, hvor man
 | 2 ulike slags lagring | Feil som rammer en hel type: samme produksjonsfeil, samme slitasje, samme programfeil | Én systematisk feil tar alle kopiene samtidig |
 | 1 kopi på et annet sted | Hendelser som tar et helt sted: brann, vann, tyveri, lynnedslag, overspenning | Alle kopiene står innenfor samme hendelse |
 
-**Hvorfor tre.** Gjenopprettingen er en full lesing under press, og det er da skjulte feil viser seg: originalen er borte, og den ene kopien brukes for første gang. Tallene er en fornuftig minstetoleranse: å overleve én hendelse av hver art, pluss en feil under gjenopprettingen. Det er et valg, ikke et teorem. For mer kritiske data bør tallene være høyere.
+**Hvorfor tre.** Med bare to kopier er gjenopprettingen det farligste øyeblikket: originalen er borte, og den ene kopien leses i sin helhet, under press, for første gang, og det er da skjulte feil viser seg. Tallene er en fornuftig minstetoleranse: å overleve én hendelse av hver art, pluss en feil under gjenopprettingen. Det er et valg, ikke et teorem. For mer kritiske data bør tallene være høyere.
 
 **Hvorfor to slags.** Det som teller, er at feilmåtene er ulike, ikke merkelappene. To disker av samme type, kjøpt og tatt i bruk sammen, slites likt og kan ha samme skjulte feil. Det samme gjelder to kopier styrt av samme programvare. Med tre kopier på to slags deler to av dem en art: rammes den av en feil, står du igjen med én kopi uten margin. Det er én grunn til det ekstra +1 lenger ned.
 
@@ -101,7 +101,7 @@ Det som overrasket deg, rettes i veiledningen.
 
 ## Etter et innbrudd
 
-Gjenopprett ikke hele systembilder, for da gjenoppretter du inntrengeren også. Bygg systemene på nytt fra konfigurasjon og kode, gjenopprett bare data fra et tidspunkt før innbruddet, og behandle dem som mistenkelige. Det forutsetter at en ren versjon fortsatt finnes (se oppbevaringstiden over).
+Gjenopprett ikke hele systembilder, for da gjenoppretter du inntrengeren også. Bygg systemene på nytt fra konfigurasjon og kode, gjenopprett bare data fra et tidspunkt før innbruddet, og behandle dem som mistenkelige. Det forutsetter at en ren versjon fortsatt finnes: innbrudd oppdages ofte sent, så de hører med blant problemene oppbevaringen må vare lenger enn (se over).
 
 ## Automatisering og overvåking
 
@@ -128,7 +128,7 @@ Det som bevisst står utenfor, skal stå på en liste, slik at det er et valg og
 - Minst én kopi er frakoblet eller uforanderlig, med begrensede skriverettigheter og kvoter.
 - Vi har flere versjoner, og oppbevaringen er lengre enn tiden det tar å oppdage et problem.
 - Arkivet kontrolleres jevnlig for integritet, og minst én kopi lages uavhengig, ikke replikert fra samme arkiv.
-- Kopier utenfor vår kontroll er kryptert av oss, og nøkkelen er oppbevart separat, på minst to steder som ikke deler skjebne.
+- Alle kopier er kryptert, de utenfor vår kontroll av oss med våre egne nøkler, og nøkkelen er oppbevart separat, på minst to steder som ikke deler skjebne.
 - Sikkerhetskopieringen kjører automatisk, og vi får alarm når en vellykket kjøring uteblir.
 - Konfigurasjon og hemmeligheter er med i sikkerhetskopien. Gjenopprettingsveiledningen, nøkkelen, verktøyet til å lese formatet og tilgangen til lagringen ligger utenfor, atskilt og lesbart uten den, og rekkefølgen har ingen sykluser.
 - Kopiene er konsistente: relaterte systemer er tatt på ett tidspunkt eller i en definert rekkefølge.

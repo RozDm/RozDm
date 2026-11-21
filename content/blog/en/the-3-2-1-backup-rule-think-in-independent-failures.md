@@ -25,7 +25,7 @@ So the question to ask is: **for each event I must survive, how many copies are 
 | 2 different kinds of storage | Failures that hit a whole type: the same manufacturing fault, the same wear, the same software bug | One systematic fault takes all the copies at once |
 | 1 copy at another site | Events that take a whole place: fire, water, theft, lightning, a power surge | All the copies sit within reach of the same event |
 
-**Why three.** The restore is a full read under stress, which is when latent faults show: the original is gone and the one copy is used for the first time. The numbers are a sensible minimum tolerance: survive one event of each kind, plus one failure during the restore. That is a choice, not a theorem. For more critical data, the numbers should be higher.
+**Why three.** With only two copies, the restore is the most dangerous moment: the original is gone, and the one copy is read in full, under stress, for the first time, which is when latent faults show. The numbers are a sensible minimum tolerance: survive one event of each kind, plus one failure during the restore. That is a choice, not a theorem. For more critical data, the numbers should be higher.
 
 **Why two kinds.** What counts is that the failure modes differ, not the labels. Two disks of the same type, bought and put into service together, wear alike and may share a hidden defect. So do two copies managed by the same software. With three copies on two kinds, two of them share a kind: if a fault of that kind strikes, you are left with one copy and no margin. That is one reason for the extra +1 further down.
 
@@ -102,7 +102,7 @@ What surprised you goes into the runbook.
 
 ## After a break-in
 
-Do not restore whole system images, because you would restore the intruder too. Rebuild the systems from configuration and code, restore only data, from a point before the intrusion, and treat it as suspect. That requires a clean version to still exist (see retention above).
+Do not restore whole system images, because you would restore the intruder too. Rebuild the systems from configuration and code, restore only data, from a point before the intrusion, and treat it as suspect. That requires a clean version to still exist: intrusions are often found late, so they count among the problems retention must outlast (see above).
 
 ## Automation and monitoring
 
@@ -129,7 +129,7 @@ What is deliberately left out belongs on a list, so that it is a choice and not 
 - At least one copy is offline or immutable, with limited write rights and quotas.
 - We keep several versions, and the retention is longer than the time it takes to notice a problem.
 - The repository is checked for integrity regularly, and at least one copy is made independently, not replicated from the same repository.
-- Copies outside our control are encrypted by us, and the key is kept separately, in at least two places that do not share a fate.
+- Every copy is encrypted, those outside our control by us with our own keys, and the key is kept separately, in at least two places that do not share a fate.
 - The backup runs automatically, and we get an alarm when a successful run fails to arrive.
 - Configuration and secrets are in the backup. The runbook, the key, the tool to read the format and the access to the storage sit outside it, stored separately and readable without it, and the restore order has no cycles.
 - The copies are consistent: related systems are captured at one point in time or in a defined order.
